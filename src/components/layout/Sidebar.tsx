@@ -48,34 +48,6 @@ const navItems: NavItem[] = [
     href: '/orders',
     icon: ShoppingBag,
   },
-  
-  {
-    title: 'Booking Management',
-    href: '/booking-management',
-    icon: ListOrdered,
-  },
-
-
-  {
-    title: 'Agency Management',
-    href: '/agency-management',
-    icon: Building,
-  },
-  {
-    title: 'Calendar',
-    href: '/calender',
-    icon: Calendar,
-  },
-  {
-    title: 'Transactions History',
-    href: '/transactions-history',
-    icon: CreditCard,
-  },
-  {
-    title: 'Client Management',
-    href: '/clients',
-    icon: Users,
-  },
   {
     title: 'Shop Management',
     href: '/shop-management/customise',
@@ -103,6 +75,34 @@ const navItems: NavItem[] = [
       },
     ],
   },
+  {
+    title: 'Booking Management',
+    href: '/booking-management',
+    icon: ListOrdered,
+  },
+
+
+  {
+    title: 'Agency Management',
+    href: '/agency-management',
+    icon: Building,
+  },
+  {
+    title: 'Calendar',
+    href: '/calender',
+    icon: Calendar,
+  },
+  {
+    title: 'Transactions History',
+    href: '/transactions-history',
+    icon: CreditCard,
+  },
+  {
+    title: 'Client Management',
+    href: '/clients',
+    icon: Users,
+  },
+
 ]
 
 const settingsItems: NavItem[] = [
