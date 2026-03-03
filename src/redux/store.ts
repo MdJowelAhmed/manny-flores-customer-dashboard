@@ -12,6 +12,11 @@ import calendarReducer from './slices/calendarSlice'
 import transactionReducer from './slices/transactionSlice'
 import orderReducer from './slices/orderSlice'
 import faqReducer from './slices/faqSlice'
+import milkTypeReducer from './slices/milkTypeSlice'
+import syrupTypeReducer from './slices/syrupTypeSlice'
+import shopCategoryReducer from './slices/shopCategorySlice'
+import shopReducer from './slices/shopSlice'
+import shopProductReducer from './slices/shopProductSlice'
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +33,11 @@ export const store = configureStore({
     transactions: transactionReducer,
     orders: orderReducer,
     faqs: faqReducer,
+    milkTypes: milkTypeReducer,
+    syrupTypes: syrupTypeReducer,
+    shopCategories: shopCategoryReducer,
+    shops: shopReducer,
+    shopProducts: shopProductReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

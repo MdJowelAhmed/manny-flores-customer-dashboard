@@ -6,6 +6,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   User,
   Lock,
   FileText,
@@ -16,6 +17,10 @@ import {
   CreditCard,
   HelpCircle,
   ListOrdered,
+  Store,
+  Layers,
+  Coffee,
+  Package,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -70,6 +75,33 @@ const navItems: NavItem[] = [
     title: 'Client Management',
     href: '/clients',
     icon: Users,
+  },
+  {
+    title: 'Shop Management',
+    href: '/shop-management/customise',
+    icon: Store,
+    children: [
+      {
+        title: 'Customise',
+        href: '/shop-management/customise',
+        icon: Coffee,
+      },
+      {
+        title: 'Category',
+        href: '/shop-management/category',
+        icon: Layers,
+      },
+      {
+        title: 'Shop',
+        href: '/shop-management/shop',
+        icon: Store,
+      },
+      {
+        title: 'Products',
+        href: '/shop-management/products',
+        icon: Package,
+      },
+    ],
   },
 ]
 
@@ -239,22 +271,77 @@ interface SidebarNavItemProps {
 
 function SidebarNavItem({ item, collapsed }: SidebarNavItemProps) {
   const Icon = item.icon
+  const location = useLocation()
+  const hasChildren = item.children && item.children.length > 0
+  const isParentActive = hasChildren
+    ? item.children!.some((c) => location.pathname === c.href || location.pathname.startsWith(c.href + '/'))
+    : false
+  const [isExpanded, setIsExpanded] = React.useState(isParentActive)
+
+  React.useEffect(() => {
+    if (isParentActive) setIsExpanded(true)
+  }, [isParentActive])
+
+  if (hasChildren && !collapsed) {
+    return (
+      <div className="space-y-0.5">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className={cn(
+            'group flex w-full items-center gap-3 px-3 py-2.5 rounded-sm transition-all duration-200',
+            'hover:bg-[#a78133] hover:text-[#fff]',
+            isParentActive ? 'bg-[#a78133]/80 text-[#fff]' : 'text-[#656565]'
+          )}
+        >
+          <Icon className="h-5 w-5 flex-shrink-0 text-current" />
+          <span className="font-medium flex-1 text-left">{item.title}</span>
+          <ChevronDown
+            className={cn('h-4 w-4 transition-transform', isExpanded && 'rotate-180')}
+          />
+        </button>
+        {isExpanded && (
+          <div className="ml-4 space-y-0.5 border-l-2 border-[#a78133]/30 pl-3">
+            {item.children!.map((child) => {
+              const ChildIcon = child.icon
+              return (
+                <NavLink
+                  key={child.href}
+                  to={child.href}
+                  className={({ isActive }) =>
+                    cn(
+                      'group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200',
+                      'hover:bg-[#a78133] hover:text-[#fff]',
+                      isActive ? 'bg-[#a78133] text-[#fff] shadow-md' : 'text-[#656565]'
+                    )
+                  }
+                >
+                  <ChildIcon className="h-4 w-4 flex-shrink-0 text-current" />
+                  <span className="text-sm font-medium">{child.title}</span>
+                </NavLink>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   const linkContent = (
     <NavLink
-  to={item.href}
-  className={({ isActive }) =>
-    cn(
-      'group flex items-center gap-3 px-3 py-2.5 rounded-sm transition-all duration-200',
-      'hover:bg-[#a78133] hover:text-[#fff]',
-      collapsed && 'justify-center',
-      isActive ? 'bg-[#a78133] text-[#fff] shadow-md' : 'text-[#656565]'
-    )
-  }
->
-  <Icon className="h-5 w-5 flex-shrink-0 text-current" />
-  {!collapsed && <span className="font-medium">{item.title}</span>}
-</NavLink>
+      to={item.href}
+      className={({ isActive }) =>
+        cn(
+          'group flex items-center gap-3 px-3 py-2.5 rounded-sm transition-all duration-200',
+          'hover:bg-[#a78133] hover:text-[#fff]',
+          collapsed && 'justify-center',
+          isActive ? 'bg-[#a78133] text-[#fff] shadow-md' : 'text-[#656565]'
+        )
+      }
+    >
+      <Icon className="h-5 w-5 flex-shrink-0 text-current" />
+      {!collapsed && <span className="font-medium">{item.title}</span>}
+    </NavLink>
   )
 
   if (collapsed) {

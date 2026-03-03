@@ -30,6 +30,10 @@ import Calender from './pages/calender/Calender'
 import TransactionsHistory from './pages/transictions-history/TransactionsHistory'
 import FAQ from './pages/FAQ/FAQ'
 import NotFound from './pages/NotFound/NotFound'
+import Customise from './pages/ShopManagement/Customise/Customise'
+import ShopCategory from './pages/ShopManagement/Category/ShopCategory'
+import ShopList from './pages/ShopManagement/Shop/ShopList'
+import ShopProducts from './pages/ShopManagement/Products/ShopProducts'
 
 function AppEntryRedirect() {
   const { user } = useAppSelector((state) => state.auth)
@@ -126,6 +130,15 @@ function App() {
           
           {/* Category Management */}
           <Route path="categories" element={<CategoryList />} />
+
+          {/* Shop Management */}
+          <Route path="shop-management">
+            <Route index element={<Navigate to="/shop-management/customise" replace />} />
+            <Route path="customise" element={<Customise />} />
+            <Route path="category" element={<ShopCategory />} />
+            <Route path="shop" element={<ShopList />} />
+            <Route path="products" element={<ShopProducts />} />
+          </Route>
           
           {/* Settings */}
           <Route path="settings">

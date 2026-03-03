@@ -500,3 +500,64 @@ export interface TransactionFilters {
   search: string
   status: TransactionStatus | 'all'
 }
+
+// ==================== Shop Management Types ====================
+export type CustomizeType = 'milk' | 'syrup'
+
+export interface MilkType {
+  id: string
+  name: string
+  price: number
+  type: 'milk'
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SyrupType {
+  id: string
+  name: string
+  price: number
+  type: 'syrup'
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ShopCategory {
+  id: string
+  name: string
+  shortDescription: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Shop {
+  id: string
+  shopName: string
+  contact: string
+  location: string
+  openTime: string
+  closeTime: string
+  aboutShop: string
+  shopPicture?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ShopProduct {
+  id: string
+  itemsName: string
+  price: number
+  categoryId: string
+  categoryName?: string
+  tags: string[]
+  customizeType: 'both'
+  pickupTime: string
+  itemsPicture?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
