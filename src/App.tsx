@@ -22,7 +22,7 @@ import ChangePassword from '@/pages/Settings/ChangePassword/ChangePassword'
 import TermsSettings from '@/pages/Settings/Terms/TermsSettings'
 import PrivacySettings from '@/pages/Settings/Privacy/PrivacySettings'
 import BookingManagement from './pages/Booking/BookingManagement'
-import CarList from './pages/carlist/CarList'
+import OrderList from './pages/Orders/OrderList'
 // import AddCar from './pages/carlist/AddCar'
 import ClientManagement from './pages/ClientManagement/ClientManagement'
 import AgencyManagement from './pages/agency-management/AgencyManagement'
@@ -106,10 +106,10 @@ function App() {
             element={<BookingManagement />}
           />
           
-          {/* Car Management - All roles can access */}
+          {/* Orders - All roles can access */}
           <Route 
-            path="cars" 
-            element={<CarList />}
+            path="orders" 
+            element={<OrderList />}
           />
           
           {/* Calendar - All roles can access */}

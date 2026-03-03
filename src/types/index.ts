@@ -444,6 +444,38 @@ export interface FAQFormData {
   position: FAQPosition
 }
 
+// ==================== Order Types ====================
+export type OrderStatus = 'Completed' | 'Processing' | 'Cancelled'
+
+export interface Order {
+  id: string
+  orderId: string
+  title: string
+  image: string
+  vendor: string
+  date: string
+  time: string
+  itemCount: number
+  amount: number
+  status: OrderStatus
+  transactionId?: string
+  location?: string
+  customizeItem?: string
+  previousBalance?: number
+  orderPrice?: number
+  newBalance?: number
+  tips?: number
+  pickupTime?: string
+  totalPrice?: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface OrderFilters {
+  search: string
+  status: OrderStatus | 'all'
+}
+
 // ==================== Transaction Types ====================
 export type TransactionStatus = 'Pending' | 'Completed' | 'Failed' | 'Cancelled'
 

@@ -332,13 +332,3 @@ export const carListData: Car[] = [
     updatedAt: '2024-01-25',
   },
 ]
-
-export const carClassFilterOptions = [
-  { value: 'all', label: 'All Classes' },
-  { value: 'Upper Class', label: 'Upper Class' },
-  { value: 'Small Cars', label: 'Small Cars' },
-  { value: 'Compact Class', label: 'Compact Class' },
-  { value: 'Middle Class', label: 'Middle Class' },
-  { value: 'Premium Class', label: 'Premium Class' },
-]
-

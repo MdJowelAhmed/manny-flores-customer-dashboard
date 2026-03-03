@@ -7,17 +7,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { carClassFilterOptions } from '../carData'
+import { orderStatusFilterOptions } from '../orderData'
 import { cn } from '@/utils/cn'
-import type { CarClass } from '@/types'
+import type { OrderStatus } from '@/types'
 
-interface CarFilterDropdownProps {
-  value: CarClass | 'all'
-  onChange: (value: CarClass | 'all') => void
+interface OrderFilterDropdownProps {
+  value: OrderStatus | 'all'
+  onChange: (value: OrderStatus | 'all') => void
   className?: string
 }
 
-export function CarFilterDropdown({ value, onChange, className }: CarFilterDropdownProps) {
+export function OrderFilterDropdown({
+  value,
+  onChange,
+  className,
+}: OrderFilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -37,11 +41,11 @@ export function CarFilterDropdown({ value, onChange, className }: CarFilterDropd
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        {carClassFilterOptions.map((option) => (
+        {orderStatusFilterOptions.map((option) => (
           <DropdownMenuItem
             key={option.value}
             onClick={() => {
-              onChange(option.value as CarClass | 'all')
+              onChange(option.value as OrderStatus | 'all')
               setIsOpen(false)
             }}
             className={cn(
@@ -56,4 +60,3 @@ export function CarFilterDropdown({ value, onChange, className }: CarFilterDropd
     </DropdownMenu>
   )
 }
-

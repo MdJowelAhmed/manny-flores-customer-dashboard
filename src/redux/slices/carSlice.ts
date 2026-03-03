@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import type { Car, CarFilters } from '@/types'
-import { carListData } from '@/pages/carlist/carData'
+import { carListData } from '@/data/carData'
 import { applyBusinessIds } from '@/utils/applyBusinessIds'
 
 interface CarState {

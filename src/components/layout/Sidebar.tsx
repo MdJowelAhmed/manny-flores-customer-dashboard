@@ -10,7 +10,7 @@ import {
   Lock,
   FileText,
   Shield,
-  Car,
+  ShoppingBag,
   Building,
   Calendar,
   CreditCard,
@@ -39,9 +39,9 @@ const navItems: NavItem[] = [
   },
 
   {
-    title: 'Car List',
-    href: '/cars',
-    icon: Car,
+    title: 'Orders',
+    href: '/orders',
+    icon: ShoppingBag,
   },
   
   {

@@ -17,7 +17,7 @@ import { getInitials } from '@/utils/formatters'
 
 const routeTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
-  '/cars': 'Car List',
+  '/orders': 'Orders',
   '/booking-management': 'Booking Management',
   '/calender': 'Calendar',
   '/transactions-history': 'Transactions History',
