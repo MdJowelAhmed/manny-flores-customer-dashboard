@@ -6,7 +6,6 @@ import { formatDate, formatTime, formatCurrency } from '@/utils/formatters'
 
 interface RevenueTableProps {
   transactions: Transaction[]
-  onView: (transaction: Transaction) => void
 }
 
 function PaymentMethodIcon({ method }: { method: string }) {
@@ -20,7 +19,7 @@ function PaymentMethodIcon({ method }: { method: string }) {
   return <CreditCard className="h-4 w-4 text-muted-foreground" />
 }
 
-export function RevenueTable({ transactions, onView }: RevenueTableProps) {
+export function RevenueTable({ transactions }: RevenueTableProps) {
   return (
     <div className="w-full overflow-auto">
       <table className="w-full min-w-[800px]">
@@ -55,13 +54,9 @@ export function RevenueTable({ transactions, onView }: RevenueTableProps) {
               >
                 {/* ID Column */}
                 <td className="px-6 py-4">
-                  <button
-                    type="button"
-                    onClick={() => onView(transaction)}
-                    className="text-sm font-medium text-slate-800 hover:text-primary hover:underline cursor-pointer text-left"
-                  >
+                  <span className="text-sm font-medium text-slate-800">
                     {transaction.transactionId}
-                  </button>
+                  </span>
                 </td>
 
                 {/* Date & Time Column */}

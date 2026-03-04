@@ -154,7 +154,7 @@ export function Pagination({
           className={variant === 'revenue' ? 'gap-1' : ''}
         >
           <ChevronLeft className="h-4 w-4" />
-          {variant === 'revenue' && <span>Prev</span>}
+          {/* {variant === 'revenue' && <span>Prev</span>} */}
         </Button>
 
         <div className="flex items-center gap-1">
@@ -184,7 +184,7 @@ export function Pagination({
           disabled={!canGoNext}
           className={variant === 'revenue' ? 'gap-1' : ''}
         >
-          {variant === 'revenue' && <span>Next</span>}
+          {/* {variant === 'revenue' && <span>Next</span>} */}
           <ChevronRight className="h-4 w-4" />
         </Button>
         <Button

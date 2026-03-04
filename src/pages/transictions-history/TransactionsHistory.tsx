@@ -1,21 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SearchInput } from '@/components/common/SearchInput'
 import { Pagination } from '@/components/common/Pagination'
 import { RevenueTable } from './components/RevenueTable'
-import { ViewTransactionDetailsModal } from './components/ViewTransactionDetailsModal'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
 import { setFilters, setPage, setLimit } from '@/redux/slices/transactionSlice'
 import { useUrlString, useUrlNumber } from '@/hooks/useUrlState'
-import type { Transaction } from '@/types'
 
 export default function RevenueList() {
   const dispatch = useAppDispatch()
-
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const [selectedTransaction, setSelectedTransaction] =
-    useState<Transaction | null>(null)
 
   const [searchQuery, setSearchQuery] = useUrlString('search', '')
   const [currentPage, setCurrentPage] = useUrlNumber('page', 1)
@@ -48,11 +42,6 @@ export default function RevenueList() {
     return filteredList.slice(startIndex, startIndex + pagination.limit)
   }, [filteredList, pagination.page, pagination.limit])
 
-  const handleView = (transaction: Transaction) => {
-    setSelectedTransaction(transaction)
-    setIsViewModalOpen(true)
-  }
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
   }
@@ -82,7 +71,7 @@ export default function RevenueList() {
         </CardHeader>
 
         <CardContent className="p-0">
-          <RevenueTable transactions={paginatedData} onView={handleView} />
+          <RevenueTable transactions={paginatedData} />
 
           <div className="px-6 py-4 border-t border-gray-100">
             <Pagination
@@ -97,15 +86,6 @@ export default function RevenueList() {
           </div>
         </CardContent>
       </Card>
-
-      <ViewTransactionDetailsModal
-        open={isViewModalOpen}
-        onClose={() => {
-          setIsViewModalOpen(false)
-          setSelectedTransaction(null)
-        }}
-        transaction={selectedTransaction}
-      />
     </motion.div>
   )
 }
