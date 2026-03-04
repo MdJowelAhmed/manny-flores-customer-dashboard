@@ -35,6 +35,7 @@ import ShopCategory from './pages/ShopManagement/Category/ShopCategory'
 import ShopList from './pages/ShopManagement/Shop/ShopList'
 import ShopProducts from './pages/ShopManagement/Products/ShopProducts'
 import SubscriberList from './pages/Subscribers/SubscriberList'
+import AdManagement from './pages/AdManagement/AdManagement'
 import PushNotificationList from './pages/PushNotification/PushNotificationList'
 import ControllerList from './pages/Controllers/ControllerList'
 
@@ -95,6 +96,12 @@ function App() {
           <Route 
             path="subscribers" 
             element={<SubscriberList />}
+          />
+
+          {/* Ad Management - Super Admin Only */}
+          <Route 
+            path="ad-management" 
+            element={<AdManagement />}
           />
 
           {/* Push Notification - Super Admin Only */}

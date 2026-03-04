@@ -24,6 +24,7 @@ import {
   Package,
   Mail,
   Bell,
+  ImageIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -109,6 +110,11 @@ const navItems: NavItem[] = [
     title: 'Subscribers',
     href: '/subscribers',
     icon: Mail,
+  },
+  {
+    title: 'Ad Management',
+    href: '/ad-management',
+    icon: ImageIcon,
   },
   {
     title: 'Push Notification',

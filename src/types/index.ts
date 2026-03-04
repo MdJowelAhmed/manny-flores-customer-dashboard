@@ -216,6 +216,15 @@ export interface CarFilters {
   rating: ('Top Rated' | 'Most Popular')[] | 'all'
 }
 
+// ==================== Ad / Poster Types ====================
+export interface Poster {
+  id: string
+  imageUrl: string
+  title: string
+  description: string
+  createdAt: string
+}
+
 // ==================== Pagination Types ====================
 export interface PaginationState {
   page: number

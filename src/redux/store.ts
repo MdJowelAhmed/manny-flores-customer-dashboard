@@ -20,6 +20,7 @@ import shopProductReducer from './slices/shopProductSlice'
 import subscriberReducer from './slices/subscriberSlice'
 import pushNotificationReducer from './slices/pushNotificationSlice'
 import controllerReducer from './slices/controllerSlice'
+import adReducer from './slices/adSlice'
 
 export const store = configureStore({
   reducer: {
@@ -44,6 +45,7 @@ export const store = configureStore({
     subscribers: subscriberReducer,
     pushNotifications: pushNotificationReducer,
     controllers: controllerReducer,
+    ads: adReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
