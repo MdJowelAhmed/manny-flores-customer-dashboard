@@ -98,10 +98,11 @@ const navItems: NavItem[] = [
     icon: CreditCard,
   },
   {
-    title: 'Client Management',
-    href: '/clients',
+    title: 'User Management',
+    href: '/users',
     icon: Users,
   },
+
 
 ]
 

@@ -67,7 +67,7 @@ function ProductCard({
             {product.tags.map((t) => (
               <span
                 key={t}
-                className="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-xs"
+                className="inline-flex items-center gap-1 rounded bg-secondary-foreground px-2 py-0.5 text-xs text-white"
               >
                 <Tag className="h-3 w-3" />
                 {t}

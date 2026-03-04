@@ -1,139 +1,100 @@
-import { useMemo, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  SearchInput,
-  FilterDropdown,
-  DataTable,
-  Pagination,
-  StatusBadge,
-} from '@/components/common'
-import { UserActionMenu } from './components/UserActionMenu'
+import { SearchInput } from '@/components/common/SearchInput'
+import { Pagination } from '@/components/common/Pagination'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { UserFilterDropdown } from './components/UserFilterDropdown'
+import { UserTable } from './components/UserTable'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import { setFilters, setPage, setLimit } from '@/redux/slices/userSlice'
-import { useUrlParams } from '@/hooks/useUrlState'
-import { USER_ROLES, USER_STATUSES } from '@/utils/constants'
-import { formatDate, getInitials } from '@/utils/formatters'
-import type { User, TableColumn } from '@/types'
-import { motion } from 'framer-motion'
+import { setFilters, setPage, setLimit, updateUserStatus } from '@/redux/slices/userSlice'
+import { useUrlString, useUrlNumber } from '@/hooks/useUrlState'
+import { toast } from '@/utils/toast'
+import type { User, UserStatus } from '@/types'
 
 export default function UserList() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const { filteredList, isLoading } = useAppSelector(
-    (state) => state.users
-  )
 
-  // URL-based state management
-  const { getParam, getNumberParam, setParam, setParams } = useUrlParams()
-  
-  const search = getParam('search', '')
-  const status = getParam('status', 'all')
-  const role = getParam('role', 'all')
-  const page = getNumberParam('page', 1)
-  const limit = getNumberParam('limit', 10)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [isConfirmLoading, setIsConfirmLoading] = useState(false)
 
-  // Sync URL params with Redux
-  useEffect(() => {
-    dispatch(setFilters({ 
-      search, 
-      status: status as User['status'] | 'all', 
-      role: role as User['role'] | 'all' 
-    }))
-  }, [search, status, role, dispatch])
+  const [searchQuery, setSearchQuery] = useUrlString('search', '')
+  const [statusFilter, setStatusFilter] = useUrlString('status', 'all')
+  const [currentPage, setCurrentPage] = useUrlNumber('page', 1)
+  const [itemsPerPage, setItemsPerPage] = useUrlNumber('limit', 10)
+
+  const { filteredList, pagination } = useAppSelector((state) => state.users)
 
   useEffect(() => {
-    dispatch(setPage(page))
-  }, [page, dispatch])
+    dispatch(
+      setFilters({
+        search: searchQuery,
+        status: statusFilter as UserStatus | 'all',
+        role: 'all',
+      })
+    )
+  }, [searchQuery, statusFilter, dispatch])
 
   useEffect(() => {
-    dispatch(setLimit(limit))
-  }, [limit, dispatch])
+    dispatch(setPage(currentPage))
+  }, [currentPage, dispatch])
 
-  const columns: TableColumn<User>[] = useMemo(
-    () => [
-      {
-        key: 'name',
-        label: 'User',
-        sortable: true,
-        render: (_, user) => (
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9">
-              <AvatarImage src={user.avatar} />
-              <AvatarFallback>
-                {getInitials(user.firstName, user.lastName)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-medium">
-                {user.firstName} {user.lastName}
-              </p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
-            </div>
-          </div>
-        ),
-      },
-      {
-        key: 'phone',
-        label: 'Phone',
-        render: (value) => <span className="text-muted-foreground">{value as string}</span>,
-      },
-      {
-        key: 'role',
-        label: 'Role',
-        sortable: true,
-        render: (value) => <StatusBadge status={value as string} type="role" />,
-      },
-      {
-        key: 'status',
-        label: 'Status',
-        sortable: true,
-        render: (value) => <StatusBadge status={value as string} />,
-      },
-      {
-        key: 'createdAt',
-        label: 'Joined',
-        sortable: true,
-        render: (value) => (
-          <span className="text-muted-foreground">{formatDate(value as string)}</span>
-        ),
-      },
-    ],
-    []
-  )
+  useEffect(() => {
+    dispatch(setLimit(itemsPerPage))
+  }, [itemsPerPage, dispatch])
 
-  // Calculate paginated data
+  const totalPages = pagination.totalPages
   const paginatedData = useMemo(() => {
-    const start = (page - 1) * limit
-    const end = start + limit
-    return filteredList.slice(start, end)
-  }, [filteredList, page, limit])
+    const startIndex = (pagination.page - 1) * pagination.limit
+    return filteredList.slice(startIndex, startIndex + pagination.limit)
+  }, [filteredList, pagination.page, pagination.limit])
 
-  const handleSearch = (value: string) => {
-    setParams({ search: value, page: 1 })
-  }
-
-  const handleStatusFilter = (value: string) => {
-    setParams({ status: value, page: 1 })
-  }
-
-  const handleRoleFilter = (value: string) => {
-    setParams({ role: value, page: 1 })
-  }
-
-  const handlePageChange = (newPage: number) => {
-    setParam('page', newPage)
-  }
-
-  const handleLimitChange = (newLimit: number) => {
-    setParams({ limit: newLimit, page: 1 })
-  }
-
-  const handleRowClick = (user: User) => {
+  const handleView = (user: User) => {
     navigate(`/users/${user.id}`)
+  }
+
+  const handleLock = (user: User) => {
+    setSelectedUser(user)
+    setIsConfirmOpen(true)
+  }
+
+  const handleConfirmLock = async () => {
+    if (!selectedUser) return
+
+    setIsConfirmLoading(true)
+    try {
+      const nextStatus: UserStatus =
+        selectedUser.status === 'blocked' ? 'active' : 'blocked'
+      dispatch(updateUserStatus({ id: selectedUser.id, status: nextStatus }))
+      toast({
+        title: 'Success',
+        description: `${selectedUser.firstName} ${selectedUser.lastName} is now ${nextStatus}.`,
+        variant: 'success',
+      })
+      setIsConfirmOpen(false)
+      setSelectedUser(null)
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Failed to update user status. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsConfirmLoading(false)
+    }
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (limit: number) => {
+    setItemsPerPage(limit)
   }
 
   return (
@@ -143,66 +104,81 @@ export default function UserList() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <CardTitle>Users</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Manage your users, view details, and control access
-            </p>
-          </div>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add User
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <Card className="bg-white border-0 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between pb-6">
+          <CardTitle className="text-xl font-bold text-slate-800">
+            Users
+          </CardTitle>
+          <div className="flex items-center gap-3">
             <SearchInput
-              value={search}
-              onChange={handleSearch}
-              placeholder="Search by name, email, phone..."
-              className="sm:w-80"
+              value={searchQuery}
+              onChange={(v) => {
+                setSearchQuery(v)
+                setCurrentPage(1)
+              }}
+              placeholder="Search name, ID & Status."
+              className="w-[300px]"
             />
-            <div className="flex gap-3">
-              <FilterDropdown
-                value={status}
-                options={USER_STATUSES}
-                onChange={handleStatusFilter}
-                placeholder="All Status"
-              />
-              <FilterDropdown
-                value={role}
-                options={USER_ROLES}
-                onChange={handleRoleFilter}
-                placeholder="All Roles"
-              />
-            </div>
+
+            <UserFilterDropdown
+              value={statusFilter as UserStatus | 'all'}
+              onChange={(v) => {
+                setStatusFilter(v)
+                setCurrentPage(1)
+              }}
+            />
+
+            <Button
+              className="bg-primary-foreground hover:bg-blue-700 text-white"
+              onClick={() => toast({ title: 'Add User', description: 'Add user modal coming soon.' })}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add User
+            </Button>
           </div>
+        </CardHeader>
 
-          {/* Table */}
-          <DataTable
-            columns={columns}
-            data={paginatedData}
-            isLoading={isLoading}
-            rowKeyExtractor={(row) => row.id}
-            onRowClick={handleRowClick}
-            actions={(user) => <UserActionMenu user={user} />}
-            emptyMessage="No users found. Try adjusting your filters."
+        <CardContent className="p-0">
+          <UserTable
+            users={paginatedData}
+            onView={handleView}
+            onLock={handleLock}
           />
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={page}
-            totalPages={Math.ceil(filteredList.length / limit)}
-            totalItems={filteredList.length}
-            itemsPerPage={limit}
-            onPageChange={handlePageChange}
-            onItemsPerPageChange={handleLimitChange}
-          />
+          <div className="px-6 py-4 border-t border-gray-100">
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={totalPages}
+              totalItems={filteredList.length}
+              itemsPerPage={pagination.limit}
+              onPageChange={handlePageChange}
+              onItemsPerPageChange={handleItemsPerPageChange}
+            />
+          </div>
         </CardContent>
       </Card>
+
+      {selectedUser && (
+        <ConfirmDialog
+          open={isConfirmOpen}
+          onClose={() => {
+            setIsConfirmOpen(false)
+            setSelectedUser(null)
+          }}
+          onConfirm={handleConfirmLock}
+          title={
+            selectedUser.status === 'blocked' ? 'Activate User' : 'Block User'
+          }
+          description={`Are you sure you want to ${
+            selectedUser.status === 'blocked' ? 'activate' : 'block'
+          } ${selectedUser.firstName} ${selectedUser.lastName}?`}
+          variant={selectedUser.status === 'blocked' ? 'info' : 'warning'}
+          confirmText={
+            selectedUser.status === 'blocked' ? 'Activate' : 'Block User'
+          }
+          isLoading={isConfirmLoading}
+        />
+      )}
     </motion.div>
   )
 }
