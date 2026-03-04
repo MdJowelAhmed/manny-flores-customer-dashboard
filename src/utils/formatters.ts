@@ -9,6 +9,10 @@ export function formatDateTime(date: string | Date): string {
   return formatDate(date, 'MMM dd, yyyy HH:mm')
 }
 
+export function formatTime(date: string | Date): string {
+  return formatDate(date, 'h:mm a')
+}
+
 export function formatRelativeTime(date: string | Date): string {
   const dateObj = typeof date === 'string' ? parseISO(date) : date
   return formatDistanceToNow(dateObj, { addSuffix: true })

@@ -1,88 +1,65 @@
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { SearchInput } from "@/components/common/SearchInput";
-import { Pagination } from "@/components/common/Pagination";
-import { TransactionTable } from "./components/TransactionTable";
-import { ViewTransactionDetailsModal } from "./components/ViewTransactionDetailsModal";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { setFilters, setPage, setLimit } from "@/redux/slices/transactionSlice";
-import { useUrlString, useUrlNumber } from "@/hooks/useUrlState";
-import type { Transaction, TransactionStatus } from "@/types";
+import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { SearchInput } from '@/components/common/SearchInput'
+import { Pagination } from '@/components/common/Pagination'
+import { RevenueTable } from './components/RevenueTable'
+import { ViewTransactionDetailsModal } from './components/ViewTransactionDetailsModal'
+import { useAppDispatch, useAppSelector } from '@/redux/hooks'
+import { setFilters, setPage, setLimit } from '@/redux/slices/transactionSlice'
+import { useUrlString, useUrlNumber } from '@/hooks/useUrlState'
+import type { Transaction } from '@/types'
 
-const STATUS_OPTIONS: { value: TransactionStatus | "all"; label: string }[] = [
-  { value: "all", label: "All Status" },
-  { value: "Pending", label: "Pending" },
-  { value: "Completed", label: "Completed" },
-  { value: "Failed", label: "Failed" },
-  { value: "Cancelled", label: "Cancelled" },
-];
+export default function RevenueList() {
+  const dispatch = useAppDispatch()
 
-export default function TransactionsHistory() {
-  const dispatch = useAppDispatch();
-
-  // Modal state
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [selectedTransaction, setSelectedTransaction] =
-    useState<Transaction | null>(null);
+    useState<Transaction | null>(null)
 
-  // URL state management
-  const [searchQuery, setSearchQuery] = useUrlString("search", "");
-  const [statusFilter, setStatusFilter] = useUrlString("status", "all");
-  const [currentPage, setCurrentPage] = useUrlNumber("page", 1);
-  const [itemsPerPage, setItemsPerPage] = useUrlNumber("limit", 10);
+  const [searchQuery, setSearchQuery] = useUrlString('search', '')
+  const [currentPage, setCurrentPage] = useUrlNumber('page', 1)
+  const [itemsPerPage, setItemsPerPage] = useUrlNumber('limit', 10)
 
-  // Redux state
   const { filteredList, pagination } = useAppSelector(
     (state) => state.transactions
-  );
+  )
 
-  // Sync URL state with Redux filters
   useEffect(() => {
     dispatch(
       setFilters({
         search: searchQuery,
-        status: statusFilter as TransactionStatus | "all",
+        status: 'all',
       })
-    );
-  }, [searchQuery, statusFilter, dispatch]);
-
-  // Sync URL pagination with Redux
-  useEffect(() => {
-    dispatch(setPage(currentPage));
-  }, [currentPage, dispatch]);
+    )
+  }, [searchQuery, dispatch])
 
   useEffect(() => {
-    dispatch(setLimit(itemsPerPage));
-  }, [itemsPerPage, dispatch]);
+    dispatch(setPage(currentPage))
+  }, [currentPage, dispatch])
 
-  // Pagination
-  const totalPages = pagination.totalPages;
+  useEffect(() => {
+    dispatch(setLimit(itemsPerPage))
+  }, [itemsPerPage, dispatch])
+
+  const totalPages = pagination.totalPages
   const paginatedData = useMemo(() => {
-    const startIndex = (pagination.page - 1) * pagination.limit;
-    return filteredList.slice(startIndex, startIndex + pagination.limit);
-  }, [filteredList, pagination.page, pagination.limit]);
+    const startIndex = (pagination.page - 1) * pagination.limit
+    return filteredList.slice(startIndex, startIndex + pagination.limit)
+  }, [filteredList, pagination.page, pagination.limit])
 
-  // Handlers
   const handleView = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setIsViewModalOpen(true);
-  };
+    setSelectedTransaction(transaction)
+    setIsViewModalOpen(true)
+  }
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+    setCurrentPage(page)
+  }
 
   const handleItemsPerPageChange = (limit: number) => {
-    setItemsPerPage(limit);
-  };
+    setItemsPerPage(limit)
+  }
 
   return (
     <motion.div
@@ -91,41 +68,22 @@ export default function TransactionsHistory() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <Card className="bg-white border-0 shadow-sm">
+      <Card className="bg-white border-0 shadow-sm rounded-xl">
         <CardHeader className="flex flex-row items-center justify-between pb-6">
           <CardTitle className="text-xl font-bold text-slate-800">
-            Payment
+            Revenue List
           </CardTitle>
-          <div className="flex items-center gap-3">
-            {/* Search Input */}
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search client name & car etc."
-              className="w-[300px]"
-            />
-
-            {/* Filter Dropdown */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48 bg-secondary hover:bg-secondary text-white border-secondary">
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search ID, Status..."
+            className="w-[280px]"
+          />
         </CardHeader>
 
         <CardContent className="p-0">
-          {/* Table */}
-          <TransactionTable transactions={paginatedData} onView={handleView} />
+          <RevenueTable transactions={paginatedData} onView={handleView} />
 
-          {/* Pagination */}
           <div className="px-6 py-4 border-t border-gray-100">
             <Pagination
               currentPage={pagination.page}
@@ -134,20 +92,20 @@ export default function TransactionsHistory() {
               itemsPerPage={pagination.limit}
               onPageChange={handlePageChange}
               onItemsPerPageChange={handleItemsPerPageChange}
+              variant="revenue"
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* View Transaction Details Modal */}
       <ViewTransactionDetailsModal
         open={isViewModalOpen}
         onClose={() => {
-          setIsViewModalOpen(false);
-          setSelectedTransaction(null);
+          setIsViewModalOpen(false)
+          setSelectedTransaction(null)
         }}
         transaction={selectedTransaction}
       />
     </motion.div>
-  );
+  )
 }

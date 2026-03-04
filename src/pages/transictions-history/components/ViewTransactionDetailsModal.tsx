@@ -39,7 +39,7 @@ export function ViewTransactionDetailsModal({
     <ModalWrapper
       open={open}
       onClose={onClose}
-      title="Transaction Details"
+      title="Revenue Details"
       size="lg"
       className="max-w-2xl bg-white"
     >

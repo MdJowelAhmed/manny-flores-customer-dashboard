@@ -93,7 +93,7 @@ const navItems: NavItem[] = [
     icon: Calendar,
   },
   {
-    title: 'Transactions History',
+    title: 'Revenue',
     href: '/transactions-history',
     icon: CreditCard,
   },

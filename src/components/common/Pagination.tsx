@@ -19,6 +19,8 @@ interface PaginationProps {
   onItemsPerPageChange?: (limit: number) => void
   className?: string
   showItemsPerPage?: boolean
+  /** Use 'revenue' for Result Per Page label instead of Showing X to Y */
+  variant?: 'default' | 'revenue'
 }
 
 export function Pagination({
@@ -30,6 +32,7 @@ export function Pagination({
   onItemsPerPageChange,
   className,
   showItemsPerPage = true,
+  variant = 'default',
 }: PaginationProps) {
   const startItem = (currentPage - 1) * itemsPerPage + 1
   const endItem = Math.min(currentPage * itemsPerPage, totalItems)
@@ -86,25 +89,50 @@ export function Pagination({
       )}
     >
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>
-          Showing {startItem} to {endItem} of {totalItems} entries
-        </span>
-        {showItemsPerPage && onItemsPerPageChange && (
-          <Select
-            value={String(itemsPerPage)}
-            onValueChange={(val) => onItemsPerPageChange(Number(val))}
-          >
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-                <SelectItem key={option} value={String(option)}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {variant === 'revenue' ? (
+          <span className="flex items-center gap-2">
+            Result Per Page
+            {showItemsPerPage && onItemsPerPageChange && (
+              <Select
+                value={String(itemsPerPage)}
+                onValueChange={(val) => onItemsPerPageChange(Number(val))}
+              >
+                <SelectTrigger className="h-8 w-[70px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={String(option)}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </span>
+        ) : (
+          <>
+            <span>
+              Showing {startItem} to {endItem} of {totalItems} entries
+            </span>
+            {showItemsPerPage && onItemsPerPageChange && (
+              <Select
+                value={String(itemsPerPage)}
+                onValueChange={(val) => onItemsPerPageChange(Number(val))}
+              >
+                <SelectTrigger className="h-8 w-[70px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={String(option)}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </>
         )}
       </div>
 
@@ -120,11 +148,13 @@ export function Pagination({
         </Button>
         <Button
           variant="outline"
-          size="icon-sm"
+          size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={!canGoPrevious}
+          className={variant === 'revenue' ? 'gap-1' : ''}
         >
           <ChevronLeft className="h-4 w-4" />
+          {variant === 'revenue' && <span>Prev</span>}
         </Button>
 
         <div className="flex items-center gap-1">
@@ -149,10 +179,12 @@ export function Pagination({
 
         <Button
           variant="outline"
-          size="icon-sm"
+          size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={!canGoNext}
+          className={variant === 'revenue' ? 'gap-1' : ''}
         >
+          {variant === 'revenue' && <span>Next</span>}
           <ChevronRight className="h-4 w-4" />
         </Button>
         <Button
