@@ -24,6 +24,27 @@ export interface UserFilters {
   role: UserRole | 'all'
 }
 
+// ==================== Subscriber Types ====================
+export interface Subscriber {
+  id: string
+  userName: string
+  email: string
+  date: string
+  avatar?: string
+}
+
+export interface SubscriberFilters {
+  search: string
+  status: string
+}
+
+export interface SendMailPayload {
+  dateFrom?: string
+  dateTo?: string
+  title: string
+  description: string
+}
+
 // ==================== Product Types ====================
 export interface Product {
   id: string

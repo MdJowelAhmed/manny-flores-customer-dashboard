@@ -21,6 +21,7 @@ import {
   Layers,
   Coffee,
   Package,
+  Mail,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -102,8 +103,11 @@ const navItems: NavItem[] = [
     href: '/users',
     icon: Users,
   },
-
-
+  {
+    title: 'Subscribers',
+    href: '/subscribers',
+    icon: Mail,
+  },
 ]
 
 const settingsItems: NavItem[] = [

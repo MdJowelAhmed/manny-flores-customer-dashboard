@@ -34,6 +34,7 @@ import Customise from './pages/ShopManagement/Customise/Customise'
 import ShopCategory from './pages/ShopManagement/Category/ShopCategory'
 import ShopList from './pages/ShopManagement/Shop/ShopList'
 import ShopProducts from './pages/ShopManagement/Products/ShopProducts'
+import SubscriberList from './pages/Subscribers/SubscriberList'
 
 function AppEntryRedirect() {
   const { user } = useAppSelector((state) => state.auth)
@@ -86,6 +87,12 @@ function App() {
           <Route 
             path="users" 
             element={<UserList />}
+          />
+
+          {/* Subscribers - Super Admin Only */}
+          <Route 
+            path="subscribers" 
+            element={<SubscriberList />}
           />
           <Route 
             path="users/:id" 
