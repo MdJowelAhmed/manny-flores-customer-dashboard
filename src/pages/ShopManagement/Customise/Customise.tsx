@@ -59,7 +59,7 @@ function MilkTypeTable({
                 <td className="px-6 py-4 font-medium">{m.name}</td>
                 <td className="px-6 py-4">{formatCurrency(m.price)}</td>
                 <td className="px-6 py-4">
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+                  <span className="rounded-sm bg-secondary-foreground px-3 py-2 text-xs font-medium text-accent">
                     milk
                   </span>
                 </td>
@@ -272,7 +272,7 @@ export default function Customise() {
               <TabsTrigger value="milk">Milk Type</TabsTrigger>
               <TabsTrigger value="syrup">Syrup Type</TabsTrigger>
             </TabsList>
-            <TabsContent value="milk" className="mt-4 space-y-4">
+            <TabsContent value="milk" className=" space-y-4">
               <div className="flex justify-end">
                 <Button onClick={handleAddMilk} className="bg-secondary text-white">
                   <Plus className="h-4 w-4 mr-2" />
