@@ -26,6 +26,7 @@ import {
   Truck,
   Wrench,
   Star,
+  MessageCircle,
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -135,6 +136,12 @@ const navItems: NavItem[] = [
     href: '/reviews',
     icon: Star,
     feature: 'reviews',
+  },
+  {
+    title: 'Communication',
+    href: '/communication',
+    icon: MessageCircle,
+    feature: 'communication',
   },
   {
     title: 'Revenue',

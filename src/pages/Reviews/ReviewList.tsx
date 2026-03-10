@@ -1,9 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CardHeader, CardTitle } from '@/components/ui/card'
-import { SearchInput } from '@/components/common/SearchInput'
-import { Pagination } from '@/components/common/Pagination'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { ReviewCard } from './components/ReviewCard'
 import { mockReviewsData } from './reviewData'
@@ -45,6 +42,9 @@ export default function ReviewList() {
   }, [reviews, searchQuery])
 
   const totalPages = Math.max(1, Math.ceil(filteredReviews.length / itemsPerPage))
+  void totalPages // reserved for pagination UI
+  void setSearch
+  void setPage
   const paginatedReviews = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage
     return filteredReviews.slice(start, start + itemsPerPage)
