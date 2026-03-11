@@ -53,6 +53,7 @@ import CustomerFinance from './pages/CustomerFinance/CustomerFinance'
 import Attendance from './pages/Attendance/Attendance'
 import PayrollManagement from './pages/PayrollManagement/PayrollManagement'
 import ResourceRequestsReport from './pages/ResourceRequestsReport/ResourceRequestsReport'
+import ChangeOrders from './pages/ChangeOrders/ChangeOrders'
 import AttendanceDetail from './pages/Attendance/AttendanceDetail'
 
 function AppEntryRedirect() {
@@ -292,6 +293,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.SUPER_ADMIN, UserRole.ADMIN]}>
                 <ResourceRequestsReport />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Change Orders - Super Admin, Admin */}
+          <Route
+            path="change-orders"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.SUPER_ADMIN, UserRole.ADMIN]}>
+                <ChangeOrders />
               </RoleBasedRoute>
             }
           />
