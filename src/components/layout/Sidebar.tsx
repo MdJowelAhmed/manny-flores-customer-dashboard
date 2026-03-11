@@ -30,6 +30,7 @@ import {
   FileCheck,
   CalendarDays,
   Package2,
+  Wallet,
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -115,6 +116,12 @@ const navItems: NavItem[] = [
     href: '/customer-management',
     icon: UserCircle,
     feature: 'customer-management',
+  },
+  {
+    title: 'Customer & Finance',
+    href: '/customer-finance',
+    icon: Wallet,
+    feature: 'customer-finance',
   },
   {
     title: 'Employee Management',

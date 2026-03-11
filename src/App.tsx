@@ -49,6 +49,7 @@ import Communication from './pages/Communication/Communication'
 import DocumentsApprovals from './pages/DocumentsApprovals/DocumentsApprovals'
 import ProjectScheduling from './pages/ProjectScheduling/ProjectScheduling'
 import ManageMaterials from './pages/ManageMaterials/ManageMaterials'
+import CustomerFinance from './pages/CustomerFinance/CustomerFinance'
 
 function AppEntryRedirect() {
   const { user } = useAppSelector((state) => state.auth)
@@ -257,6 +258,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.SUPER_ADMIN, UserRole.ADMIN]}>
                 <ManageMaterials />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Customer & Finance - Super Admin, Admin */}
+          <Route
+            path="customer-finance"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.SUPER_ADMIN, UserRole.ADMIN]}>
+                <CustomerFinance />
               </RoleBasedRoute>
             }
           />
