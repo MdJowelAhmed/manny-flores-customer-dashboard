@@ -141,7 +141,7 @@ export default function CustomerFinance() {
               value={searchQuery}
               onChange={setSearchQuery}
               placeholder="Search customer..."
-              className="w-[220px]"
+              className="w-[280px] bg-white"
               debounceMs={150}
             />
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -200,10 +200,10 @@ export default function CustomerFinance() {
                         {p.status}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
                       <div>
                         <span className="text-xs text-muted-foreground block">Total Amount</span>
-                        <span className="text-sm font-medium">{formatCurrency(p.totalBudget)}</span>
+                        <span className="text-sm font-bold">{formatCurrency(p.totalBudget)}</span>
                       </div>
                       <div>
                         <span className="text-xs text-muted-foreground block">Paid</span>
@@ -227,7 +227,7 @@ export default function CustomerFinance() {
                         <span className="text-sm font-medium">{p.paymentMethod}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center gap-10 mt-3">
                       <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
                         <div
                           className="h-full rounded-full bg-emerald-500 transition-all"
@@ -237,14 +237,14 @@ export default function CustomerFinance() {
                       <span className="text-xs font-medium text-muted-foreground shrink-0">
                         {paidPercent}% Paid
                       </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
+
+
+                      <div className="flex items-center gap-2 shrink-0">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={(e) => handleEdit(p, e)}
-                      className="bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100"
+                      className="bg-secondary-foreground text-accent hover:bg-secondary-foreground/90 px-8 lg:px-10"
                     >
                       Edit
                     </Button>
@@ -252,11 +252,16 @@ export default function CustomerFinance() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleViewDetails(p)}
-                      className="bg-gray-100 border-gray-200 text-slate-700 hover:bg-gray-200"
+                      className="bg-secondary-foreground text-accent hover:bg-secondary-foreground/90 "
                     >
                       View details
                     </Button>
                   </div>
+                    </div>
+
+
+                  </div>
+                 
                 </motion.div>
               )
             })

@@ -99,7 +99,7 @@ export function AddEditProjectModal({ open, onClose, project, onSave }: AddEditP
       onClose={onClose}
       title={isEdit ? 'Edit Project' : 'Add Project'}
       size="xl"
-      className="max-w-2xl bg-white max-h-[90vh] overflow-y-auto"
+      className="max-w-3xl bg-white max-h-[90vh] overflow-y-auto"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
@@ -151,7 +151,7 @@ export function AddEditProjectModal({ open, onClose, project, onSave }: AddEditP
         {/* Timeline & Budget */}
         <div>
           <h3 className="text-sm font-semibold mb-4 text-foreground">Timeline & Budget</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DatePicker
               label="Start date"
               value={startDate}
@@ -206,12 +206,10 @@ export function AddEditProjectModal({ open, onClose, project, onSave }: AddEditP
           />
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
+        <div className="flex justify-end gap-3 ">
+        
           <Button type="submit" className="bg-primary hover:bg-primary/90 text-white">
-            Save
+            Save Project
           </Button>
         </div>
       </form>
