@@ -23,15 +23,15 @@ export function PayrollTable({
     <div className="w-full overflow-auto">
       <table className="w-full min-w-[700px]">
         <thead>
-          <tr className="bg-green-50 text-slate-800">
-            <th className="px-4 py-3 text-left text-sm font-semibold rounded-tl-lg">ID</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold">Name</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold">Pay Type</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold">Project</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold">Overtime</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold">Amount</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
-            <th className="px-4 py-3 text-right text-sm font-semibold rounded-tr-lg">Action</th>
+          <tr className="bg-secondary-foreground text-accent">
+            <th className="px-6 py-4 text-left text-sm font-semibold rounded-tl-lg">ID</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold">Name</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold">Pay Type</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Project</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold">Overtime</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold">Amount</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
+            <th className="px-6 py-4 text-right text-sm font-semibold rounded-tr-lg">Action</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 bg-white">
@@ -43,7 +43,7 @@ export function PayrollTable({
             </tr>
           ) : (
             records.map((r, index) => {
-              const payStyle = PAY_TYPE_STYLES[r.payType as PayType]
+              // const payStyle = PAY_TYPE_STYLES[r.payType as PayType]
               return (
                 <motion.tr
                   key={r.id}
@@ -57,9 +57,9 @@ export function PayrollTable({
                   <td className="px-4 py-3">
                     <span
                       className={cn(
-                        'inline-flex px-3 py-1 rounded-full text-xs font-medium',
-                        payStyle?.bg ?? 'bg-gray-100',
-                        payStyle?.text ?? 'text-slate-700'
+                        'inline-flex px-3 py-1 rounded-full text-xs font-medium bg-secondary-foreground text-[#9810FA] w-28 text-center justify-center items-center',
+                       
+                      
                       )}
                     >
                       {r.payType}
@@ -91,7 +91,7 @@ export function PayrollTable({
                         onClick={() => onView(r)}
                         className="h-8 w-8 text-slate-500 hover:text-sky-600 hover:bg-sky-50"
                       >
-                        <Info className="h-4 w-4" />
+                        <Info className="h-5 w-5" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -99,7 +99,7 @@ export function PayrollTable({
                         onClick={(e) => onEdit(r, e)}
                         className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-5 w-5" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -107,7 +107,7 @@ export function PayrollTable({
                         onClick={() => onDelete(r)}
                         className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-5 w-5" />
                       </Button>
                     </div>
                   </td>

@@ -107,11 +107,11 @@ export function CreateEditPaymentModal({
       onClose={onClose}
       title={isEdit ? 'Edit Payment' : 'Create Payment'}
       size="lg"
-      className="max-w-lg"
+      className="max-w-3xl bg-white"
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <h3 className="text-sm font-semibold text-foreground">Create Payment Type</h3>
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <FormSelect
             label="Payment type"
             value={paymentType}

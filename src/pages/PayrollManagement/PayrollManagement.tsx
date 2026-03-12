@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { DollarSign, Plus } from 'lucide-react'
+import { CreditCard, DollarSign, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Pagination } from '@/components/common/Pagination'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
@@ -159,21 +159,23 @@ export default function PayrollManagement() {
         })}
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+      <div className="flex items-center justify-between ">
           <h2 className="text-base font-semibold text-accent">Employee Payroll Details</h2>
           <Button
             size="sm"
             onClick={handleCreate}
-            className="bg-primary hover:bg-primary/90 text-white"
+            className="bg-primary hover:bg-primary/90 text-white px"
           >
-            <span className="flex items-center justify-center w-6 h-6 rounded bg-white/20 mr-2">
-              <DollarSign className="h-3.5 w-3.5" />
+            <span className="flex items-center justify-center w-6 h-6 rounded mr-2">
+              <CreditCard className="h-3.5 w-3.5" />
             </span>
             Create Payment
           </Button>
         </div>
+
+      {/* Table */}
+      <div className="rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm">
+        
         <PayrollTable
           records={paginatedRecords}
           onView={handleView}
