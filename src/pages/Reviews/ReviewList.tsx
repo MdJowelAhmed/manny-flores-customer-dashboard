@@ -50,14 +50,14 @@ export default function ReviewList() {
     return filteredReviews.slice(start, start + itemsPerPage)
   }, [filteredReviews, currentPage])
 
-  const handleApproved = (review: Review, data: Partial<Review>) => {
+  const handleApproved = (review: Review) => {
     setReviews((prev) =>
-      prev.map((r) => (r.id === review.id ? { ...r, ...data } : r))
+      prev.map((r) => (r.id === review.id ? { ...r, status: 'Approved' as const } : r))
     )
     toast({
       variant: 'success',
       title: 'Review Approved',
-      description: `Review from ${data.customerName} has been approved.`,
+      description: `Review from ${review.customerName} has been approved.`,
     })
   }
 
@@ -74,8 +74,8 @@ export default function ReviewList() {
       setReviews((prev) => prev.filter((r) => r.id !== reviewToDelete.id))
       toast({
         variant: 'success',
-        title: 'Review Deleted',
-        description: `Review from ${reviewToDelete.customerName} has been removed.`,
+        title: 'Review Rejected',
+        description: `Review from ${reviewToDelete.customerName} has been rejected and removed.`,
       })
       setIsConfirmOpen(false)
       setReviewToDelete(null)
@@ -123,7 +123,7 @@ export default function ReviewList() {
             >
               <ReviewCard
                 review={review}
-                onApproved={(data) => handleApproved(review, data)}
+                onApproved={() => handleApproved(review)}
                 onDelete={() => handleDelete(review)}
               />
             </motion.div>
@@ -150,9 +150,9 @@ export default function ReviewList() {
           setReviewToDelete(null)
         }}
         onConfirm={handleConfirmDelete}
-        title="Delete Review"
-        description={`Are you sure you want to delete the review from "${reviewToDelete?.customerName}"? This action cannot be undone.`}
-        confirmText="Delete"
+        title="Reject Review"
+        description={`Are you sure you want to reject and remove the review from "${reviewToDelete?.customerName}"? This action cannot be undone.`}
+        confirmText="Reject"
         variant="danger"
         isLoading={isDeleting}
       />

@@ -114,12 +114,6 @@ const navItems: NavItem[] = [
     feature: 'customer-management',
   },
   {
-    title: 'Customer & Finance',
-    href: '/customer-finance',
-    icon: Wallet,
-    feature: 'customer-finance',
-  },
-  {
     title: 'Employee Management',
     href: '/employee-management',
     icon: UserCog,
@@ -132,10 +126,52 @@ const navItems: NavItem[] = [
     feature: 'attendance',
   },
   {
+    title: 'Communication',
+    href: '/communication',
+    icon: MessageCircle,
+    feature: 'communication',
+  },
+  {
+    title: 'Customer & Finance',
+    href: '/customer-finance',
+    icon: Wallet,
+    feature: 'customer-finance',
+  },
+  {
+    title: 'Manage Materials',
+    href: '/manage-materials',
+    icon: Package2,
+    feature: 'manage-materials',
+  },
+  {
+    title: 'Project Scheduling',
+    href: '/project-scheduling',
+    icon: CalendarDays,
+    feature: 'project-scheduling',
+  },
+  {
+    title: 'Documents & Approvals',
+    href: '/documents-approvals',
+    icon: FileCheck,
+    feature: 'documents-approvals',
+  },
+  {
     title: 'Payroll management',
     href: '/payroll-management',
     icon: DollarSign,
     feature: 'payroll-management',
+  },
+  {
+    title: 'Resource Requests & Report',
+    href: '/resource-requests-report',
+    icon: FileBarChart,
+    feature: 'resource-requests-report',
+  },
+  {
+    title: 'Change Orders',
+    href: '/change-orders',
+    icon: ClipboardList,
+    feature: 'change-orders',
   },
   {
     title: 'Vehicle Maintenance',
@@ -154,42 +190,6 @@ const navItems: NavItem[] = [
     href: '/reviews',
     icon: Star,
     feature: 'reviews',
-  },
-  {
-    title: 'Communication',
-    href: '/communication',
-    icon: MessageCircle,
-    feature: 'communication',
-  },
-  {
-    title: 'Documents & Approvals',
-    href: '/documents-approvals',
-    icon: FileCheck,
-    feature: 'documents-approvals',
-  },
-  {
-    title: 'Project Scheduling',
-    href: '/project-scheduling',
-    icon: CalendarDays,
-    feature: 'project-scheduling',
-  },
-  {
-    title: 'Manage Materials',
-    href: '/manage-materials',
-    icon: Package2,
-    feature: 'manage-materials',
-  },
-  {
-    title: 'Resource Requests & Report',
-    href: '/resource-requests-report',
-    icon: FileBarChart,
-    feature: 'resource-requests-report',
-  },
-  {
-    title: 'Change Orders',
-    href: '/change-orders',
-    icon: ClipboardList,
-    feature: 'change-orders',
   },
   {
     title: 'Daily Safety Reports',

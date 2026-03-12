@@ -112,7 +112,7 @@ export function AddEditVehicleModal({
       onClose={onClose}
       title={isEdit ? 'Edit Vehicles Details' : 'Add Vehicles Details'}
       size="lg"
-      className="max-w-xl bg-white max-h-[90vh] overflow-y-auto rounded-xl"
+      className="max-w-3xl bg-white max-h-[90vh] overflow-y-auto rounded-xl"
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>

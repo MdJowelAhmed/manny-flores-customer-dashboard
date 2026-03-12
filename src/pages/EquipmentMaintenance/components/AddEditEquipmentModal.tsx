@@ -110,7 +110,7 @@ export function AddEditEquipmentModal({
       onClose={onClose}
       title={isEdit ? 'Edit Equipment Details' : 'Add Equipment'}
       size="lg"
-      className="max-w-xl bg-white max-h-[90vh] overflow-y-auto rounded-xl"
+      className="max-w-3xl bg-white max-h-[90vh] overflow-y-auto rounded-xl"
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
