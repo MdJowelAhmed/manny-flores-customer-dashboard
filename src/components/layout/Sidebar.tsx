@@ -200,6 +200,12 @@ const navItems: NavItem[] = [
     icon: ClipboardList,
     feature: 'change-orders',
   },
+  {
+    title: 'Daily Safety Reports',
+    href: '/daily-safety-reports',
+    icon: ShieldCheck,
+    feature: 'daily-safety-reports',
+  },
   // {
   //   title: 'Revenue',
   //   href: '/transactions-history',

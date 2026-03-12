@@ -55,6 +55,7 @@ import Attendance from './pages/Attendance/Attendance'
 import PayrollManagement from './pages/PayrollManagement/PayrollManagement'
 import ResourceRequestsReport from './pages/ResourceRequestsReport/ResourceRequestsReport'
 import ChangeOrders from './pages/ChangeOrders/ChangeOrders'
+import DailySafetyReports from './pages/DailySafetyReports/DailySafetyReports'
 import AttendanceDetail from './pages/Attendance/AttendanceDetail'
 
 function AppEntryRedirect() {
@@ -304,6 +305,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.SUPER_ADMIN, UserRole.ADMIN]}>
                 <ChangeOrders />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Daily Safety Reports - Super Admin, Admin */}
+          <Route
+            path="daily-safety-reports"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.SUPER_ADMIN, UserRole.ADMIN]}>
+                <DailySafetyReports />
               </RoleBasedRoute>
             }
           />
