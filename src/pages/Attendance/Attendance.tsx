@@ -1,8 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+
 import { Pagination } from '@/components/common/Pagination'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { AttendanceTable } from './components/AttendanceTable'
@@ -62,10 +61,10 @@ export default function Attendance() {
     setIsAddEditModalOpen(true)
   }
 
-  const handleAdd = () => {
-    setSelectedRecord(null)
-    setIsAddEditModalOpen(true)
-  }
+  // const handleAdd = () => {
+  //   setSelectedRecord(null)
+  //   setIsAddEditModalOpen(true)
+  // }
 
   const handleSave = (data: Partial<AttendanceRecord>) => {
     if (data.id) {
@@ -80,6 +79,7 @@ export default function Attendance() {
                 checkIn: data.checkIn ?? r.checkIn,
                 checkOut: data.checkOut ?? r.checkOut,
                 totalHours: data.totalHours ?? r.totalHours,
+                isActive: data.isActive ?? r.isActive,
               }
             : r
         )
@@ -94,11 +94,23 @@ export default function Attendance() {
         checkOut: data.checkOut ?? '--:--',
         totalHours: data.totalHours ?? '--:--',
         status: (data.status as AttendanceRecord['status']) ?? 'Present',
+        isActive: true,
       }
       setRecords((prev) => [newRecord, ...prev])
     }
     setIsAddEditModalOpen(false)
     setSelectedRecord(null)
+  }
+
+  const handleStatusChange = (r: AttendanceRecord, isActive: boolean) => {
+    setRecords((prev) =>
+      prev.map((rec) => (rec.id === r.id ? { ...rec, isActive } : rec))
+    )
+    toast({
+      variant: 'success',
+      title: 'Status Updated',
+      description: `Record marked as ${isActive ? 'Active' : 'Inactive'}.`,
+    })
   }
 
   const handleDelete = (r: AttendanceRecord) => {
@@ -162,7 +174,7 @@ export default function Attendance() {
 
       {/* Table */}
       <div className="rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        {/* <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
           <h2 className="text-base font-semibold text-accent">Attendance Records</h2>
           <Button
             size="sm"
@@ -172,12 +184,13 @@ export default function Attendance() {
             <Plus className="h-4 w-4 mr-1" />
             Add
           </Button>
-        </div>
+        </div> */}
         <AttendanceTable
           records={paginatedRecords}
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onStatusChange={handleStatusChange}
         />
         {records.length > 0 && (
           <div className="border-t border-gray-100 px-4 py-3">

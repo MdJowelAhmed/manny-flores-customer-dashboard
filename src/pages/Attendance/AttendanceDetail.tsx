@@ -105,6 +105,7 @@ export default function AttendanceDetail() {
                 checkIn: data.checkIn ?? r.checkIn,
                 checkOut: data.checkOut ?? r.checkOut,
                 totalHours: data.totalHours ?? r.totalHours,
+                isActive: data.isActive ?? r.isActive,
               }
             : r
         )
@@ -127,6 +128,17 @@ export default function AttendanceDetail() {
       setIsViewModalOpen(false)
       setSelectedRecord(null)
     }
+  }
+
+  const handleStatusChange = (r: AttendanceRecord, isActive: boolean) => {
+    setRecords((prev) =>
+      prev.map((rec) => (rec.id === r.id ? { ...rec, isActive } : rec))
+    )
+    toast({
+      variant: 'success',
+      title: 'Status Updated',
+      description: `Record marked as ${isActive ? 'Active' : 'Inactive'}.`,
+    })
   }
 
   const handleDelete = (r: AttendanceRecord) => {
@@ -178,7 +190,7 @@ export default function AttendanceDetail() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <Button
+      {/* <Button
         variant="ghost"
         size="sm"
         onClick={() => navigate('/attendance')}
@@ -186,7 +198,7 @@ export default function AttendanceDetail() {
       >
         <ArrowLeft className="h-4 w-4 mr-1" />
         Back
-      </Button>
+      </Button> */}
 
       {/* Profile + Current Day Summary */}
       <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -205,20 +217,20 @@ export default function AttendanceDetail() {
             <p className="text-sm text-muted-foreground">{profile?.role ?? 'Employee'}</p>
           </div>
         </div>
-        <div className="flex items-center gap-4 sm:gap-6 py-3 px-4 rounded-lg bg-gray-50 border border-gray-100">
+        <div className="flex items-center gap-4 sm:gap-6 py-3 px-4 rounded-lg ">
           <div>
-            <p className="text-xs text-muted-foreground">Check In</p>
-            <p className="text-sm font-semibold text-foreground">{todayRecord?.checkIn ?? '--:--'}</p>
+            <p className="text-sm text-muted-foreground mt-1">Check In</p>
+            <p className="text-base font-bold text-foreground">{todayRecord?.checkIn ?? '--:--'}</p>
           </div>
           <div className="w-px h-10 bg-emerald-400" />
           <div>
-            <p className="text-xs text-muted-foreground">Check Out</p>
-            <p className="text-sm font-semibold text-foreground">{todayRecord?.checkOut ?? '--:--'}</p>
+            <p className="text-sm text-muted-foreground mt-1">Check Out</p>
+            <p className="text-base font-bold text-foreground">{todayRecord?.checkOut ?? '--:--'}</p>
           </div>
           <div className="w-px h-10 bg-amber-400" />
           <div>
-            <p className="text-xs text-muted-foreground">Today Working Period</p>
-            <p className="text-sm font-semibold text-foreground">{todayRecord?.totalHours ?? '--:--'}</p>
+            <p className="text-sm text-muted-foreground mt-1">Today Working Period</p>
+            <p className="text-base font-bold text-foreground">{todayRecord?.totalHours ?? '--:--'}</p>
           </div>
         </div>
       </div>
@@ -252,14 +264,13 @@ export default function AttendanceDetail() {
 
       {/* Attendance History Table */}
       <div className="rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm">
-        <div className="px-4 py-3 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-accent">Attendance History</h2>
-        </div>
+       
         <AttendanceDetailTable
           records={paginatedRecords}
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onStatusChange={handleStatusChange}
         />
         {records.length > 0 && (
           <div className="border-t border-gray-100 px-4 py-3">

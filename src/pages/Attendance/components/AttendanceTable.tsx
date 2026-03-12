@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Info, Lock, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import type { AttendanceRecord, AttendanceStatus } from '../attendanceData'
 import { STATUS_STYLES } from '../attendanceData'
 import { cn } from '@/utils/cn'
@@ -11,6 +12,7 @@ interface AttendanceTableProps {
   onEdit: (r: AttendanceRecord, e: React.MouseEvent) => void
   onLock?: (r: AttendanceRecord) => void
   onDelete: (r: AttendanceRecord) => void
+  onStatusChange?: (r: AttendanceRecord, isActive: boolean) => void
 }
 
 export function AttendanceTable({
@@ -19,12 +21,13 @@ export function AttendanceTable({
   onEdit,
   onLock,
   onDelete,
+  onStatusChange,
 }: AttendanceTableProps) {
   return (
     <div className="w-full overflow-auto">
       <table className="w-full min-w-[800px]">
         <thead>
-          <tr className="bg-green-50 text-slate-800">
+          <tr className="bg-secondary-foreground text-accent">
             <th className="px-4 py-3 text-left text-sm font-semibold">Date</th>
             <th className="px-4 py-3 text-left text-sm font-semibold">Employee</th>
             <th className="px-4 py-3 text-left text-sm font-semibold">Project</th>
@@ -32,13 +35,14 @@ export function AttendanceTable({
             <th className="px-4 py-3 text-left text-sm font-semibold">Check Out</th>
             <th className="px-4 py-3 text-left text-sm font-semibold">Total Hours</th>
             <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
+            <th className="px-4 py-3 text-left text-sm font-semibold">Active</th>
             <th className="px-4 py-3 text-right text-sm font-semibold">Action</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 bg-white">
           {records.length === 0 ? (
             <tr>
-              <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground text-sm">
+              <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground text-sm">
                 No attendance records found
               </td>
             </tr>
@@ -52,7 +56,7 @@ export function AttendanceTable({
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.02 * index }}
-                  className="hover:bg-gray-50/50 transition-colors"
+                  className="hover:bg-gray-50/50 transition-colors shadow-sm"
                 >
                   <td className="px-4 py-3 text-sm text-slate-700">{r.date}</td>
                   <td className="px-4 py-3 text-sm text-slate-700">{r.employee}</td>
@@ -70,13 +74,41 @@ export function AttendanceTable({
                   <td className="px-4 py-3">
                     <span
                       className={cn(
-                        'inline-flex px-3 py-1 rounded-full text-xs font-medium',
-                        style?.bg ?? 'bg-gray-100',
+                        'inline-flex px-3 py-1 rounded-full text-xs font-medium w-16 text-center',
+                        style?.bg ?? 'bg-secondary-foreground',
                         style?.text ?? 'text-slate-700'
                       )}
                     >
                       {r.status}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {onStatusChange ? (
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={r.isActive !== false}
+                          onCheckedChange={(checked) => onStatusChange(r, checked)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <span
+                          className={cn(
+                            'text-xs font-medium',
+                            r.isActive !== false ? 'text-emerald-600' : 'text-muted-foreground'
+                          )}
+                        >
+                          {r.isActive !== false ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                    ) : (
+                      <span
+                        className={cn(
+                          'text-xs font-medium',
+                          r.isActive !== false ? 'text-emerald-600' : 'text-muted-foreground'
+                        )}
+                      >
+                        {r.isActive !== false ? 'Active' : 'Inactive'}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">

@@ -75,7 +75,7 @@ export function AddEditAttendanceModal({
       onClose={onClose}
       title={isEdit ? 'Edit Attendance' : 'Add Attendance'}
       size="md"
-      className="max-w-md"
+      className="max-w-md bg-white"
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <DatePicker

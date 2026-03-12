@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Info, Lock, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import type { AttendanceRecord, AttendanceStatus } from './attendanceData'
 import { STATUS_STYLES } from './attendanceData'
 import { cn } from '@/utils/cn'
@@ -11,6 +12,7 @@ interface AttendanceDetailTableProps {
   onEdit: (r: AttendanceRecord, e: React.MouseEvent) => void
   onLock?: (r: AttendanceRecord) => void
   onDelete: (r: AttendanceRecord) => void
+  onStatusChange?: (r: AttendanceRecord, isActive: boolean) => void
 }
 
 export function AttendanceDetailTable({
@@ -19,24 +21,26 @@ export function AttendanceDetailTable({
   onEdit,
   onLock,
   onDelete,
+  onStatusChange,
 }: AttendanceDetailTableProps) {
   return (
     <div className="w-full overflow-auto">
       <table className="w-full min-w-[600px]">
         <thead>
-          <tr className="bg-green-50 text-slate-800">
-            <th className="px-4 py-3 text-left text-sm font-semibold">Date</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold">Check In</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold">Check Out</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold">Work hour</th>
-            <th className="px-4 py-3 text-left text-sm font-semibold">Attendance</th>
-            <th className="px-4 py-3 text-right text-sm font-semibold">Action</th>
+          <tr className="bg-secondary-foreground text-accent ">
+            <th className="px-4 py-4 text-left text-sm font-semibold">Date</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Check In</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Check Out</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Work hour</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Attendance</th>
+            <th className="px-4 py-4 text-left text-sm font-semibold">Status</th>
+            <th className="px-4 py-4 text-right text-sm font-semibold">Action</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 bg-white">
           {records.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground text-sm">
+              <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground text-sm">
                 No records found
               </td>
             </tr>
@@ -49,7 +53,7 @@ export function AttendanceDetailTable({
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.02 * index }}
-                  className={cn('hover:bg-gray-50/50 transition-colors', index % 2 === 1 && 'bg-gray-50/30')}
+                  className={cn('hover:bg-gray-50/50 transition-colors shadow-sm', index % 2 === 1 && 'bg-gray-50/30')}
                 >
                   <td className="px-4 py-3 text-sm text-slate-700">{r.date}</td>
                   <td className="px-4 py-3 text-sm text-slate-700">{r.checkIn}</td>
@@ -58,13 +62,43 @@ export function AttendanceDetailTable({
                   <td className="px-4 py-3">
                     <span
                       className={cn(
-                        'inline-flex px-3 py-1 rounded-full text-xs font-medium',
+                        'inline-flex px-3 py-1 rounded-full text-xs font-medium w-16 text-center',
                         style?.bg ?? 'bg-gray-100',
                         style?.text ?? 'text-slate-700'
                       )}
                     >
                       {r.status}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {onStatusChange ? (
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={r.isActive !== false}
+                          onCheckedChange={(checked) => {
+                            onStatusChange(r, checked)
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <span
+                          className={cn(
+                            'text-xs font-medium',
+                            r.isActive !== false ? 'text-emerald-600' : 'text-muted-foreground'
+                          )}
+                        >
+                          {r.isActive !== false ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                    ) : (
+                      <span
+                        className={cn(
+                          'text-xs font-medium',
+                          r.isActive !== false ? 'text-emerald-600' : 'text-muted-foreground'
+                        )}
+                      >
+                        {r.isActive !== false ? 'Active' : 'Inactive'}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">

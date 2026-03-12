@@ -11,6 +11,7 @@ export interface AttendanceRecord {
   checkOut: string
   totalHours: string
   status: AttendanceStatus
+  isActive?: boolean
 }
 
 export const attendanceStats = [
@@ -45,9 +46,9 @@ export const attendanceStats = [
 ]
 
 export const STATUS_STYLES: Record<AttendanceStatus, { bg: string; text: string }> = {
-  Present: { bg: 'bg-emerald-500', text: 'text-white' },
-  Late: { bg: 'bg-amber-500', text: 'text-white' },
-  Absent: { bg: 'bg-red-500', text: 'text-white' },
+  Present: { bg: 'bg-secondary-foreground', text: 'text-accent' },
+  Late: { bg: 'bg-warning', text: 'text-accent' },
+  Absent: { bg: 'bg-warning-foreground', text: 'text-white' },
 }
 
 export const statusOptions = [
@@ -85,6 +86,7 @@ export const mockAttendanceData: AttendanceRecord[] = [
     checkOut: '05:30 PM',
     totalHours: '8h 38m',
     status: 'Late',
+    isActive: true,
   },
   {
     id: 'att-2',
@@ -95,6 +97,7 @@ export const mockAttendanceData: AttendanceRecord[] = [
     checkOut: '06:00 PM',
     totalHours: '9h 0m',
     status: 'Present',
+    isActive: true,
   },
   {
     id: 'att-3',
@@ -105,6 +108,7 @@ export const mockAttendanceData: AttendanceRecord[] = [
     checkOut: '05:45 PM',
     totalHours: '8h 30m',
     status: 'Late',
+    isActive: true,
   },
   {
     id: 'att-4',
@@ -115,6 +119,7 @@ export const mockAttendanceData: AttendanceRecord[] = [
     checkOut: '06:00 PM',
     totalHours: '9h 0m',
     status: 'Present',
+    isActive: true,
   },
   {
     id: 'att-5',
@@ -125,6 +130,7 @@ export const mockAttendanceData: AttendanceRecord[] = [
     checkOut: '--:--',
     totalHours: '--:--',
     status: 'Absent',
+    isActive: true,
   },
   {
     id: 'att-6',
@@ -135,6 +141,7 @@ export const mockAttendanceData: AttendanceRecord[] = [
     checkOut: '06:00 PM',
     totalHours: '9h 0m',
     status: 'Present',
+    isActive: true,
   },
   {
     id: 'att-7',
@@ -145,6 +152,7 @@ export const mockAttendanceData: AttendanceRecord[] = [
     checkOut: '06:15 PM',
     totalHours: '9h 5m',
     status: 'Present',
+    isActive: true,
   },
   {
     id: 'att-8',
@@ -155,5 +163,6 @@ export const mockAttendanceData: AttendanceRecord[] = [
     checkOut: '05:45 PM',
     totalHours: '8h 50m',
     status: 'Late',
+    isActive: true,
   },
 ]
