@@ -22,7 +22,7 @@ export function EquipmentTable({
     <div className="w-full overflow-auto">
       <table className="w-full min-w-[700px]">
         <thead>
-          <tr className="bg-green-50 text-slate-800">
+          <tr className="bg-secondary-foreground text-accent">
             <th className="px-6 py-4 text-left text-sm font-bold">Equipment</th>
             <th className="px-6 py-4 text-left text-sm font-bold">Type</th>
             <th className="px-6 py-4 text-left text-sm font-bold">Assign to</th>
@@ -52,7 +52,7 @@ export function EquipmentTable({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 * index }}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-gray-50 transition-colors shadow-sm"
                 >
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-2">
@@ -92,7 +92,7 @@ export function EquipmentTable({
                         onClick={() => onView(item)}
                         className="h-8 w-8 border-none text-blue-500 hover:bg-blue-50"
                       >
-                        <Info className="h-4 w-4" />
+                        <Info className="h-5 w-5" />
                       </Button>
                       <Button
                         variant="outline"
@@ -100,7 +100,7 @@ export function EquipmentTable({
                         onClick={(e) => onEdit(item, e)}
                         className="h-8 w-8 border-none text-green-500 hover:bg-green-50"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-5 w-5" />
                       </Button>
                       <Button
                         variant="outline"
@@ -108,7 +108,7 @@ export function EquipmentTable({
                         onClick={() => onDelete(item)}
                         className="h-8 w-8 border-none text-red-500 hover:bg-red-50"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-5 w-5" />
                       </Button>
                     </div>
                   </td>

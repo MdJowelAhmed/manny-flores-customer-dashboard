@@ -168,8 +168,8 @@ export default function VehicleMaintenance() {
       className="space-y-6"
     >
       <div className="border-0">
-        <CardHeader className="flex flex-row items-center justify-between pb-6">
-          <CardTitle className="text-xl font-bold text-accent">Track Vehicles</CardTitle>
+        <div className="flex flex-row items-center justify-between pb-6">
+          <h2 className="text-xl font-bold text-accent">Track Vehicles</h2>
           <div className="flex items-center gap-3">
             <SearchInput
               value={searchQuery}
@@ -183,7 +183,7 @@ export default function VehicleMaintenance() {
               Add Vehicles
             </Button>
           </div>
-        </CardHeader>
+        </div>
 
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           <VehicleTable

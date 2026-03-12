@@ -170,8 +170,8 @@ export default function EquipmentMaintenance() {
       className="space-y-6"
     >
       <div className="border-0">
-        <CardHeader className="flex flex-row items-center justify-between pb-6">
-          <CardTitle className="text-xl font-bold text-accent">Track Equipment</CardTitle>
+        <div className="flex flex-row items-center justify-between pb-6">
+          <h2 className="text-xl font-bold text-accent">Track Equipment</h2>
           <div className="flex items-center gap-3">
             <SearchInput
               value={searchQuery}
@@ -185,7 +185,7 @@ export default function EquipmentMaintenance() {
               Add Equipment
             </Button>
           </div>
-        </CardHeader>
+        </div>
 
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
           <EquipmentTable

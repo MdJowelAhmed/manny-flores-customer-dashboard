@@ -43,7 +43,7 @@ export const mockEquipmentData: Equipment[] = [
     assignedTo: 'Sarah Smith',
     usage: '1,890 hrs',
     nextService: 'Apr 20, 2025',
-    status: 'In Use',
+    status: 'Available',
     model: 'Hitachi ZX200',
     category: 'Heavy Machinery',
     purchaseDate: 'Jan 12, 2023',

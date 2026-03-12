@@ -50,7 +50,7 @@ export function PayrollTable({
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.02 * index }}
-                  className="hover:bg-gray-50/50 transition-colors"
+                  className="hover:bg-gray-50/50 transition-colors shadow-sm"
                 >
                   <td className="px-4 py-3 text-sm text-slate-700">{r.payrollId}</td>
                   <td className="px-4 py-3 text-sm text-slate-700">{r.name}</td>

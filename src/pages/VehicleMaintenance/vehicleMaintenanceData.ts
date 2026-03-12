@@ -44,7 +44,7 @@ export const mockVehiclesData: Vehicle[] = [
     assignedTo: 'Sarah Smith',
     usage: '85 km',
     nextService: 'Apr 20, 2025',
-    status: 'In Use',
+    status: 'Available',
     model: 'Ford F-150',
     year: '2023',
     purchaseDate: 'Jan 12, 2023',
