@@ -56,7 +56,6 @@ import PayrollManagement from './pages/PayrollManagement/PayrollManagement'
 import ResourceRequestsReport from './pages/ResourceRequestsReport/ResourceRequestsReport'
 import ChangeOrders from './pages/ChangeOrders/ChangeOrders'
 import DailySafetyReports from './pages/DailySafetyReports/DailySafetyReports'
-import AttendanceDetail from './pages/Attendance/AttendanceDetail'
 import RecentProjects from './pages/RecentProjects'
 import Notifications from './pages/Notifications/Notifications'
 import MyTask from './pages/MyTask'
@@ -143,24 +142,14 @@ function App() {
           />
 
           {/* Attendance - Employee */}
-          <Route path="attendance">
-            <Route
-              index
-              element={
-                <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
-                  <Attendance />
-                </RoleBasedRoute>
-              }
-            />
-            <Route
-              path="employee/:employeeSlug"
-              element={
-                <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
-                  <AttendanceDetail />
-                </RoleBasedRoute>
-              }
-            />
-          </Route>
+          <Route
+            path="attendance"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <Attendance />
+              </RoleBasedRoute>
+            }
+          />
 
           {/* Communication - Employee */}
           <Route

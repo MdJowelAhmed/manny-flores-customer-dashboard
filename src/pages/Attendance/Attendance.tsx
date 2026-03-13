@@ -1,46 +1,43 @@
-import { useState, useMemo, useEffect } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-
-import { Pagination } from '@/components/common/Pagination'
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { AttendanceTable } from './components/AttendanceTable'
-import { AddEditAttendanceModal } from './components/AddEditAttendanceModal'
+import { useMemo, useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { Calendar as CalendarIcon } from 'lucide-react'
 import {
-  attendanceStats,
-  mockAttendanceData,
-  getEmployeeSlug,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Calendar } from '@/components/ui/calendar'
+import { Pagination } from '@/components/common/Pagination'
+import { FilterDropdown } from '@/components/common/FilterDropdown'
+import {
+  todaySummaryData,
+  mockAttendanceRecords,
+  ATTENDANCE_FILTER_OPTIONS,
   type AttendanceRecord,
 } from './attendanceData'
-import { toast } from '@/utils/toast'
+import { format } from 'date-fns'
 import { cn } from '@/utils/cn'
 
 export default function Attendance() {
-  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
-  const itemsPerPage = Math.max(1, parseInt(searchParams.get('limit') || '10', 10)) || 10
+  const itemsPerPage = parseInt(searchParams.get('limit') || '10', 10) || 10
 
-  const [records, setRecords] = useState<AttendanceRecord[]>(mockAttendanceData)
-  const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null)
-  const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false)
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-  const [recordToDelete, setRecordToDelete] = useState<AttendanceRecord | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false)
-  const [pendingStatusChange, setPendingStatusChange] = useState<{
-    record: AttendanceRecord
-    isActive: boolean
-  } | null>(null)
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
-
-  const totalPages = Math.max(1, Math.ceil(records.length / itemsPerPage))
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [records, setRecords] = useState<AttendanceRecord[]>(mockAttendanceRecords)
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [presentChecked, setPresentChecked] = useState(true)
+  const [absentChecked, setAbsentChecked] = useState(false)
 
   const setPage = (p: number) => {
     const next = new URLSearchParams(searchParams)
     p > 1 ? next.set('page', String(p)) : next.delete('page')
     setSearchParams(next, { replace: true })
   }
+
   const setLimit = (l: number) => {
     const next = new URLSearchParams(searchParams)
     l !== 10 ? next.set('limit', String(l)) : next.delete('limit')
@@ -48,232 +45,157 @@ export default function Attendance() {
     setSearchParams(next, { replace: true })
   }
 
+  const filteredRecords = useMemo(() => {
+    let list = records
+    if (filterStatus !== 'all') {
+      list = list.filter((r) => r.attendance === filterStatus)
+    }
+    if (!presentChecked && absentChecked) {
+      list = list.filter((r) => r.attendance === 'Absent')
+    } else if (presentChecked && !absentChecked) {
+      list = list.filter((r) => r.attendance === 'Present')
+    } else if (!presentChecked && !absentChecked) {
+      list = []
+    }
+    return list
+  }, [records, filterStatus, presentChecked, absentChecked])
+
+  const totalItems = filteredRecords.length
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage))
+
   useEffect(() => {
     if (currentPage > totalPages && totalPages >= 1) setPage(1)
   }, [totalPages, currentPage])
 
   const paginatedRecords = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage
-    return records.slice(start, start + itemsPerPage)
-  }, [records, currentPage, itemsPerPage])
-
-  const handleView = (r: AttendanceRecord) => {
-    navigate(`/attendance/employee/${getEmployeeSlug(r.employee)}`)
-  }
-
-  const handleEdit = (r: AttendanceRecord, e: React.MouseEvent) => {
-    e?.stopPropagation?.()
-    setSelectedRecord(r)
-    setIsAddEditModalOpen(true)
-  }
-
-  // const handleAdd = () => {
-  //   setSelectedRecord(null)
-  //   setIsAddEditModalOpen(true)
-  // }
-
-  const handleSave = (data: Partial<AttendanceRecord>) => {
-    if (data.id) {
-      setRecords((prev) =>
-        prev.map((r) =>
-          r.id === data.id
-            ? {
-                ...r,
-                ...data,
-                date: data.date ?? r.date,
-                status: data.status ?? r.status,
-                checkIn: data.checkIn ?? r.checkIn,
-                checkOut: data.checkOut ?? r.checkOut,
-                totalHours: data.totalHours ?? r.totalHours,
-                isActive: data.isActive ?? r.isActive,
-              }
-            : r
-        )
-      )
-    } else {
-      const newRecord: AttendanceRecord = {
-        id: `att-${Date.now()}`,
-        date: data.date ?? '',
-        employee: data.employee ?? 'New Employee',
-        project: data.project ?? 'General',
-        checkIn: data.checkIn ?? '--:--',
-        checkOut: data.checkOut ?? '--:--',
-        totalHours: data.totalHours ?? '--:--',
-        status: (data.status as AttendanceRecord['status']) ?? 'Present',
-        isActive: true,
-      }
-      setRecords((prev) => [newRecord, ...prev])
-    }
-    setIsAddEditModalOpen(false)
-    setSelectedRecord(null)
-  }
-
-  const handleStatusChangeClick = (r: AttendanceRecord, isActive: boolean) => {
-    setPendingStatusChange({ record: r, isActive })
-    setIsStatusConfirmOpen(true)
-  }
-
-  const handleConfirmStatusChange = async () => {
-    if (!pendingStatusChange) return
-    setIsUpdatingStatus(true)
-    try {
-      await new Promise((r) => setTimeout(r, 200))
-      setRecords((prev) =>
-        prev.map((rec) =>
-          rec.id === pendingStatusChange.record.id
-            ? { ...rec, isActive: pendingStatusChange.isActive }
-            : rec
-        )
-      )
-      toast({
-        variant: 'success',
-        title: 'Status Updated',
-        description: `Record marked as ${pendingStatusChange.isActive ? 'Active' : 'Inactive'}.`,
-      })
-      setIsStatusConfirmOpen(false)
-      setPendingStatusChange(null)
-    } catch {
-      toast({ title: 'Error', description: 'Failed to update status.', variant: 'destructive' })
-    } finally {
-      setIsUpdatingStatus(false)
-    }
-  }
-
-  const handleDelete = (r: AttendanceRecord) => {
-    setRecordToDelete(r)
-    setIsConfirmOpen(true)
-  }
-
-  const handleConfirmDelete = async () => {
-    if (!recordToDelete) return
-    setIsDeleting(true)
-    try {
-      await new Promise((r) => setTimeout(r, 300))
-      setRecords((prev) => prev.filter((r) => r.id !== recordToDelete.id))
-      toast({
-        variant: 'success',
-        title: 'Record Deleted',
-        description: 'Attendance record has been removed.',
-      })
-      setIsConfirmOpen(false)
-      setRecordToDelete(null)
-      setSelectedRecord(null)
-    } catch {
-      toast({ title: 'Error', description: 'Failed to delete.', variant: 'destructive' })
-    } finally {
-      setIsDeleting(false)
-    }
-  }
+    return filteredRecords.slice(start, start + itemsPerPage)
+  }, [filteredRecords, currentPage, itemsPerPage])
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-6"
-    >
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {attendanceStats.map((stat, index) => {
-          const Icon = stat.icon
-          return (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="bg-white rounded-xl px-5 py-5 shadow-sm border border-gray-100"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                  <h3 className="text-xl font-bold text-foreground mt-1">{stat.value}</h3>
-                </div>
-                <div className={cn('p-2.5 rounded-lg', stat.iconBg)}>
-                  <Icon className={cn('h-5 w-5', stat.iconColor)} />
+    <div className="flex flex-col lg:flex-row gap-6">
+      {/* Main content */}
+      <div className="flex-1 space-y-6">
+        {/* Top: Date selector + Summary card */}
+        <div className="flex flex-col md:flex-row md:items-start gap-4">
+
+
+          <Card className="flex-1 rounded-xl shadow-sm border border-gray-100">
+
+
+            <CardContent className="p-6">
+              <div className="flex  justify-between">
+                <h2 className="text-2xl font-bold text-accent"> {format(new Date(), 'dd MMMM, yyyy')}</h2>
+                <div className="flex flex-wrap items-center justify-around gap-4 divide-x divide-orange-400">
+                  <div className="flex flex-col items-center gap-1 px-4 first:pl-0 last:pr-0">
+                    <span className="text-sm text-muted-foreground">Check In</span>
+                    <span className="font-bold text-accent text-lg">
+                      {todaySummaryData.checkIn}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 px-4">
+                    <span className="text-sm text-muted-foreground">Check Out</span>
+                    <span className="font-bold text-accent text-lg">
+                      {todaySummaryData.checkOut}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 px-4">
+                    <span className="text-sm text-muted-foreground">
+                      Today Working Period
+                    </span>
+                    <span className="font-bold text-accent text-lg">
+                      {todaySummaryData.workingPeriod}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </motion.div>
-          )
-        })}
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Table */}
-      <div className="rounded-xl border border-gray-100 bg-white overflow-hidden shadow-sm">
-        {/* <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-accent">Attendance Records</h2>
-          <Button
-            size="sm"
-            onClick={handleAdd}
-            className="bg-primary hover:bg-primary/90 text-white"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Add
-          </Button>
-        </div> */}
-        <AttendanceTable
-          records={paginatedRecords}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onStatusChange={handleStatusChangeClick}
-        />
-        {records.length > 0 && (
-          <div className="border-t border-gray-100 px-4 py-3">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={records.length}
-              itemsPerPage={itemsPerPage}
-              onPageChange={setPage}
-              onItemsPerPageChange={setLimit}
-              showItemsPerPage
-            />
+
+        <div className="flex items-center justify-end  ">
+          <FilterDropdown
+            value={filterStatus}
+            options={ATTENDANCE_FILTER_OPTIONS}
+            onChange={setFilterStatus}
+            placeholder="All"
+          />
+        </div>
+        {/* Table section */}
+        <div className="rounded-xl shadow-sm bg-white overflow-hidden">
+
+          <div className="overflow-x-auto bg-white">
+            <table className="w-full min-w-[500px]">
+              <thead>
+                <tr className="bg-secondary-foreground text-accent">
+                  <th className="px-6 py-4 text-left text-sm font-bold">Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold">
+                    Check In
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-bold">
+                    Check Out
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-bold">
+                    Work hour
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-bold">
+                    Attendance
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {paginatedRecords.map((record) => (
+                  <tr
+                    key={record.id}
+                    className="hover:bg-gray-50/50 transition-colors shadow-sm"
+                  >
+                    <td className="px-6 py-5 text-sm text-foreground">
+                      {record.date}
+                    </td>
+                    <td className="px-6 py-5 text-sm text-foreground">
+                      {record.checkIn}
+                    </td>
+                    <td className="px-6 py-5 text-sm text-foreground">
+                      {record.checkOut}
+                    </td>
+                    <td className="px-6 py-5 text-sm text-foreground">
+                      {record.workHour}
+                    </td>
+                    <td className="px-6 py-5">
+                      <span
+                        className={cn(
+                          'font-medium',
+                          record.attendance === 'Present'
+                            ? 'text-green-600'
+                            : 'text-red-600'
+                        )}
+                      >
+                        {record.attendance}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
+          {totalItems > 0 && (
+            <div className="border-t border-gray-100">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setPage}
+                onItemsPerPageChange={setLimit}
+                showItemsPerPage
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      <AddEditAttendanceModal
-        open={isAddEditModalOpen}
-        onClose={() => {
-          setIsAddEditModalOpen(false)
-          setSelectedRecord(null)
-        }}
-        record={selectedRecord}
-        onSave={handleSave}
-      />
 
-      <ConfirmDialog
-        open={isConfirmOpen}
-        onClose={() => {
-          setIsConfirmOpen(false)
-          setRecordToDelete(null)
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Delete Attendance"
-        description="Are you sure you want to delete this attendance record? This action cannot be undone."
-        confirmText="Delete"
-        variant="danger"
-        isLoading={isDeleting}
-      />
-
-      <ConfirmDialog
-        open={isStatusConfirmOpen}
-        onClose={() => {
-          setIsStatusConfirmOpen(false)
-          setPendingStatusChange(null)
-        }}
-        onConfirm={handleConfirmStatusChange}
-        title="Change Status"
-        description={
-          pendingStatusChange
-            ? `Are you sure you want to mark this record as ${pendingStatusChange.isActive ? 'Active' : 'Inactive'}?`
-            : ''
-        }
-        confirmText="Update"
-        variant="info"
-        isLoading={isUpdatingStatus}
-      />
-    </motion.div>
+    </div>
   )
 }
