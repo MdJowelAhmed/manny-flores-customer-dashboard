@@ -98,41 +98,6 @@ export const recentOrdersData = [
     },
 ]
 
-export const recentProjectsData = [
-    {
-        id: '#1',
-        customerName: 'Emily Davis',
-        project: 'Garden Design & Installation',
-        status: 'In Progress',
-        progress: 92,
-        value: '$12,560'
-    },
-    {
-        id: '#2',
-        customerName: 'Michael Chen',
-        project: 'Front Yard Landscaping',
-        status: 'Pending Approval',
-        progress: 0,
-        value: '$12,560'
-    },
-    {
-        id: '#3',
-        customerName: 'Sarah Johnson',
-        project: 'Patio & Deck Construction',
-        status: 'In Progress',
-        progress: 45,
-        value: '$12,560'
-    },
-    {
-        id: '#4',
-        customerName: 'Lisa Anderson',
-        project: 'Backyard Renovation',
-        status: 'In Progress',
-        progress: 87,
-        value: '$12,560'
-    },
-]
-
 export const rentStatusData = [
     { name: 'Upcoming', value: 45, color: '#3B82F6' },
     { name: 'Running', value: 58, color: '#06B6D4' },

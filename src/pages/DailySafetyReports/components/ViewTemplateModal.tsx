@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { ModalWrapper } from '@/components/common'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Check, Cross, CrossIcon, DoorClosed, Pencil, Trash2, X } from 'lucide-react'
+import { Check, Pencil, Trash2, X } from 'lucide-react'
 import type { SafetyTemplateItem } from '../dailySafetyReportsData'
 
 interface ViewTemplateModalProps {

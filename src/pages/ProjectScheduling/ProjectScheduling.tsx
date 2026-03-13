@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { ViewScheduleDetailsModal } from './components/ViewScheduleDetailsModal'
 import { AddEditScheduleModal } from './components/AddEditScheduleModal'
 import { mockScheduledProjects, type ScheduledProject } from './projectSchedulingData'
-import { cn } from '@/utils/cn'
 
 export default function ProjectScheduling() {
   const [schedules, setSchedules] = useState<ScheduledProject[]>(mockScheduledProjects)

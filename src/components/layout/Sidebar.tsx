@@ -26,6 +26,7 @@ import {
   DollarSign,
   FileBarChart,
   ClipboardList,
+  FolderKanban,
   Info,
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
@@ -101,6 +102,12 @@ const navItems: NavItem[] = [
   //   href: '/calender',
   //   icon: Calendar,
   // },
+  {
+    title: 'Recent Projects',
+    href: '/recent-projects',
+    icon: FolderKanban,
+    feature: 'recent-projects',
+  },
   {
     title: 'Company & Projects',
     href: '/company-projects',

@@ -44,7 +44,7 @@ export default function DailySafetyReports() {
   const [checklistItemsPerPage, setChecklistItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE)
   const [incidentItemsPerPage, setIncidentItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE)
 
-  const templateBadgeCount = 2
+
 
   const checklistTotalPages = Math.ceil(checklistSubmissions.length / checklistItemsPerPage) || 1
   const incidentTotalPages = Math.ceil(incidentSubmissions.length / incidentItemsPerPage) || 1

@@ -1,5 +1,5 @@
 import { DollarSign, CreditCard, Wallet, TrendingUp } from 'lucide-react'
-import type { Project, ProjectStatus } from '@/types'
+import type { Project, } from '@/types'
 
 export const financeStats = [
   {
@@ -46,11 +46,7 @@ export const paymentMethodOptions = [
   { value: 'Bank Transfer', label: 'Bank Transfer' },
 ]
 
-const customerOptions = [
-  { value: 'Mike Johnson', label: 'Mike Johnson' },
-  { value: 'ABC Corporation', label: 'ABC Corporation' },
-  { value: 'John Smith', label: 'John Smith' },
-]
+
 
 export const mockFinanceProjects: Project[] = [
   {

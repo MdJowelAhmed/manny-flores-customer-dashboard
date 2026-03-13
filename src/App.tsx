@@ -57,6 +57,7 @@ import ResourceRequestsReport from './pages/ResourceRequestsReport/ResourceReque
 import ChangeOrders from './pages/ChangeOrders/ChangeOrders'
 import DailySafetyReports from './pages/DailySafetyReports/DailySafetyReports'
 import AttendanceDetail from './pages/Attendance/AttendanceDetail'
+import RecentProjects from './pages/RecentProjects'
 
 function AppEntryRedirect() {
   const { user } = useAppSelector((state) => state.auth)
@@ -165,6 +166,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
                 <AgencyManagement />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Recent Projects - Super Admin, Admin */}
+          <Route
+            path="recent-projects"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.SUPER_ADMIN, UserRole.ADMIN]}>
+                <RecentProjects />
               </RoleBasedRoute>
             }
           />

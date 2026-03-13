@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion'
 import { Info, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { PayrollRecord, PayType, PaymentStatus } from '../payrollData'
-import { PAY_TYPE_STYLES } from '../payrollData'
+import type { PayrollRecord,  } from '../payrollData'
+
 import { formatCurrency } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 

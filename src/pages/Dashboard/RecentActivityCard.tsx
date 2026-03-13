@@ -1,9 +1,40 @@
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { motion } from 'framer-motion'
 import { Eye, Trash2 } from 'lucide-react'
-import { recentProjectsData } from './dashboardData'
+import {
+    recentProjectsData,
+    type RecentProject,
+} from '@/pages/RecentProjects/recentProjectsData'
+import { ProjectViewDetailsModal } from '@/pages/RecentProjects/components/ProjectViewDetailsModal'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 
 export function RecentActivityCard() {
+    const navigate = useNavigate()
+    const [showViewModal, setShowViewModal] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [selectedProject, setSelectedProject] = useState<RecentProject | null>(
+        null
+    )
+
+    const handleViewDetails = (project: RecentProject) => {
+        setSelectedProject(project)
+        setShowViewModal(true)
+    }
+
+    const handleDeleteClick = (project: RecentProject) => {
+        setSelectedProject(project)
+        setShowDeleteModal(true)
+    }
+
+    const handleConfirmDelete = () => {
+        if (!selectedProject) return
+        setShowDeleteModal(false)
+        setSelectedProject(null)
+        navigate('/recent-projects')
+    }
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -14,9 +45,12 @@ export function RecentActivityCard() {
             <Card className="bg-white border-0">
                 <CardHeader className="flex flex-row items-center justify-between pb-6">
                     <CardTitle className="text-xl font-bold text-slate-800">Recent Projects</CardTitle>
-                    <button className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors">
+                    <Link
+                        to="/recent-projects"
+                        className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors"
+                    >
                         view all
-                    </button>
+                    </Link>
                 </CardHeader>
                 <CardContent className="p-0">
                     <div className="w-full overflow-auto">
@@ -33,7 +67,7 @@ export function RecentActivityCard() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 text-slate-700">
-                                {recentProjectsData.map((project, index) => (
+                                {recentProjectsData.slice(0, 4).map((project, index) => (
                                     <motion.tr
                                         key={`${project.id}`}
                                         initial={{ opacity: 0, x: -20 }}
@@ -55,7 +89,9 @@ export function RecentActivityCard() {
                                                 className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-medium ${
                                                     project.status === 'In Progress'
                                                         ? 'bg-purple-100 text-purple-600'
-                                                        : 'bg-red-100 text-red-500'
+                                                        : project.status === 'Pending Approval'
+                                                            ? 'bg-red-100 text-red-500'
+                                                            : 'bg-green-100 text-green-600'
                                                 }`}
                                             >
                                                 {project.status}
@@ -77,10 +113,24 @@ export function RecentActivityCard() {
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex items-center gap-3">
-                                                <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleViewDetails(project)
+                                                    }
+                                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                                    aria-label="View details"
+                                                >
                                                     <Eye className="h-4 w-4" />
                                                 </button>
-                                                <button className="text-red-400 hover:text-red-600 transition-colors">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDeleteClick(project)
+                                                    }
+                                                    className="text-red-400 hover:text-red-600 transition-colors"
+                                                    aria-label="Delete"
+                                                >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </div>
@@ -92,6 +142,29 @@ export function RecentActivityCard() {
                     </div>
                 </CardContent>
             </Card>
+
+            <ProjectViewDetailsModal
+                open={showViewModal}
+                onClose={() => {
+                    setShowViewModal(false)
+                    setSelectedProject(null)
+                }}
+                project={selectedProject}
+            />
+
+            <ConfirmDialog
+                open={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false)
+                    setSelectedProject(null)
+                }}
+                onConfirm={handleConfirmDelete}
+                title="Are you Sure?"
+                description="Do you really want to delete these records? This process cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+            />
         </motion.div>
     )
 }
