@@ -27,7 +27,7 @@ export const CATEGORY_STATUSES: SelectOption[] = [
   { value: 'inactive', label: 'Inactive' },
 ]
 
-export const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100]
+export const ITEMS_PER_PAGE_OPTIONS = [4, 10, 25, 50, 100]
 
 export const DEFAULT_PAGINATION = {
   page: 1,

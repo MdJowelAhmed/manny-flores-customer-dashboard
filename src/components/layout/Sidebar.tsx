@@ -26,6 +26,7 @@ import {
   DollarSign,
   FileBarChart,
   ClipboardList,
+  ListTodo,
   FolderKanban,
   Info,
 } from 'lucide-react'
@@ -55,6 +56,12 @@ const navItems: NavItem[] = [
     href: '/notifications',
     icon: Bell,
     feature: 'notifications',
+  },
+  {
+    title: 'My Task',
+    href: '/my-task',
+    icon: ListTodo,
+    feature: 'my-task',
   },
   // {
   //   title: 'Orders',

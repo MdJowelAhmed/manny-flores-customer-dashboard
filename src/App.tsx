@@ -59,6 +59,7 @@ import DailySafetyReports from './pages/DailySafetyReports/DailySafetyReports'
 import AttendanceDetail from './pages/Attendance/AttendanceDetail'
 import RecentProjects from './pages/RecentProjects'
 import Notifications from './pages/Notifications/Notifications'
+import MyTask from './pages/MyTask'
 
 function AppEntryRedirect() {
   const { user } = useAppSelector((state) => state.auth)
@@ -127,6 +128,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
                 <RecentProjects />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* My Task - Employee */}
+          <Route
+            path="my-task"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <MyTask />
               </RoleBasedRoute>
             }
           />

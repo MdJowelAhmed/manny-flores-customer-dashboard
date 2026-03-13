@@ -51,8 +51,8 @@ export default function Login() {
       email: "employee@example.com",
       password: "password",
       role: "employee" as const,
-      firstName: "Employee",
-      lastName: "User",
+      firstName: "Jhon",
+      lastName: "Lura",
     },
   ];
 

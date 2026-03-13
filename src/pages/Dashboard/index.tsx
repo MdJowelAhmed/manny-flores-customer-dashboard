@@ -1,82 +1,60 @@
-import { useState, useMemo } from 'react'
-import { formatCurrency, formatCompactNumber } from '@/utils/formatters'
-// import { AvailableCars, RentalCars, TotalBooking, TotalRevenue } from '@/components/common/svg/DashboardSVG'
-import { StatCard } from './StatCard'
-import { RevenueChart } from './RevenueChart'
-import { RecentActivityCard } from './RecentActivityCard'
-import { yearlyData } from './dashboardData'
-import {  DollarSignIcon, FileCheck, ListOrdered, Users } from 'lucide-react'
-import { PieChartComponent } from './PieChart'
-import { Chatbot } from './Chatbot/Chatbot'
-// import { TotalRevenue } from '@/components/common/svg/DashboardSVG'
+import { format } from 'date-fns'
+import { useAppSelector } from '@/redux/hooks'
+import {
+  dailyWorkPeriod,
+  todaysTasksData,
+  projectProgressData,
+} from './dashboardOverviewData'
+import {
+  DashboardQuickAction,
+  TodayTasks,
+  ProjectProgressList,
+} from './components'
 
 export default function Dashboard() {
-  const [selectedYear, setSelectedYear] = useState('2026')
-
-  const chartData = useMemo(() => yearlyData[selectedYear], [selectedYear])
-
-  const stats = [
-    {
-      title: 'Active Projects',
-      value: formatCompactNumber(12543),
-      change: 12.5,
-      icon: ListOrdered,
-      description: 'vs last month',
-    },
-    {
-      title: 'Total Employees',
-      value: formatCompactNumber(3420),
-      change: 8.2,
-      icon: Users,
-      description: 'vs last month',
-    },
-    {
-      title: 'Total Revenue',
-      value: formatCurrency(142000),
-      change: 3.1,
-      icon: DollarSignIcon,
-      description: 'vs last month',
-    },
-    {
-      title: 'Pending Approvals',
-      value: formatCompactNumber(142),
-      change: -2.4,
-      icon: FileCheck,
-      description: 'vs last month',
-    },
-  ]
+  const { user } = useAppSelector((state) => state.auth)
+  const displayName = user
+    ? `${user.firstName} ${user.lastName}`.trim() || 'Employee'
+    : 'Employee'
 
   return (
     <div className="space-y-6">
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => (
-          <StatCard key={stat.title} {...stat} index={index} />
-        ))}
+      {/* Welcome & Daily Work Period */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-4 rounded-md shadow-sm">
+        <div>
+          <h2 className="text-xl font-semibold text-accent">
+            Welcome! <span className="text-primary">{displayName}</span>
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {format(new Date(), 'd MMMM, yyyy')}
+          </p>
+        </div>
+        <div className="flex items-center gap-4 md:gap-6 p-4 rounded-xl ">
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-sm text-muted-foreground">Check In</span> 
+            <span className="font-semibold text-accent">{dailyWorkPeriod.checkIn}</span>
+          </div>
+          <div className="h-10 w-[3px] bg-green-500" />
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-sm text-muted-foreground">Check Out</span>
+            <span className="font-semibold text-accent">{dailyWorkPeriod.checkOut}</span>
+          </div>
+          <div className="h-10 w-[3px] bg-amber-500" />
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-sm text-muted-foreground">Today Working Period</span>
+            <span className="font-semibold text-accent">{dailyWorkPeriod.workingPeriod}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Chart Section - Two Column Layout */}
-      <div className="grid gap-6 lg:grid-cols-12">
-       <div className='col-span-8'>
-         <RevenueChart
-          chartData={chartData}
-          selectedYear={selectedYear}
-          onYearChange={setSelectedYear} 
-          
-        />
-       </div>
-       <div className='col-span-4'>
-        <PieChartComponent />
-       </div>
-      </div>
+      {/* Quick Action - Stat Cards */}
+      <DashboardQuickAction />
 
-      {/* Recent Activity */}
-      <div>
-        <RecentActivityCard />
+      {/* Today's Task & Project Progress */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <TodayTasks tasks={todaysTasksData} />
+        <ProjectProgressList projects={projectProgressData} />
       </div>
-
-      {/* Chatbot */}
-      <Chatbot />
     </div>
   )
 }
