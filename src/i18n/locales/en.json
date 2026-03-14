@@ -5,6 +5,7 @@
     "dashboard": "Dashboard",
     "recentProjects": "Recent Projects",
     "projects": "Projects",
+    "estimatesApprovals": "Estimates & Approvals",
     "myTask": "My Task",
     "communication": "Communication",
     "attendance": "Attendance",
@@ -32,6 +33,7 @@
       "dashboard": "Dashboard",
       "recentProjects": "Recent Projects",
       "projects": "Projects",
+      "estimatesApprovals": "Estimates & Approvals",
       "myTask": "My Task",
       "attendance": "Attendance",
       "communication": "Communication",
@@ -379,6 +381,21 @@
     "pageMoved": "The page might have been moved, deleted, or you entered the wrong URL.",
     "goBack": "Go Back",
     "goToDashboard": "Go to Dashboard"
+  },
+  "estimates": {
+    "title": "Estimates & Approvals",
+    "subtitle": "Manage project estimates and track approval status",
+    "createNew": "Create New Estimates",
+    "all": "All",
+    "estimate": "Estimate",
+    "project": "Project",
+    "amount": "Amount",
+    "status": "Status",
+    "startDate": "Start Date",
+    "action": "Action",
+    "noEstimates": "No estimates found",
+    "deleteTitle": "Delete Estimate?",
+    "deleteDescription": "Are you sure you want to delete this estimate? This action cannot be undone."
   },
   "projects": {
     "title": "Project Visibility",

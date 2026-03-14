@@ -38,6 +38,7 @@ import Notifications from './pages/Notifications/Notifications'
 import MyTask from './pages/MyTask'
 import RecentProjects from './pages/RecentProjects'
 import Projects from './pages/Projects'
+import EstimatesApprovals from './pages/EstimatesApprovals'
 import SafetyCompliance from './pages/SafetyCompliance/SafetyCompliance'
 
 function AppEntryRedirect() {
@@ -118,6 +119,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
                 <Projects />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Estimates & Approvals - Employee */}
+          <Route
+            path="estimates-approvals"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <EstimatesApprovals />
               </RoleBasedRoute>
             }
           />

@@ -5,6 +5,7 @@
     "dashboard": "Panel",
     "recentProjects": "Proyectos Recientes",
     "projects": "Proyectos",
+    "estimatesApprovals": "Estimaciones y Aprobaciones",
     "myTask": "Mis Tareas",
     "communication": "Comunicación",
     "attendance": "Asistencia",
@@ -32,6 +33,7 @@
       "dashboard": "Panel",
       "recentProjects": "Proyectos Recientes",
       "projects": "Proyectos",
+      "estimatesApprovals": "Estimaciones y Aprobaciones",
       "myTask": "Mis Tareas",
       "attendance": "Asistencia",
       "communication": "Comunicación",
@@ -379,6 +381,21 @@
     "pageMoved": "La página puede haber sido movida, eliminada, o ingresó una URL incorrecta.",
     "goBack": "Volver",
     "goToDashboard": "Ir al Panel"
+  },
+  "estimates": {
+    "title": "Estimaciones y Aprobaciones",
+    "subtitle": "Gestionar estimaciones de proyectos y seguir el estado de aprobación",
+    "createNew": "Crear Nueva Estimación",
+    "all": "Todos",
+    "estimate": "Estimación",
+    "project": "Proyecto",
+    "amount": "Monto",
+    "status": "Estado",
+    "startDate": "Fecha de Inicio",
+    "action": "Acción",
+    "noEstimates": "No se encontraron estimaciones",
+    "deleteTitle": "¿Eliminar Estimación?",
+    "deleteDescription": "¿Está seguro de que desea eliminar esta estimación? Esta acción no se puede deshacer."
   },
   "projects": {
     "title": "Visibilidad del Proyecto",

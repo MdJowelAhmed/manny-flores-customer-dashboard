@@ -19,6 +19,7 @@ import {
   Info,
   FolderOpen,
   FolderKanban,
+  FileCheck2,
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -57,6 +58,13 @@ const navItems: NavItem[] = [
     href: '/projects',
     icon: FolderKanban,
     feature: 'projects',
+  },
+  {
+    title: 'Estimates & Approvals',
+    titleKey: 'sidebar.estimatesApprovals',
+    href: '/estimates-approvals',
+    icon: FileCheck2,
+    feature: 'estimates-approvals',
   },
   {
     title: 'My Task',
