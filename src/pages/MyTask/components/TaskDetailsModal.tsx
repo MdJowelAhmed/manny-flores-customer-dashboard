@@ -139,13 +139,13 @@ export function TaskDetailsModal({
       onClose={handleClose}
       title={t('myTask.taskDetails')}
       size="xl"
-      className="max-w-2xl bg-white"
+      className="max-w-2xl bg-secondary-foreground"
       footer={footer}
     >
       <div className="space-y-6 -mt-2">
         {/* Header: Project, Priority, Task Name, Status */}
-        <Card className="rounded-xl">
-          <CardContent className="p-4">
+        <div className="rounded-xl bg-white border shadow-sm mt-2">
+          <div className="p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -170,11 +170,11 @@ export function TaskDetailsModal({
                 </span>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Deadline & Location */}
-        <Card className="rounded-xl">
+        <div className="rounded-xl bg-white border shadow-sm">
           <CardContent className="p-4 space-y-3">
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="h-4 w-4 text-success shrink-0" />
@@ -191,21 +191,21 @@ export function TaskDetailsModal({
               </span>
             </div>
           </CardContent>
-        </Card>
+        </div>
 
         {/* Description */}
-        <Card className="rounded-xl">
+        <div className="rounded-xl bg-white border shadow-sm">
           <CardContent className="p-4">
             <p className="font-bold text-foreground mb-2">{t('myTask.description')}</p>
             <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
               {task.description}
             </p>
           </CardContent>
-        </Card>
+        </div>
 
         {/* Instruction */}
         {task.instructions && task.instructions.length > 0 && (
-          <Card className="rounded-xl">
+          <div className="rounded-xl bg-white border shadow-sm">
             <CardContent className="p-4">
               <p className="font-bold text-foreground mb-3">{t('myTask.instruction')}</p>
               <ol className="space-y-2">
@@ -219,12 +219,12 @@ export function TaskDetailsModal({
                 ))}
               </ol>
             </CardContent>
-          </Card>
+          </div>
         )}
 
         {/* Material Required */}
         {task.materials && task.materials.length > 0 && (
-          <Card className="rounded-xl">
+          <div className="rounded-xl bg-white border shadow-sm">
             <CardContent className="p-4">
               <p className="font-bold text-foreground mb-3">{t('myTask.materialRequired')}</p>
               <div className="space-y-3">
@@ -240,7 +240,7 @@ export function TaskDetailsModal({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="rounded-lg border-success text-success bg-green-50 hover:bg-green-100"
+                      className="rounded-lg text-success h-8"
                     >
                       {t('myTask.assign')}
                     </Button>
@@ -248,13 +248,13 @@ export function TaskDetailsModal({
                 ))}
               </div>
             </CardContent>
-          </Card>
+          </div>
         )}
 
         {/* Upload Photos & Add Note - Only when showForm (Start/Complete flow) */}
         {showForm && (
           <>
-            <Card className="rounded-xl">
+            <div className="rounded-xl bg-white border shadow-sm">
               <CardContent className="p-4 space-y-4">
                 <p className="font-bold text-foreground">{t('myTask.uploadPhotos')}</p>
                 <div className="space-y-4">
@@ -272,9 +272,9 @@ export function TaskDetailsModal({
                   />
                 </div>
               </CardContent>
-            </Card>
+            </div>
 
-            <Card className="rounded-xl">
+            <div className="rounded-xl bg-white border shadow-sm">
               <CardContent className="p-4">
                 <p className="font-bold text-foreground mb-2">{t('myTask.addNote')}</p>
                 <Textarea
@@ -284,7 +284,7 @@ export function TaskDetailsModal({
                   className="min-h-[100px] resize-none"
                 />
               </CardContent>
-            </Card>
+            </div>
           </>
         )}
       </div>
