@@ -40,6 +40,7 @@ import RecentProjects from './pages/RecentProjects'
 import Projects from './pages/Projects'
 import EstimatesApprovals from './pages/EstimatesApprovals'
 import SafetyCompliance from './pages/SafetyCompliance/SafetyCompliance'
+import ReviewList from './pages/Reviews/ReviewList'
 
 function AppEntryRedirect() {
   const { user } = useAppSelector((state) => state.auth)
@@ -183,6 +184,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
                 <SafetyCompliance />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Review - Employee */}
+          <Route
+            path="reviews"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <ReviewList />
               </RoleBasedRoute>
             }
           />

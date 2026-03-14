@@ -14,6 +14,7 @@
     "vehicles": "Vehículos",
     "equipment": "Equipos",
     "payroll": "Nómina",
+    "review": "Reseña",
     "profile": "Perfil",
     "password": "Contraseña",
     "terms": "Términos",
@@ -46,7 +47,8 @@
       "changePassword": "Cambiar Contraseña",
       "termsConditions": "Términos y Condiciones",
       "privacyPolicy": "Política de Privacidad",
-      "aboutUs": "Acerca de"
+      "aboutUs": "Acerca de",
+      "review": "Reseña"
     }
   },
   "auth": {

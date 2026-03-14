@@ -6,6 +6,7 @@ export { ModalWrapper } from './ModalWrapper'
 export { ConfirmDialog } from './ConfirmDialog'
 export { ImageUploader } from './ImageUploader'
 export { StatusBadge } from './StatusBadge'
+export { StarRating } from './StarRating'
 export { TiptapEditor } from './TiptapEditor'
 export * from './Form'
 

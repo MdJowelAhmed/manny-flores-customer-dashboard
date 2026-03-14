@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { ModalWrapper } from '@/components/common'
 import { FormInput, FormTextarea } from '@/components/common/Form'
 import { Button } from '@/components/ui/button'
-import { StarRating } from './StarRating'
+import { StarRating } from '@/components/common/StarRating'
 import type { Project } from '../projectsData'
 import { toast } from 'sonner'
 

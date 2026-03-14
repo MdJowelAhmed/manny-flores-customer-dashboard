@@ -14,6 +14,7 @@
     "vehicles": "Vehicles",
     "equipment": "Equipment",
     "payroll": "Payroll",
+    "review": "Review",
     "profile": "Profile",
     "password": "Password",
     "terms": "Terms",
@@ -46,7 +47,8 @@
       "changePassword": "Change Password",
       "termsConditions": "Terms & Conditions",
       "privacyPolicy": "Privacy Policy",
-      "aboutUs": "About Us"
+      "aboutUs": "About Us",
+      "review": "Review"
     }
   },
   "auth": {

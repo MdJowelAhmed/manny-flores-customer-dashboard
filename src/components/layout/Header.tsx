@@ -39,6 +39,7 @@ const routeTitleKeys: Record<string, string> = {
   '/settings/terms': 'header.routeTitles.termsConditions',
   '/settings/privacy': 'header.routeTitles.privacyPolicy',
   '/settings/about-us': 'header.routeTitles.aboutUs',
+  '/reviews': 'header.routeTitles.review',
 }
 
 const RECENT_NOTIFICATIONS_COUNT = 3

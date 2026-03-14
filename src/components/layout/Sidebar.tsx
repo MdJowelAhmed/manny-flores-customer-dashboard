@@ -12,6 +12,7 @@ import {
   Truck,
   Wrench,
   MessageCircle,
+  Star,
   Package2,
   ClipboardCheck,
   DollarSign,
@@ -121,6 +122,13 @@ const navItems: NavItem[] = [
     href: '/payroll',
     icon: DollarSign,
     feature: 'payroll',
+  },
+  {
+    title: 'Review',
+    titleKey: 'sidebar.review',
+    href: '/reviews',
+    icon: Star,
+    feature: 'reviews',
   },
 ]
 
