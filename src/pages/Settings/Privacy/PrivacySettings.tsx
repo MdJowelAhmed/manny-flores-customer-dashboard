@@ -1,13 +1,8 @@
-import { useState } from 'react'
-import { Shield, Save, Eye } from 'lucide-react'
+import { Shield } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { TiptapEditor } from '@/components/common'
-import { toast } from '@/utils/toast'
 import { motion } from 'framer-motion'
 
-const defaultPrivacy = `<h1>Privacy Policy</h1>
+const privacyContent = `<h1>Privacy Policy</h1>
 <p><em>Last updated: January 2024</em></p>
 
 <h2>1. Information We Collect</h2>
@@ -71,25 +66,6 @@ const defaultPrivacy = `<h1>Privacy Policy</h1>
 <p><em>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:privacy@example.com">privacy@example.com</a></em></p>`
 
 export default function PrivacySettings() {
-  const [privacy, setPrivacy] = useState(defaultPrivacy)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [activeTab, setActiveTab] = useState('preview')
-
-  const handleSave = async () => {
-    setIsSubmitting(true)
-    
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    
-    toast({
-      title: 'Privacy Policy Updated',
-      description: 'Privacy Policy has been updated successfully.',
-    })
-    
-    setIsSubmitting(false)
-  }
-
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -99,58 +75,25 @@ export default function PrivacySettings() {
     >
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Shield className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <CardTitle>Privacy Policy</CardTitle>
-                <CardDescription>
-                  Manage your platform's Privacy Policy
-                </CardDescription>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Shield className="h-5 w-5 text-primary" />
             </div>
-            <div className="flex gap-2">
-             
-              <Button onClick={handleSave} isLoading={isSubmitting} className="bg-primary text-white hover:bg-primary/80">
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </Button>
+            <div>
+              <CardTitle>Privacy Policy</CardTitle>
+              <CardDescription>
+                View your platform's Privacy Policy
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="edit" className="gap-2">
-                <Shield className="h-4 w-4" />
-                Edit
-              </TabsTrigger>
-              <TabsTrigger value="preview" className="gap-2">
-                <Eye className="h-4 w-4" />
-                Preview
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="edit" className="mt-0">
-              <TiptapEditor
-                content={privacy}
-                onChange={setPrivacy}
-                placeholder="Write your privacy policy here..."
-                className="min-h-[500px]"
-              />
-            </TabsContent>
-
-            <TabsContent value="preview" className="mt-0">
-              <div className="border rounded-xl p-6 min-h-[500px] bg-muted/20">
-                <div 
-                  className="prose prose-sm dark:prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: privacy }}
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="border rounded-xl p-6 min-h-[500px] bg-muted/20">
+            <div
+              className="prose prose-sm dark:prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: privacyContent }}
+            />
+          </div>
         </CardContent>
       </Card>
     </motion.div>
