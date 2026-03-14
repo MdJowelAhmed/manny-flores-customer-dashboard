@@ -233,7 +233,9 @@ export default function Login() {
         <div className="space-y-2">
           <div>
             <p className="font-medium">{t('auth.employeeLabel')}</p>
-            <p className="text-muted-foreground">employee@example.com / password</p>
+            <p className="text-muted-foreground">Email: employee@example.com</p>
+            <p className="text-muted-foreground">Pass:  password</p>
+
           </div>
         </div>
       </div>
