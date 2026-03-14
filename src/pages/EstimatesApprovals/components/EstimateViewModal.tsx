@@ -1,6 +1,5 @@
 import { FileText, Calendar } from 'lucide-react'
 import { ModalWrapper } from '@/components/common'
-import { Button } from '@/components/ui/button'
 import { STATUS_COLORS } from '@/utils/constants'
 import { cn } from '@/utils/cn'
 import type { Estimate } from '../estimatesData'
@@ -35,7 +34,7 @@ export function EstimateViewModal({
   open,
   onClose,
   estimate,
-  onEdit,
+  onEdit: _onEdit,
 }: EstimateViewModalProps) {
   if (!estimate) return null
 
