@@ -119,7 +119,13 @@ export default function VerifyEmail() {
       </div>
 
       <Link
-        to={isPasswordReset ? '/auth/forgot-password' : '/auth/login'}
+        to={
+          isPasswordReset
+            ? '/auth/forgot-password'
+            : location.state?.type === 'signup'
+              ? '/auth/signup'
+              : '/auth/login'
+        }
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />

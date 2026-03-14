@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks'
 import { loadUserFromStorage } from '@/redux/slices/authSlice'
 
 // Auth Pages
-import { Login, ForgotPassword, VerifyEmail, ResetPassword } from '@/pages/Auth'
+import { Login, SignUp, ForgotPassword, VerifyEmail, ResetPassword } from '@/pages/Auth'
 
 // Dashboard Pages
 import Dashboard from '@/pages/Dashboard'
@@ -85,6 +85,7 @@ function App() {
         <Route path="/auth" element={<AuthLayout />}>
           <Route index element={<Navigate to="/auth/login" replace />} />
           <Route path="login" element={<Login />} />
+          <Route path="signup" element={<SignUp />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="verify-email" element={<VerifyEmail />} />
           <Route path="reset-password" element={<ResetPassword />} />
