@@ -23,6 +23,8 @@ import { useTranslation } from 'react-i18next'
 
 const routeTitleKeys: Record<string, string> = {
   '/dashboard': 'header.routeTitles.dashboard',
+  '/recent-projects': 'header.routeTitles.recentProjects',
+  '/projects': 'header.routeTitles.projects',
   '/my-task': 'header.routeTitles.myTask',
   '/attendance': 'header.routeTitles.attendance',
   '/communication': 'header.routeTitles.communication',

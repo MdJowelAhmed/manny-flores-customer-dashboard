@@ -31,6 +31,12 @@ interface RevenueChartProps {
     onYearChange: (year: string) => void
 }
 
+interface RevenueChartProps {
+    chartData: ChartDataPoint[]
+    selectedYear: string
+    onYearChange: (year: string) => void
+}
+
 const strKFormatter = (num: number) => {
     if (num >= 1000) {
         return (num / 1000).toFixed(0) + 'k'

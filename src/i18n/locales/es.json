@@ -3,6 +3,8 @@
     "mainMenu": "Menú Principal",
     "settings": "Configuración",
     "dashboard": "Panel",
+    "recentProjects": "Proyectos Recientes",
+    "projects": "Proyectos",
     "myTask": "Mis Tareas",
     "communication": "Comunicación",
     "attendance": "Asistencia",
@@ -28,6 +30,8 @@
     "employee": "Empleado",
     "routeTitles": {
       "dashboard": "Panel",
+      "recentProjects": "Proyectos Recientes",
+      "projects": "Proyectos",
       "myTask": "Mis Tareas",
       "attendance": "Asistencia",
       "communication": "Comunicación",
@@ -118,6 +122,18 @@
   },
   "dashboard": {
     "welcome": "¡Bienvenido!",
+    "activeProjects": "Proyectos Activos",
+    "pendingApprovals": "Aprobaciones Pendientes",
+    "projectVisibility": "Visibilidad del Proyecto",
+    "upcomingInspections": "Inspecciones Próximas",
+    "recentProjects": "Proyectos Recientes",
+    "viewAll": "ver todo",
+    "customerName": "Nombre del Cliente",
+    "project": "Proyecto",
+    "status": "Estado",
+    "progress": "Progreso",
+    "value": "Valor",
+    "action": "Acción",
     "checkIn": "Entrada",
     "checkOut": "Salida",
     "todayWorkingPeriod": "Período de Trabajo Hoy",
@@ -363,6 +379,15 @@
     "pageMoved": "La página puede haber sido movida, eliminada, o ingresó una URL incorrecta.",
     "goBack": "Volver",
     "goToDashboard": "Ir al Panel"
+  },
+  "projects": {
+    "title": "Visibilidad del Proyecto",
+    "subtitle": "Rastrea y gestiona todos los proyectos de paisajismo",
+    "searchPlaceholder": "Buscar por nombre de cliente, proyecto",
+    "allStatus": "Todos los Estados",
+    "noProjects": "No se encontraron proyectos",
+    "deleteTitle": "¿Eliminar Proyecto?",
+    "deleteDescription": "¿Está seguro de que desea eliminar este proyecto? Esta acción no se puede deshacer."
   },
   "common": {
     "showing": "Mostrando {{start}} a {{end}} de {{total}} entradas",

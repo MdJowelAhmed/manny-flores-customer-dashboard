@@ -17,6 +17,8 @@ import {
   DollarSign,
   ListTodo,
   Info,
+  FolderOpen,
+  FolderKanban,
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -41,6 +43,20 @@ const navItems: NavItem[] = [
     href: '/dashboard',
     icon: LayoutDashboard,
     feature: 'dashboard',
+  },
+  {
+    title: 'Recent Projects',
+    titleKey: 'sidebar.recentProjects',
+    href: '/recent-projects',
+    icon: FolderOpen,
+    feature: 'recent-projects',
+  },
+  {
+    title: 'Projects',
+    titleKey: 'sidebar.projects',
+    href: '/projects',
+    icon: FolderKanban,
+    feature: 'projects',
   },
   {
     title: 'My Task',

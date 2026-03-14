@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent } from '@/components/ui/card'
 import { Eye, Trash2 } from 'lucide-react'
 import { Pagination } from '@/components/common/Pagination'
@@ -10,6 +11,7 @@ import {
 } from './recentProjectsData'
 import { ProjectViewDetailsModal } from './components/ProjectViewDetailsModal'
 export default function RecentProjects() {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const currentPage = Math.max(
     1,
@@ -45,6 +47,20 @@ export default function RecentProjects() {
     if (currentPage > totalPages && totalPages >= 1) setPage(1)
   }, [totalPages, currentPage])
 
+  // Auto-open view modal when ?view=id is present
+  const viewId = searchParams.get('view')
+  useEffect(() => {
+    if (viewId && projects.length) {
+      const match = projects.find(
+        (p) => p.id === viewId || p.id === `#${viewId}` || p.id.replace('#', '') === String(viewId)
+      )
+      if (match) {
+        setSelectedProject(match)
+        setShowViewModal(true)
+      }
+    }
+  }, [viewId, projects])
+
   const paginatedProjects = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage
     return projects.slice(start, start + itemsPerPage)
@@ -68,10 +84,9 @@ export default function RecentProjects() {
   }
 
   const getStatusClasses = (status: string) => {
-    if (status === 'In Progress')
-      return 'bg-purple-100 text-purple-600'
-    if (status === 'Pending Approval') return 'bg-red-100 text-red-500'
-    return 'bg-green-100 text-green-600'
+    if (status === 'In Progress') return 'bg-purple-100 text-purple-700'
+    if (status === 'Pending Approval') return 'bg-orange-100 text-orange-700'
+    return 'bg-green-100 text-green-700'
   }
 
   return (
@@ -82,25 +97,25 @@ export default function RecentProjects() {
           <div className="w-full overflow-auto">
             <table className="w-full min-w-[980px]">
               <thead>
-                <tr className="bg-secondary-foreground text-accent">
-                  <th className="px-6 py-4 text-left text-sm font-bold">ID</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold">
-                    Customer Name
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">ID</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                    {t('dashboard.customerName')}
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold">
-                    Project
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                    {t('dashboard.project')}
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold">
-                    Status
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">
+                    {t('dashboard.status')}
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold">
-                    Progress
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">
+                    {t('dashboard.progress')}
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold">
-                    Value
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
+                    {t('dashboard.value')}
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold">
-                    Action
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
+                    {t('dashboard.action')}
                   </th>
                 </tr>
               </thead>
@@ -111,12 +126,12 @@ export default function RecentProjects() {
                     className="hover:bg-gray-50/50 transition-colors shadow-sm"
                   >
                     <td className="px-6 py-5 text-sm font-medium">
-                      {project.id}
+                      #{String(project.id).replace('#', '')}
                     </td>
                     <td className="px-6 py-5 text-sm">
                       {project.customerName}
                     </td>
-                    <td className="px-6 py-5 text-sm">{project.project}</td>
+                    <td className="px-6 py-5 text-sm">{project.projectName || project.project}</td>
                     <td className="px-6 py-5">
                       <span
                         className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(

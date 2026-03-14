@@ -3,6 +3,8 @@
     "mainMenu": "Main Menu",
     "settings": "Settings",
     "dashboard": "Dashboard",
+    "recentProjects": "Recent Projects",
+    "projects": "Projects",
     "myTask": "My Task",
     "communication": "Communication",
     "attendance": "Attendance",
@@ -28,6 +30,8 @@
     "employee": "Employee",
     "routeTitles": {
       "dashboard": "Dashboard",
+      "recentProjects": "Recent Projects",
+      "projects": "Projects",
       "myTask": "My Task",
       "attendance": "Attendance",
       "communication": "Communication",
@@ -118,6 +122,18 @@
   },
   "dashboard": {
     "welcome": "Welcome!",
+    "activeProjects": "Active Projects",
+    "pendingApprovals": "Pending Approvals",
+    "projectVisibility": "Project Visibility",
+    "upcomingInspections": "Upcoming Inspections",
+    "recentProjects": "Recent Projects",
+    "viewAll": "view all",
+    "customerName": "Customer Name",
+    "project": "Project",
+    "status": "Status",
+    "progress": "Progress",
+    "value": "Value",
+    "action": "Action",
     "checkIn": "Check In",
     "checkOut": "Check Out",
     "todayWorkingPeriod": "Today Working Period",
@@ -363,6 +379,15 @@
     "pageMoved": "The page might have been moved, deleted, or you entered the wrong URL.",
     "goBack": "Go Back",
     "goToDashboard": "Go to Dashboard"
+  },
+  "projects": {
+    "title": "Project Visibility",
+    "subtitle": "Track and manage all landscaping projects",
+    "searchPlaceholder": "Search by Customer name, project",
+    "allStatus": "All Status",
+    "noProjects": "No projects found",
+    "deleteTitle": "Delete Project?",
+    "deleteDescription": "Are you sure you want to delete this project? This action cannot be undone."
   },
   "common": {
     "showing": "Showing {{start}} to {{end}} of {{total}} entries",

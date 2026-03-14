@@ -30,6 +30,30 @@ export const yearlyData: Record<string, ReturnType<typeof generateYearData>> = {
 
 export const years = ['2026', '2025', '2024', '2023', '2022', '2021']
 
+// Project Visibility chart data (area chart)
+export const generateProjectVisibilityData = (year: number) => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const baseVisibility = 800 + (year - 2021) * 150
+
+  return months.map((month, index) => {
+    const seasonMultiplier = index >= 10 || index <= 1 ? 1.2 : index >= 5 && index <= 7 ? 0.9 : 1
+    const randomVariation = () => 0.85 + Math.random() * 0.3
+    return {
+      month,
+      visibility: Math.round(baseVisibility * seasonMultiplier * randomVariation() * (1 + index * 0.05)),
+    }
+  })
+}
+
+export const projectVisibilityYearlyData: Record<string, ReturnType<typeof generateProjectVisibilityData>> = {
+  '2026': generateProjectVisibilityData(2026),
+  '2025': generateProjectVisibilityData(2025),
+  '2024': generateProjectVisibilityData(2024),
+  '2023': generateProjectVisibilityData(2023),
+  '2022': generateProjectVisibilityData(2022),
+  '2021': generateProjectVisibilityData(2021),
+}
+
 export const recentOrdersData = [
     {
         sl: '01',

@@ -1,62 +1,99 @@
-import { format } from 'date-fns'
-import { useTranslation } from 'react-i18next'
-import { useAppSelector } from '@/redux/hooks'
+import { useMemo, useState } from 'react'
+import { BarChart3, Clock } from 'lucide-react'
 import {
-  dailyWorkPeriod,
-  todaysTasksData,
-  projectProgressData,
+  dashboardStats,
+  upcomingInspectionsData,
+  recentProjectsData,
 } from './dashboardOverviewData'
-import {
-  DashboardQuickAction,
-  TodayTasks,
-  ProjectProgressList,
-} from './components'
+import { DashboardStatCard } from './components'
+import { ProjectVisibilityChart } from './ProjectVisibilityChart'
+import { UpcomingInspections } from './UpcomingInspections'
+import { RecentProjectsTable } from './RecentProjectsTable'
+import { projectVisibilityYearlyData } from './dashboardData'
+import { ConfirmDialog } from '@/components/common'
+import { toast } from 'sonner'
+import type { RecentProject } from './dashboardOverviewData'
 
 export default function Dashboard() {
-  const { t } = useTranslation()
-  const { user } = useAppSelector((state) => state.auth)
-  const displayName = user
-    ? `${user.firstName} ${user.lastName}`.trim() || t('header.employee')
-    : t('header.employee')
+  const [selectedYear, setSelectedYear] = useState('2025')
+  const [deleteProject, setDeleteProject] = useState<RecentProject | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const chartData = useMemo(
+    () => projectVisibilityYearlyData[selectedYear] ?? projectVisibilityYearlyData['2025'],
+    [selectedYear]
+  )
+
+  const handleDeleteProject = async () => {
+    if (!deleteProject) return
+    setIsDeleting(true)
+    try {
+      // Simulate API call - replace with actual delete API
+      await new Promise((r) => setTimeout(r, 500))
+      toast.success('Project deleted successfully')
+      setDeleteProject(null)
+    } catch {
+      toast.error('Failed to delete project')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
-      {/* Welcome & Daily Work Period */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-4 rounded-md shadow-sm">
+      {/* Top - Stat Cards */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <DashboardStatCard
+          title="Active Projects"
+          value={dashboardStats.activeProjects}
+          icon={BarChart3}
+          iconBg="bg-purple-100"
+          iconColor="text-purple-600"
+          index={0}
+        />
+        <DashboardStatCard
+          title="Pending Approvals"
+          value={dashboardStats.pendingApprovals}
+          icon={Clock}
+          iconBg="bg-orange-100"
+          iconColor="text-orange-600"
+          index={1}
+        />
+      </div>
+
+      {/* Middle - Project Visibility Chart & Upcoming Inspections */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ProjectVisibilityChart
+            chartData={chartData}
+            selectedYear={selectedYear}
+            onYearChange={setSelectedYear}
+          />
+        </div>
         <div>
-          <h2 className="text-xl font-semibold text-accent">
-            {t('dashboard.welcome')} <span className="text-primary">{displayName}</span>
-          </h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {format(new Date(), 'd MMMM, yyyy')}
-          </p>
-        </div>
-        <div className="flex items-center gap-4 md:gap-6 p-4 rounded-xl ">
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-sm text-muted-foreground">{t('dashboard.checkIn')}</span> 
-            <span className="font-semibold text-accent">{dailyWorkPeriod.checkIn}</span>
-          </div>
-          <div className="h-10 w-[3px] bg-green-500" />
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-sm text-muted-foreground">{t('dashboard.checkOut')}</span>
-            <span className="font-semibold text-accent">{dailyWorkPeriod.checkOut}</span>
-          </div>
-          <div className="h-10 w-[3px] bg-amber-500" />
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-sm text-muted-foreground">{t('dashboard.todayWorkingPeriod')}</span>
-            <span className="font-semibold text-accent">{dailyWorkPeriod.workingPeriod}</span>
-          </div>
+          <UpcomingInspections inspections={upcomingInspectionsData} />
         </div>
       </div>
 
-      {/* Quick Action - Stat Cards */}
-      <DashboardQuickAction />
+      {/* Bottom - Recent Projects Table */}
+      <RecentProjectsTable
+        projects={recentProjectsData}
+        onDelete={(p) => setDeleteProject(p)}
+        maxRows={5}
+      />
 
-      {/* Today's Task & Project Progress */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <TodayTasks tasks={todaysTasksData} />
-        <ProjectProgressList projects={projectProgressData} />
-      </div>
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        open={!!deleteProject}
+        onClose={() => setDeleteProject(null)}
+        onConfirm={handleDeleteProject}
+        title="Delete Project"
+        description={`Are you sure you want to delete "${deleteProject?.projectName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

@@ -36,6 +36,8 @@ import Attendance from './pages/Attendance/Attendance'
 import Payroll from './pages/Payroll'
 import Notifications from './pages/Notifications/Notifications'
 import MyTask from './pages/MyTask'
+import RecentProjects from './pages/RecentProjects'
+import Projects from './pages/Projects'
 import SafetyCompliance from './pages/SafetyCompliance/SafetyCompliance'
 
 function AppEntryRedirect() {
@@ -101,7 +103,24 @@ function App() {
           />
 
           {/* Recent Projects - Employee */}
-        
+          <Route
+            path="recent-projects"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <RecentProjects />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Projects - Employee */}
+          <Route
+            path="projects"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <Projects />
+              </RoleBasedRoute>
+            }
+          />
 
           {/* My Task - Employee */}
           <Route
