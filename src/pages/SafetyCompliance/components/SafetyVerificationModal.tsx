@@ -53,9 +53,10 @@ export function SafetyVerificationModal({
       onClose={onClose}
       title="Safety Verification"
       size="lg"
+      className="bg-white max-w-2xl"
       footer={
         <Button
-          className="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-medium rounded-lg h-11"
+          className="w-full bg-primary  text-white font-medium rounded-md h-[44px]"
           onClick={handleSubmit}
           disabled={isSubmitting}
           isLoading={isSubmitting}
@@ -75,7 +76,7 @@ export function SafetyVerificationModal({
                 key={index}
                 className="flex items-center justify-between gap-4 p-3 rounded-xl border border-gray-200 bg-white"
               >
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-sm  text-foreground">
                   {index + 1}. {label}
                 </span>
                 <div className="flex items-center gap-4 shrink-0">

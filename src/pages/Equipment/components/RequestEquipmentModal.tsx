@@ -78,7 +78,7 @@ export function RequestEquipmentModal({
       onClose={onClose}
       title="Request equipment"
       size="lg"
-      className="max-w-lg bg-white"
+      className="max-w-xl bg-white"
       footer={
         <Button
           type="submit"

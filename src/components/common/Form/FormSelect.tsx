@@ -21,6 +21,7 @@ interface FormSelectProps {
   required?: boolean
   disabled?: boolean
   className?: string
+  triggerClassName?: string
   name?: string
 }
 
@@ -35,6 +36,7 @@ export function FormSelect({
   required,
   disabled,
   className,
+  triggerClassName,
   name,
 }: FormSelectProps) {
   return (
@@ -46,7 +48,7 @@ export function FormSelect({
         </Label>
       )}
       <Select value={value} onValueChange={onChange} disabled={disabled}>
-        <SelectTrigger error={!!error}>
+        <SelectTrigger error={!!error} className={triggerClassName}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

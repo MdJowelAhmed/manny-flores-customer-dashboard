@@ -84,11 +84,11 @@ export function TaskCard({ task, onViewDetails, onStart }: TaskCardProps) {
 
         <div className="flex gap-3">
           <Button
-            variant={isInProgress ? 'default' : 'outline'}
+            variant={isInProgress ? 'outline' : 'outline'}
             size="sm"
             className={cn(
               'flex-1 rounded-lg',
-              isInProgress ? 'bg-primary text-white' : 'border-primary text-primary'
+              isInProgress ? 'border-primary text-accent' : 'border-primary text-accent'
             )}
             onClick={() => (onStart ?? onViewDetails)(task)}
             disabled={isCompleted}
@@ -98,7 +98,7 @@ export function TaskCard({ task, onViewDetails, onStart }: TaskCardProps) {
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 rounded-lg border-success text-success hover:bg-success/10"
+            className="flex-1 rounded-lg border-success text-secondary hover:bg-success/10"
             onClick={() => onViewDetails(task)}
           >
             View Details

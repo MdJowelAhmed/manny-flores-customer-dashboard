@@ -2,6 +2,8 @@ import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Download } from 'lucide-react'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { Button } from '@/components/ui/button'
 import { Pagination } from '@/components/common/Pagination'
 import {
@@ -44,11 +46,62 @@ export default function Payroll() {
   }, [records, currentPage, itemsPerPage])
 
   const handleDownloadAll = () => {
-    toast({
-      title: 'Payslips Downloaded',
-      description: `All ${records.length} payslips have been downloaded.`,
-      variant: 'success',
-    })
+    try {
+      const doc = new jsPDF()
+      doc.setFontSize(20)
+      doc.text('Payment History - Payslips', 105, 20, { align: 'center' })
+      doc.setFontSize(10)
+      doc.setTextColor(100, 100, 100)
+      doc.text(
+        `Generated on ${new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}`,
+        105,
+        28,
+        { align: 'center' }
+      )
+      doc.setTextColor(0, 0, 0)
+
+      autoTable(doc, {
+        startY: 38,
+        head: [['Month', 'Overtime (hrs)', 'Net Pay', 'Status']],
+        body: records.map((r) => [
+          r.month,
+          String(r.overtime),
+          formatCurrency(r.netPay),
+          r.status,
+        ]),
+        theme: 'grid',
+        headStyles: {
+          fillColor: [248, 241, 241],
+          textColor: '#000000',
+          fontStyle: 'bold',
+          fontSize: 10,
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 4,
+        },
+       
+      })
+
+      const fileName = `payslips-${new Date().toISOString().slice(0, 10)}.pdf`
+      doc.save(fileName)
+
+      toast({
+        title: 'Payslips Downloaded',
+        description: `Payment history PDF (${records.length} records) has been downloaded.`,
+        variant: 'success',
+      })
+    } catch (err) {
+      toast({
+        title: 'Download Failed',
+        description: 'Could not generate PDF. Please try again.',
+        variant: 'destructive',
+      })
+    }
   }
 
   return (
@@ -73,7 +126,7 @@ export default function Payroll() {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-primary/10">
+              <tr className="bg-secondary-foreground text-accent">
                 <th className="px-4 py-4 text-left text-sm font-semibold text-accent rounded-tl-xl">
                   Month
                 </th>

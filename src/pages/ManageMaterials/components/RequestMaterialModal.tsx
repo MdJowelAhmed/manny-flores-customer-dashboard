@@ -81,7 +81,7 @@ export function RequestMaterialModal({
         <Button
           type="submit"
           form="request-material-form"
-          className="w-full bg-primary text-white rounded-lg"
+          className="w-full bg-primary text-white rounded-md"
           disabled={isSubmitting}
         >
           Request

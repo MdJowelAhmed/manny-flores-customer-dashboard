@@ -74,7 +74,7 @@ export default function SafetyCompliance() {
           </div>
 
           <TabsContent value="checklist" className="mt-6 space-y-4">
-            <div className="space-y-3">
+            <div className="space-y-6">
               {checklistItems.map((item) => (
                 <DailyChecklistCard
                   key={item.id}

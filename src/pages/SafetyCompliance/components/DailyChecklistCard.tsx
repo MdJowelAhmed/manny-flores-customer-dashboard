@@ -21,7 +21,7 @@ export function DailyChecklistCard({ item, onCheck }: DailyChecklistCardProps) {
           <Button
             size="sm"
             className={cn(
-              'shrink-0 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-lg font-medium'
+              'shrink-0 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-lg font-medium h-8'
             )}
             onClick={() => onCheck(item)}
           >
