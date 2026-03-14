@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/utils/cn'
 import type { ProjectProgress, TaskPriority } from '../dashboardOverviewData'
 
@@ -14,6 +15,8 @@ interface ProjectProgressListProps {
 }
 
 function ProjectProgressCardItem({ project }: { project: ProjectProgress }) {
+  const { t } = useTranslation()
+
   return (
     <Card className=" hover:shadow-sm transition-shadow">
       <CardContent className="p-4">
@@ -31,7 +34,7 @@ function ProjectProgressCardItem({ project }: { project: ProjectProgress }) {
             <p className="font-semibold text-accent">{project.title}</p>
           </div>
           <span className="shrink-0 text-sm font-semibold text-purple-600">
-            {project.daysLeft} days left
+            {t('dashboard.daysLeft', { count: project.daysLeft })}
           </span>
         </div>
       </CardContent>
@@ -40,6 +43,8 @@ function ProjectProgressCardItem({ project }: { project: ProjectProgress }) {
 }
 
 export function ProjectProgressList({ projects }: ProjectProgressListProps) {
+  const { t } = useTranslation()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -47,7 +52,7 @@ export function ProjectProgressList({ projects }: ProjectProgressListProps) {
       transition={{ duration: 0.3, delay: 0.25 }}
     >
       <div className="border-gray-100">
-        <h2 className="text-lg font-semibold text-accent mb-6">Project Progress</h2>
+        <h2 className="text-lg font-semibold text-accent mb-6">{t('dashboard.projectProgress')}</h2>
         <div className="space-y-4">
           {projects.map((project) => (
             <ProjectProgressCardItem key={project.id} project={project} />

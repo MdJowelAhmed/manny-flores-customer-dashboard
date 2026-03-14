@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Camera } from 'lucide-react'
@@ -29,6 +30,7 @@ export function ReportIssueModal({
   equipment: _equipment,
   onSubmit,
 }: ReportIssueModalProps) {
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
 
@@ -64,7 +66,7 @@ export function ReportIssueModal({
     <ModalWrapper
       open={open}
       onClose={onClose}
-      title="Report Issue"
+      title={t('equipment.reportIssue')}
       size="lg"
       className="max-w-lg bg-white"
       footer={
@@ -74,7 +76,7 @@ export function ReportIssueModal({
           className="w-full bg-primary text-white rounded-lg hover:bg-primary/90"
           disabled={isSubmitting}
         >
-          Submit
+          {t('equipment.submit')}
         </Button>
       }
     >
@@ -88,11 +90,11 @@ export function ReportIssueModal({
           control={control}
           render={({ field }) => (
             <FormSelect
-              label="Issue Type"
+              label={t('equipment.issueType')}
               value={field.value}
               options={ISSUE_TYPE_OPTIONS}
               onChange={field.onChange}
-              placeholder="Select issue type"
+              placeholder={t('equipment.selectIssueType')}
               error={errors.issueType?.message}
               required
             />
@@ -103,11 +105,11 @@ export function ReportIssueModal({
           control={control}
           render={({ field }) => (
             <FormSelect
-              label="Urgency Level"
+              label={t('equipment.urgencyLevel')}
               value={field.value}
               options={URGENCY_OPTIONS}
               onChange={field.onChange}
-              placeholder="Select urgency level"
+              placeholder={t('equipment.selectUrgency')}
               error={errors.urgencyLevel?.message}
               required
             />
@@ -118,8 +120,8 @@ export function ReportIssueModal({
           control={control}
           render={({ field }) => (
             <FormTextarea
-              label="Description"
-              placeholder="Write the reason..."
+              label={t('equipment.description')}
+              placeholder={t('equipment.writeReason')}
               {...field}
               error={errors.description?.message}
               className="min-h-[80px] resize-none bg-gray-50"
@@ -128,7 +130,7 @@ export function ReportIssueModal({
           )}
         />
         <div className="space-y-2">
-          <p className="text-sm font-medium">Uploads Photo (optional)</p>
+          <p className="text-sm font-medium">{t('equipment.uploadPhoto')}</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -143,7 +145,7 @@ export function ReportIssueModal({
             onClick={() => fileInputRef.current?.click()}
           >
             <Camera className="h-4 w-4 mr-2" />
-            Add Photo
+            {t('equipment.addPhoto')}
             {photoFile && (
               <span className="ml-2 text-muted-foreground text-xs">
                 ({photoFile.name})

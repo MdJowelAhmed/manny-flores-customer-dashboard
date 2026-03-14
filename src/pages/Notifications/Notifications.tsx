@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Pagination } from '@/components/common/Pagination'
 import { SAMPLE_NOTIFICATIONS } from './notificationData'
 import type { Notification } from '@/types/notification'
 import { formatDistanceToNow } from 'date-fns'
 export default function Notifications() {
+  const { t } = useTranslation()
   const [notifications, setNotifications] = useState<Notification[]>(SAMPLE_NOTIFICATIONS)
   const [page, setPage] = useState(1)
   const [limit] = useState(10)
@@ -32,7 +34,7 @@ export default function Notifications() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-xl font-semibold text-accent">Notifications</h2>
+        <h2 className="text-xl font-semibold text-accent">{t('notifications.title')}</h2>
         <Button
           variant="outline"
           size="sm"
@@ -40,7 +42,7 @@ export default function Notifications() {
           disabled={unreadCount === 0}
           className="sm:ml-auto"
         >
-          Read All
+          {t('notifications.readAll')}
         </Button>
       </div>
 
@@ -48,7 +50,7 @@ export default function Notifications() {
         <div className="divide-y">
           {paginatedNotifications.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
-              No notifications
+              {t('notifications.noNotifications')}
             </div>
           ) : (
             paginatedNotifications.map((notification) => (
@@ -84,6 +86,7 @@ interface NotificationRowProps {
 }
 
 function NotificationRow({ notification, onMarkAsRead }: NotificationRowProps) {
+  const { t } = useTranslation()
   return (
     <div
       className={`flex items-start justify-between gap-4 p-4 transition-colors ${
@@ -104,7 +107,7 @@ function NotificationRow({ notification, onMarkAsRead }: NotificationRowProps) {
           onClick={() => onMarkAsRead(notification.id)}
           className="shrink-0 h-8 text-accent"
         >
-          Read
+          {t('notifications.read')}
         </Button>
       )}
     </div>

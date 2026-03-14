@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Pagination } from '@/components/common/Pagination'
 import { MaterialCard } from './components/MaterialCard'
@@ -14,6 +15,7 @@ import type { RequestMaterialFormData } from './components/RequestMaterialModal'
 import { toast } from '@/utils/toast'
 
 export default function ManageMaterials() {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
   const itemsPerPage = parseInt(searchParams.get('limit') || '9', 10) || 9
@@ -52,7 +54,7 @@ export default function ManageMaterials() {
         m.id === material.id ? { ...m, status: 'Taken' as const } : m
       )
     )
-    toast({ title: 'Material marked as taken', variant: 'success' })
+    toast({ title: t('materials.markedAsTaken'), variant: 'success' })
   }
 
   const handleRequestMaterial = (data: RequestMaterialFormData) => {
@@ -67,7 +69,7 @@ export default function ManageMaterials() {
     }
     setMaterials((prev) => [newMaterial, ...prev])
     toast({
-      title: 'Material request submitted successfully',
+      title: t('materials.requestSubmitted'),
       variant: 'success',
     })
   }
@@ -76,13 +78,13 @@ export default function ManageMaterials() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-xl font-semibold text-accent">
-          Track Project Materials
+          {t('materials.trackProjectMaterials')}
         </h1>
         <Button
           onClick={() => setShowRequestModal(true)}
           className="bg-primary text-white  shrink-0"
         >
-          Request Material
+          {t('materials.requestMaterial')}
         </Button>
       </div>
 

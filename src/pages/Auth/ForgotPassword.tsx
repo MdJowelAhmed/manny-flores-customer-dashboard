@@ -11,6 +11,7 @@ import { useAppDispatch } from '@/redux/hooks'
 import { setPasswordResetEmail } from '@/redux/slices/authSlice'
 import { cn } from '@/utils/cn'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -19,6 +20,7 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
 
 export default function ForgotPassword() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const [isLoading, setIsLoading] = useState(false)
@@ -61,7 +63,7 @@ export default function ForgotPassword() {
         <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
           <span className="text-primary-foreground font-bold text-xl">D</span>
         </div>
-        <span className="font-display font-bold text-2xl">Dashboard</span>
+        <span className="font-display font-bold text-2xl">{t('auth.dashboard')}</span>
       </div>
 
       <AnimatePresence mode="wait">
@@ -78,25 +80,25 @@ export default function ForgotPassword() {
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to login
+              {t('auth.backToLogin')}
             </Link>
 
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight">Forgot password?</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{t('auth.forgotPasswordTitle')}</h1>
               <p className="text-muted-foreground">
-                No worries, we'll send you reset instructions.
+                {t('auth.noWorries')}
               </p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('auth.email')}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder={t('auth.enterYourEmail')}
                     className={cn('pl-10', errors.email && 'border-destructive')}
                     {...register('email')}
                   />
@@ -109,7 +111,7 @@ export default function ForgotPassword() {
               <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
                 {!isLoading && (
                   <>
-                    Send Reset Link
+                    {t('auth.sendResetLink')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -128,25 +130,25 @@ export default function ForgotPassword() {
             </div>
 
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold tracking-tight">Check your email</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{t('auth.checkYourEmail')}</h1>
               <p className="text-muted-foreground">
-                We sent a verification code to
+                {t('auth.sentVerificationCode')}
               </p>
               <p className="font-medium">{submittedEmail}</p>
             </div>
 
             <Button onClick={handleContinue} className="w-full" size="lg">
-              Enter Code
+              {t('auth.enterCode')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
 
             <p className="text-sm text-muted-foreground">
-              Didn't receive the email?{' '}
+              {t('auth.didntReceiveEmail')}{' '}
               <button
                 onClick={() => setIsSuccess(false)}
                 className="text-primary font-medium hover:underline"
               >
-                Click to resend
+                {t('auth.clickToResend')}
               </button>
             </p>
 
@@ -155,7 +157,7 @@ export default function ForgotPassword() {
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to login
+              {t('auth.backToLogin')}
             </Link>
           </motion.div>
         )}

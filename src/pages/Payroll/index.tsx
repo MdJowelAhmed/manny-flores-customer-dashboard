@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Download } from 'lucide-react'
 import jsPDF from 'jspdf'
@@ -14,6 +15,7 @@ import { formatCurrency } from '@/utils/formatters'
 import { toast } from '@/utils/toast'
 
 export default function Payroll() {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
   const itemsPerPage = parseInt(searchParams.get('limit') || '10', 10) || 10
@@ -49,15 +51,17 @@ export default function Payroll() {
     try {
       const doc = new jsPDF()
       doc.setFontSize(20)
-      doc.text('Payment History - Payslips', 105, 20, { align: 'center' })
+      doc.text(t('payroll.paymentHistoryPdf'), 105, 20, { align: 'center' })
       doc.setFontSize(10)
       doc.setTextColor(100, 100, 100)
       doc.text(
-        `Generated on ${new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })}`,
+        t('payroll.generatedOn', {
+          date: new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          }),
+        }),
         105,
         28,
         { align: 'center' }
@@ -66,7 +70,7 @@ export default function Payroll() {
 
       autoTable(doc, {
         startY: 38,
-        head: [['Month', 'Overtime (hrs)', 'Net Pay', 'Status']],
+        head: [[t('payroll.month'), t('payroll.overtimeHrs'), t('payroll.netPay'), t('payroll.status')]],
         body: records.map((r) => [
           r.month,
           String(r.overtime),
@@ -91,14 +95,14 @@ export default function Payroll() {
       doc.save(fileName)
 
       toast({
-        title: 'Payslips Downloaded',
-        description: `Payment history PDF (${records.length} records) has been downloaded.`,
+        title: t('payroll.payslipsDownloaded'),
+        description: t('payroll.recordsDownloaded', { count: records.length }),
         variant: 'success',
       })
     } catch (err) {
       toast({
-        title: 'Download Failed',
-        description: 'Could not generate PDF. Please try again.',
+        title: t('payroll.downloadFailed'),
+        description: t('payroll.couldNotGenerate'),
         variant: 'destructive',
       })
     }
@@ -112,13 +116,13 @@ export default function Payroll() {
       className="space-y-6"
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl font-bold text-accent">Payment History</h1>
+        <h1 className="text-xl font-bold text-accent">{t('payroll.paymentHistory')}</h1>
         <Button
           onClick={handleDownloadAll}
           className="bg-primary text-white shrink-0 hover:bg-primary/90 rounded-lg"
         >
           <Download className="h-4 w-4 mr-2" />
-          Download Payslip
+          {t('payroll.downloadPayslip')}
         </Button>
       </div>
 
@@ -128,16 +132,16 @@ export default function Payroll() {
             <thead>
               <tr className="bg-secondary-foreground text-accent">
                 <th className="px-4 py-4 text-left text-sm font-semibold text-accent rounded-tl-xl">
-                  Month
+                  {t('payroll.month')}
                 </th>
                 <th className="px-4 py-4 text-left text-sm font-semibold text-accent">
-                  Overtime
+                  {t('payroll.overtime')}
                 </th>
                 <th className="px-4 py-4 text-left text-sm font-semibold text-accent">
-                  Net Pay
+                  {t('payroll.netPay')}
                 </th>
                 <th className="px-4 py-4 text-left text-sm font-semibold text-accent rounded-tr-xl">
-                  Status
+                  {t('payroll.status')}
                 </th>
               </tr>
             </thead>

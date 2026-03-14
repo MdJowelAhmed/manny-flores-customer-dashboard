@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Camera } from 'lucide-react'
@@ -31,6 +32,7 @@ export function RequestVehicleModal({
   onClose,
   onRequest,
 }: RequestVehicleModalProps) {
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
 
@@ -72,7 +74,7 @@ export function RequestVehicleModal({
     <ModalWrapper
       open={open}
       onClose={onClose}
-      title="Request Vehicle"
+      title={t('vehicles.requestVehicle')}
       size="lg"
       className="max-w-xl bg-white"
       footer={
@@ -82,7 +84,7 @@ export function RequestVehicleModal({
           className="w-full bg-primary text-white rounded-lg hover:bg-primary/90"
           disabled={isSubmitting}
         >
-          Request
+          {t('vehicles.request')}
         </Button>
       }
     >
@@ -96,11 +98,11 @@ export function RequestVehicleModal({
           control={control}
           render={({ field }) => (
             <FormSelect
-              label="Vehicle type"
+              label={t('vehicles.vehicleType')}
               value={field.value}
               options={VEHICLE_TYPE_OPTIONS}
               onChange={field.onChange}
-              placeholder="Select vehicle type"
+              placeholder={t('vehicles.selectVehicleType')}
               error={errors.vehicleType?.message}
               required
             />
@@ -111,11 +113,11 @@ export function RequestVehicleModal({
           control={control}
           render={({ field }) => (
             <FormSelect
-              label="Project name"
+              label={t('vehicles.projectName')}
               value={field.value}
               options={PROJECT_OPTIONS}
               onChange={field.onChange}
-              placeholder="Select project name"
+              placeholder={t('vehicles.selectProject')}
               error={errors.projectName?.message}
               required
             />
@@ -126,11 +128,11 @@ export function RequestVehicleModal({
           control={control}
           render={({ field }) => (
             <FormSelect
-              label="Urgency Level"
+              label={t('vehicles.urgencyLevel')}
               value={field.value}
               options={URGENCY_OPTIONS}
               onChange={field.onChange}
-              placeholder="Select urgency level"
+              placeholder={t('vehicles.selectUrgency')}
               error={errors.urgencyLevel?.message}
               required
             />
@@ -141,8 +143,8 @@ export function RequestVehicleModal({
           control={control}
           render={({ field }) => (
             <FormTextarea
-              label="Reason"
-              placeholder="Write the reason..."
+              label={t('vehicles.reason')}
+              placeholder={t('vehicles.writeReason')}
               {...field}
               error={errors.reason?.message}
               className="min-h-[80px] resize-none bg-gray-50"
@@ -151,7 +153,7 @@ export function RequestVehicleModal({
           )}
         />
         <div className="space-y-2">
-          <p className="text-sm font-medium">Uploads Photo (optional)</p>
+          <p className="text-sm font-medium">{t('vehicles.uploadPhoto')}</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -166,7 +168,7 @@ export function RequestVehicleModal({
             onClick={() => fileInputRef.current?.click()}
           >
             <Camera className="h-4 w-4 mr-2" />
-            Add Photo
+            {t('vehicles.addPhoto')}
             {photoFile && (
               <span className="ml-2 text-muted-foreground text-xs">
                 ({photoFile.name})

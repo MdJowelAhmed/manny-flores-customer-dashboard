@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import type { DailyChecklistItem } from '../safetyComplianceData'
@@ -9,6 +10,7 @@ interface DailyChecklistCardProps {
 }
 
 export function DailyChecklistCard({ item, onCheck }: DailyChecklistCardProps) {
+  const { t } = useTranslation()
   return (
     <Card className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
       <CardContent className="p-4 flex items-center justify-between gap-4">
@@ -16,7 +18,7 @@ export function DailyChecklistCard({ item, onCheck }: DailyChecklistCardProps) {
           {item.order}. {item.projectName}
         </p>
         {item.isCompleted ? (
-          <span className="text-green-600 text-sm font-medium shrink-0">Completed</span>
+          <span className="text-green-600 text-sm font-medium shrink-0">{t('safety.completed')}</span>
         ) : (
           <Button
             size="sm"
@@ -25,7 +27,7 @@ export function DailyChecklistCard({ item, onCheck }: DailyChecklistCardProps) {
             )}
             onClick={() => onCheck(item)}
           >
-            Check
+            {t('safety.check')}
           </Button>
         )}
       </CardContent>

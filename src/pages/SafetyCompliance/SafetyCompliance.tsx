@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { DailyChecklistCard } from './components/DailyChecklistCard'
@@ -13,6 +14,7 @@ import { cn } from '@/utils/cn'
 type TabValue = 'checklist' | 'incident'
 
 export default function SafetyCompliance() {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabValue>('checklist')
   const [checklistItems, setChecklistItems] = useState(mockDailyChecklistItems)
   const [verificationModalOpen, setVerificationModalOpen] = useState(false)
@@ -58,7 +60,7 @@ export default function SafetyCompliance() {
                   'data-[state=inactive]:bg-white data-[state=inactive]:text-gray-700 data-[state=inactive]:border data-[state=inactive]:border-gray-200'
                 )}
               >
-                Daily Safety Checklist
+                {t('safety.dailySafetyChecklist')}
               </TabsTrigger>
               <TabsTrigger
                 value="incident"
@@ -68,7 +70,7 @@ export default function SafetyCompliance() {
                   'data-[state=inactive]:bg-white data-[state=inactive]:text-gray-700 data-[state=inactive]:border data-[state=inactive]:border-gray-200'
                 )}
               >
-                Create Incident Report
+                {t('safety.createIncidentReport')}
               </TabsTrigger>
             </TabsList>
           </div>

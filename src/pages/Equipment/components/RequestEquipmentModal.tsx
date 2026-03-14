@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Camera } from 'lucide-react'
@@ -33,6 +34,7 @@ export function RequestEquipmentModal({
   onClose,
   onRequest,
 }: RequestEquipmentModalProps) {
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
 
@@ -76,7 +78,7 @@ export function RequestEquipmentModal({
     <ModalWrapper
       open={open}
       onClose={onClose}
-      title="Request equipment"
+      title={t('equipment.requestEquipmentTitle')}
       size="lg"
       className="max-w-xl bg-white"
       footer={
@@ -86,7 +88,7 @@ export function RequestEquipmentModal({
           className="w-full bg-primary text-white rounded-lg hover:bg-primary/90"
           disabled={isSubmitting}
         >
-          Request
+          {t('equipment.request')}
         </Button>
       }
     >
@@ -100,11 +102,11 @@ export function RequestEquipmentModal({
           control={control}
           render={({ field }) => (
             <FormSelect
-              label="Equipment Name"
+              label={t('equipment.equipmentName')}
               value={field.value}
               options={EQUIPMENT_NAME_OPTIONS}
               onChange={field.onChange}
-              placeholder="Select Equipment name"
+              placeholder={t('equipment.selectEquipmentName')}
               error={errors.equipmentName?.message}
               required
             />
@@ -115,11 +117,11 @@ export function RequestEquipmentModal({
           control={control}
           render={({ field }) => (
             <FormSelect
-              label="Equipment Type"
+              label={t('equipment.equipmentType')}
               value={field.value}
               options={EQUIPMENT_TYPE_OPTIONS}
               onChange={field.onChange}
-              placeholder="Select Equipment type"
+              placeholder={t('equipment.selectEquipmentType')}
               error={errors.equipmentType?.message}
               required
             />
@@ -130,11 +132,11 @@ export function RequestEquipmentModal({
           control={control}
           render={({ field }) => (
             <FormSelect
-              label="Project name"
+              label={t('equipment.projectName')}
               value={field.value}
               options={PROJECT_OPTIONS}
               onChange={field.onChange}
-              placeholder="Select project name"
+              placeholder={t('equipment.selectProject')}
               error={errors.projectName?.message}
               required
             />
@@ -145,11 +147,11 @@ export function RequestEquipmentModal({
           control={control}
           render={({ field }) => (
             <FormSelect
-              label="Urgency Level"
+              label={t('equipment.urgencyLevel')}
               value={field.value}
               options={URGENCY_OPTIONS}
               onChange={field.onChange}
-              placeholder="Select urgency level"
+              placeholder={t('equipment.selectUrgency')}
               error={errors.urgencyLevel?.message}
               required
             />
@@ -160,8 +162,8 @@ export function RequestEquipmentModal({
           control={control}
           render={({ field }) => (
             <FormTextarea
-              label="Reason"
-              placeholder="Write the reason.."
+              label={t('equipment.reason')}
+              placeholder={t('equipment.writeReason')}
               {...field}
               error={errors.reason?.message}
               className="min-h-[80px] resize-none bg-gray-50"
@@ -170,7 +172,7 @@ export function RequestEquipmentModal({
           )}
         />
         <div className="space-y-2">
-          <p className="text-sm font-medium">Uploads Photo (optional)</p>
+          <p className="text-sm font-medium">{t('equipment.uploadPhoto')}</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -185,7 +187,7 @@ export function RequestEquipmentModal({
             onClick={() => fileInputRef.current?.click()}
           >
             <Camera className="h-4 w-4 mr-2" />
-            Add Photo
+            {t('equipment.addPhoto')}
             {photoFile && (
               <span className="ml-2 text-muted-foreground text-xs">
                 ({photoFile.name})

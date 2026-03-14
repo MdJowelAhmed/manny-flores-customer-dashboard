@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Paperclip, Send, CheckCheck } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -36,6 +37,7 @@ const allConversationsInitial = [
 ]
 
 export default function Communication() {
+  const { t } = useTranslation()
   const [conversations, setConversations] = useState<Conversation[]>(allConversationsInitial)
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(
     () => allConversationsInitial[0]
@@ -80,9 +82,9 @@ export default function Communication() {
       {/* Left Panel - Conversation List */}
       <div className="w-[340px] min-w-[340px] flex flex-col border-r border-gray-100 bg-white">
         <div className="px-4 pt-4 pb-2 border-b border-gray-100">
-          <h2 className="font-semibold text-accent">Messages</h2>
+          <h2 className="font-semibold text-accent">{t('communication.messages')}</h2>
           <p className="text-sm text-muted-foreground mt-0.5">
-            All contacts
+            {t('communication.allContacts')}
           </p>
         </div>
         <ConversationList
@@ -106,7 +108,7 @@ export default function Communication() {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <p className="text-sm">Select a conversation to start chatting</p>
+            <p className="text-sm">{t('communication.selectConversation')}</p>
           </div>
         )}
       </div>
@@ -125,6 +127,7 @@ function ConversationList({
   selected,
   onSelect,
 }: ConversationListProps) {
+  const { t } = useTranslation()
   return (
     <div className="overflow-y-auto scrollbar-thin flex-1">
       {conversations.map((conv) => {
@@ -162,7 +165,7 @@ function ConversationList({
                   isSelected ? 'text-primary/80' : 'text-muted-foreground'
                 )}
               >
-                {conv.lastMessageIsFromYou ? 'You: ' : ''}
+                {conv.lastMessageIsFromYou ? t('communication.you') + ' ' : ''}
                 {conv.lastMessage}
               </p>
             </div>
@@ -196,11 +199,12 @@ function ChatHeader({ conversation }: { conversation: Conversation }) {
 }
 
 function MessageList({ messages }: { messages: Message[] }) {
+  const { t } = useTranslation()
   return (
     <div className="flex-1 overflow-y-auto scrollbar-thin px-6 py-4 space-y-4">
       {messages.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-8">
-          No messages yet. Start the conversation!
+          {t('communication.noMessages')}
         </p>
       ) : (
         messages.map((msg) => (
@@ -262,6 +266,7 @@ interface ChatInputProps {
 }
 
 function ChatInput({ value, onChange, onSend }: ChatInputProps) {
+  const { t } = useTranslation()
   return (
     <div className="flex items-center gap-3 px-6 py-4 border-t border-gray-100 bg-white">
       <Button
@@ -281,7 +286,7 @@ function ChatInput({ value, onChange, onSend }: ChatInputProps) {
             onSend()
           }
         }}
-        placeholder="Message"
+        placeholder={t('communication.messagePlaceholder')}
         className="flex-1 rounded-full border-gray-200 h-11"
       />
       <Button

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Eye, EyeOff, Shield } from 'lucide-react'
@@ -77,6 +78,7 @@ function PasswordInput({
 }
 
 export default function ChangePassword() {
+  const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
@@ -92,11 +94,11 @@ export default function ChangePassword() {
   const newPassword = watch('newPassword', '')
 
   const passwordRequirements = [
-    { label: 'At least 8 characters', met: newPassword.length >= 8 },
-    { label: 'One uppercase letter', met: /[A-Z]/.test(newPassword) },
-    { label: 'One lowercase letter', met: /[a-z]/.test(newPassword) },
-    { label: 'One number', met: /[0-9]/.test(newPassword) },
-    { label: 'One special character', met: /[^A-Za-z0-9]/.test(newPassword) },
+    { label: t('auth.atLeast8Chars'), met: newPassword.length >= 8 },
+    { label: t('auth.oneUppercase'), met: /[A-Z]/.test(newPassword) },
+    { label: t('auth.oneLowercase'), met: /[a-z]/.test(newPassword) },
+    { label: t('auth.oneNumber'), met: /[0-9]/.test(newPassword) },
+    { label: t('auth.oneSpecialChar'), met: /[^A-Za-z0-9]/.test(newPassword) },
   ]
 
   const onSubmit = async (data: PasswordFormData) => {
@@ -108,8 +110,8 @@ export default function ChangePassword() {
     console.log('Password change:', data)
     
     toast({
-      title: 'Password Changed',
-      description: 'Your password has been changed successfully.',
+      title: t('settings.passwordChanged'),
+      description: t('settings.passwordChangedDesc'),
     })
     
     reset()
@@ -127,25 +129,25 @@ export default function ChangePassword() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Change Password
+            {t('settings.changePassword')}
           </CardTitle>
           <CardDescription>
-            Ensure your account is using a strong password to stay secure
+            {t('settings.ensureStrongPassword')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <PasswordInput
-              label="Current Password"
-              placeholder="Enter current password"
+              label={t('settings.currentPassword')}
+              placeholder={t('settings.enterCurrentPassword')}
               error={errors.currentPassword?.message}
               required
               {...register('currentPassword')}
             />
 
             <PasswordInput
-              label="New Password"
-              placeholder="Enter new password"
+              label={t('settings.newPassword')}
+              placeholder={t('settings.enterNewPassword')}
               error={errors.newPassword?.message}
               required
               {...register('newPassword')}
@@ -153,7 +155,7 @@ export default function ChangePassword() {
 
             {/* Password Requirements */}
             <div className="rounded-lg border p-4 space-y-2">
-              <p className="text-sm font-medium">Password Requirements</p>
+              <p className="text-sm font-medium">{t('settings.passwordRequirements')}</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {passwordRequirements.map((req) => (
                   <div
@@ -176,8 +178,8 @@ export default function ChangePassword() {
             </div>
 
             <PasswordInput
-              label="Confirm New Password"
-              placeholder="Confirm new password"
+              label={t('settings.confirmNewPassword')}
+              placeholder={t('settings.confirmNewPasswordPlaceholder')}
               error={errors.confirmPassword?.message}
               required
               {...register('confirmPassword')}
@@ -185,10 +187,10 @@ export default function ChangePassword() {
 
             <div className="flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={() => reset()}>
-                Cancel
+                {t('settings.cancel')}
               </Button>
               <Button type="submit" isLoading={isSubmitting}>
-                Change Password
+                {t('settings.changePassword')}
               </Button>
             </div>
           </form>

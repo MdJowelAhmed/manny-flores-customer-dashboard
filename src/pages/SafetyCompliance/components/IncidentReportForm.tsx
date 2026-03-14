@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -24,6 +25,7 @@ const inputBaseClass =
   'flex h-11 w-full rounded-lg border border-[#E0E0E0] bg-white px-3 py-2 text-sm text-[#333333] placeholder:text-[#CCCCCC] focus:outline-none focus:ring-2 focus:ring-[#28a745]/20 focus:border-[#28a745] disabled:cursor-not-allowed disabled:opacity-50 transition-colors'
 
 export function IncidentReportForm() {
+  const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
@@ -53,8 +55,8 @@ export function IncidentReportForm() {
       await new Promise((r) => setTimeout(r, 500))
       toast({
         variant: 'success',
-        title: 'Incident Report Submitted',
-        description: 'Your incident report has been submitted successfully.',
+        title: t('safety.incidentReportSubmitted'),
+        description: t('safety.incidentReportSubmittedDesc'),
       })
       reset({
         dateTime: format(new Date(), 'MMM d, yyyy - HH : mm a'),
@@ -65,7 +67,7 @@ export function IncidentReportForm() {
         description: '',
       })
     } catch {
-      toast({ title: 'Submission failed', variant: 'destructive' })
+      toast({ title: t('safety.submissionFailed'), variant: 'destructive' })
     } finally {
       setIsSubmitting(false)
     }
@@ -81,12 +83,12 @@ export function IncidentReportForm() {
           {/* Logistics */}
           <div>
             <h3 className="text-base font-bold text-[#333333] mb-4">
-              Logistics
+              {t('safety.logistics')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-[#333333] block">
-                  Date & Time (auto filled)
+                  {t('safety.dateTime')}
                 </label>
                 <input
                   {...register('dateTime')}
@@ -96,12 +98,12 @@ export function IncidentReportForm() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-[#333333] block">
-                  Location
+                  {t('safety.locationLabel')}
                 </label>
                 <div className="relative">
                   <input
                     {...register('location')}
-                    placeholder="Enter location"
+                    placeholder={t('safety.enterLocation')}
                     className={`${inputBaseClass} pr-9`}
                   />
                   <ChevronRight
@@ -119,19 +121,19 @@ export function IncidentReportForm() {
           {/* People Involved */}
           <div>
             <h3 className="text-base font-bold text-[#333333] mb-4">
-              People Involved
+              {t('safety.peopleInvolved')}
             </h3>
             <div className=" grid grid-cols-1 md:grid-cols-2 gap-10">
               <FormInput
-                label="Involved Person"
-                placeholder="Full Name"
+                label={t('safety.involvedPerson')}
+                placeholder={t('safety.fullName')}
                 error={errors.involvedPerson?.message}
                 {...register('involvedPerson')}
                 className={inputBaseClass}
               />
               <FormInput
-                label="Witness Name"
-                placeholder="Full name (optional)"
+                label={t('safety.witnessName')}
+                placeholder={t('safety.fullNameOptional')}
                 error={errors.witnessName?.message}
                 {...register('witnessName')}
                 className={inputBaseClass}
@@ -142,21 +144,21 @@ export function IncidentReportForm() {
           {/* Incident Details */}
           <div>
             <h3 className="text-base font-bold text-[#333333] mb-4">
-              Incident Details
+              {t('safety.incidentDetails')}
             </h3>
             <div className="space-y-4">
               <FormSelect
-                label="Incident Type"
+                label={t('safety.incidentType')}
                 value={incidentType}
                 onChange={(v) => setValue('incidentType', v)}
                 options={INCIDENT_TYPE_OPTIONS}
-                placeholder="select"
+                placeholder={t('common.select')}
                 error={errors.incidentType?.message}
                 triggerClassName="h-11 rounded-lg border-[#E0E0E0]"
               />
               <FormTextarea
-                label="Description"
-                placeholder="Describe exactly what happened..."
+                label={t('safety.description')}
+                placeholder={t('safety.describeWhatHappened')}
                 error={errors.description?.message}
                 {...register('description')}
                 className="flex w-full min-h-[140px] rounded-lg border border-[#E0E0E0] bg-white px-3 py-3 text-sm text-[#333333] placeholder:text-[#CCCCCC] focus:outline-none focus:ring-2 focus:ring-[#28a745]/20 focus:border-[#28a745] resize-none"
@@ -173,7 +175,7 @@ export function IncidentReportForm() {
           disabled={isSubmitting}
           isLoading={isSubmitting}
         >
-          Submit
+          {t('safety.submit')}
         </Button>
        </div>
       </form>

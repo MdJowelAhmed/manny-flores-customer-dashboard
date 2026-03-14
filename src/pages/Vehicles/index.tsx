@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Pagination } from '@/components/common/Pagination'
@@ -17,6 +18,7 @@ import type { RequestVehicleFormData } from './components/RequestVehicleModal'
 import { toast } from '@/utils/toast'
 
 export default function Vehicles() {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
   const itemsPerPage = parseInt(searchParams.get('limit') || '9', 10) || 9
@@ -63,8 +65,8 @@ export default function Vehicles() {
     _photo?: File | null
   ) => {
     toast({
-      title: 'Issue Reported',
-      description: `Issue for ${selectedVehicle?.vehicleType} (${selectedVehicle?.plate}) has been reported.`,
+      title: t('vehicles.issueReported'),
+      description: t('vehicles.issueReportedDescription', { type: selectedVehicle?.vehicleType, plate: selectedVehicle?.plate }),
       variant: 'success',
     })
     setShowReportModal(false)
@@ -98,8 +100,8 @@ export default function Vehicles() {
     }
     setVehicles((prev) => [newVehicle, ...prev])
     toast({
-      title: 'Vehicle request submitted',
-      description: 'Your vehicle request has been submitted successfully.',
+      title: t('vehicles.vehicleRequestSubmitted'),
+      description: t('vehicles.vehicleRequestDescription'),
       variant: 'success',
     })
   }
@@ -112,12 +114,12 @@ export default function Vehicles() {
       className="space-y-6"
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl font-semibold text-accent">Vehicles</h1>
+        <h1 className="text-xl font-semibold text-accent">{t('vehicles.title')}</h1>
         <Button
           onClick={() => setShowRequestModal(true)}
           className="bg-primary text-white shrink-0 hover:bg-primary/90"
         >
-          Request Vehicle
+          {t('vehicles.requestVehicle')}
         </Button>
       </div>
 

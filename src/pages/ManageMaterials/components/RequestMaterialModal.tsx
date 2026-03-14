@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ModalWrapper, FormInput, FormSelect, FormTextarea } from '@/components/common'
@@ -33,6 +34,7 @@ export function RequestMaterialModal({
   onClose,
   onRequest,
 }: RequestMaterialModalProps) {
+  const { t } = useTranslation()
   const {
     register,
     handleSubmit,
@@ -74,7 +76,7 @@ export function RequestMaterialModal({
     <ModalWrapper
       open={open}
       onClose={onClose}
-      title="Request Material"
+      title={t('materials.requestMaterial')}
       size="lg"
       className="max-w-3xl bg-white"
       footer={
@@ -84,7 +86,7 @@ export function RequestMaterialModal({
           className="w-full bg-primary text-white rounded-md"
           disabled={isSubmitting}
         >
-          Request
+          {t('materials.request')}
         </Button>
       }
     >
@@ -99,11 +101,11 @@ export function RequestMaterialModal({
             control={control}
             render={({ field }) => (
               <FormSelect
-                label="Material Name"
+                label={t('materials.materialName')}
                 value={field.value}
                 options={MATERIAL_OPTIONS}
                 onChange={field.onChange}
-                placeholder="Select Material"
+                placeholder={t('materials.selectMaterial')}
                 error={errors.materialName?.message}
                 required
               />
@@ -111,8 +113,8 @@ export function RequestMaterialModal({
 
           />
           <FormInput
-            label="Quantity Needed"
-            placeholder="Enter required quantity"
+            label={t('materials.quantityNeeded')}
+            placeholder={t('materials.enterQuantity')}
             {...register('quantityNeeded')}
             error={errors.quantityNeeded?.message}
             required
@@ -122,11 +124,11 @@ export function RequestMaterialModal({
             control={control}
             render={({ field }) => (
               <FormSelect
-                label="Urgency Level"
+                label={t('materials.urgencyLevel')}
                 value={field.value}
                 options={URGENCY_OPTIONS}
                 onChange={field.onChange}
-                placeholder="Select urgency level"
+                placeholder={t('materials.selectUrgency')}
                 error={errors.urgencyLevel?.message}
                 required
               />
@@ -137,11 +139,11 @@ export function RequestMaterialModal({
             control={control}
             render={({ field }) => (
               <FormSelect
-                label="Project Name"
+                label={t('materials.projectName')}
                 value={field.value}
                 options={PROJECT_OPTIONS}
                 onChange={field.onChange}
-                placeholder="Select project name"
+                placeholder={t('materials.selectProject')}
                 error={errors.projectName?.message}
                 required
               />
@@ -153,19 +155,19 @@ export function RequestMaterialModal({
           control={control}
           render={({ field }) => (
             <FormSelect
-              label="Task Name"
+              label={t('materials.taskName')}
               value={field.value}
               options={TASK_OPTIONS}
               onChange={field.onChange}
-              placeholder="Select task name"
+              placeholder={t('materials.selectTask')}
               error={errors.taskName?.message}
               required
             />
           )}
         />
         <FormTextarea
-          label="Reason"
-          placeholder="Write the reason..."
+          label={t('materials.reason')}
+          placeholder={t('materials.writeReason')}
           {...register('reason')}
           error={errors.reason?.message}
           className="min-h-[80px] resize-none"

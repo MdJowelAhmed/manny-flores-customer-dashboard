@@ -1,4 +1,5 @@
 import { Calendar, MapPin } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/utils/cn'
@@ -19,9 +20,10 @@ const priorityClasses: Record<string, string> = {
 }
 
 export function TaskCard({ task, onViewDetails, onStart }: TaskCardProps) {
+  const { t } = useTranslation()
   const isInProgress = task.status === 'In Progress'
   const isCompleted = task.status === 'Completed'
-  const primaryButtonText = isCompleted ? 'Completed' : isInProgress ? 'Complete' : 'Start'
+  const primaryButtonText = isCompleted ? t('myTask.completed') : isInProgress ? t('myTask.complete') : t('myTask.start')
 
   return (
     <Card className="rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
@@ -40,13 +42,13 @@ export function TaskCard({ task, onViewDetails, onStart }: TaskCardProps) {
           </div>
           {isInProgress && (
             <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 shrink-0">
-              In Progress
+              {t('myTask.inProgress')}
             </span>
           )}
         </div>
 
         <p className="text-sm text-muted-foreground mb-3">
-          <span className="font-medium text-foreground">Task Name: </span>
+          <span className="font-medium text-foreground">{t('myTask.taskName')} </span>
           {task.taskName}
         </p>
 
@@ -56,7 +58,7 @@ export function TaskCard({ task, onViewDetails, onStart }: TaskCardProps) {
               <div className="bg-secondary-foreground p-1 rounded-full">
               <Calendar className="h-4 w-4 text-success shrink-0   " />
               </div>
-              <span className="font-medium text-foreground">Deadline </span>
+              <span className="font-medium text-foreground">{t('myTask.deadline')} </span>
             </div>
             <span>
 
@@ -68,7 +70,7 @@ export function TaskCard({ task, onViewDetails, onStart }: TaskCardProps) {
              <div className="bg-secondary-foreground p-1 rounded-full">
              <MapPin className="h-4 w-4 text-success shrink-0 mt-0.5   " />
              </div>
-              <span className="font-medium text-foreground">Location </span>
+              <span className="font-medium text-foreground">{t('myTask.location')} </span>
             </div>
             <span>
 
@@ -78,7 +80,7 @@ export function TaskCard({ task, onViewDetails, onStart }: TaskCardProps) {
         </div>
 
         <div className="mb-4">
-          <p className="text-xs font-medium text-foreground mb-1">Description:</p>
+          <p className="text-xs font-medium text-foreground mb-1">{t('myTask.description')}</p>
           <p className="text-sm text-muted-foreground line-clamp-3">{task.description}</p>
         </div>
 
@@ -101,7 +103,7 @@ export function TaskCard({ task, onViewDetails, onStart }: TaskCardProps) {
             className="flex-1 rounded-lg border-success text-secondary hover:bg-success/10"
             onClick={() => onViewDetails(task)}
           >
-            View Details
+            {t('myTask.viewDetails')}
           </Button>
         </div>
       </CardContent>

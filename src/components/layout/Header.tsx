@@ -19,24 +19,23 @@ import { getInitials } from '@/utils/formatters'
 import { SAMPLE_NOTIFICATIONS } from '@/pages/Notifications/notificationData'
 import type { Notification } from '@/types/notification'
 import { formatDistanceToNow } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 
-const routeTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/my-task': 'My Task',
-  '/attendance': 'Attendance',
-  '/communication': 'Communication',
-  '/manage-materials': 'Materials',
-
-  '/payroll': 'Payment History',
-  '/resource-requests-report': 'Resource Requests & Report',
-  '/vehicles': 'Vehicles',
-  '/equipment': 'Assigned Equipment',
-
-  '/settings/profile': 'Profile Settings',
-  '/settings/password': 'Change Password',
-  '/settings/terms': 'Terms & Conditions',
-  '/settings/privacy': 'Privacy Policy',
-  '/settings/about-us': 'About Us',
+const routeTitleKeys: Record<string, string> = {
+  '/dashboard': 'header.routeTitles.dashboard',
+  '/my-task': 'header.routeTitles.myTask',
+  '/attendance': 'header.routeTitles.attendance',
+  '/communication': 'header.routeTitles.communication',
+  '/manage-materials': 'header.routeTitles.materials',
+  '/payroll': 'header.routeTitles.paymentHistory',
+  '/resource-requests-report': 'header.routeTitles.resourceRequests',
+  '/vehicles': 'header.routeTitles.vehicles',
+  '/equipment': 'header.routeTitles.assignedEquipment',
+  '/settings/profile': 'header.routeTitles.profileSettings',
+  '/settings/password': 'header.routeTitles.changePassword',
+  '/settings/terms': 'header.routeTitles.termsConditions',
+  '/settings/privacy': 'header.routeTitles.privacyPolicy',
+  '/settings/about-us': 'header.routeTitles.aboutUs',
 }
 
 const RECENT_NOTIFICATIONS_COUNT = 3
@@ -60,15 +59,17 @@ function NotificationItem({ notification }: { notification: Notification }) {
 }
 
 export function Header() {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const [notificationModalOpen, setNotificationModalOpen] = useState(false)
-  // const { theme } = useAppSelector((state) => state.ui)
   const { user } = useAppSelector((state) => state.auth)
   const location = useLocation()
-  const [language, setLanguage] = useState('en')
-  const pageTitle = routeTitles[location.pathname] || 'Dashboard'
+  const titleKey = routeTitleKeys[location.pathname] || 'header.routeTitles.dashboard'
+  const pageTitle = t(titleKey)
   const recentNotifications = SAMPLE_NOTIFICATIONS.slice(0, RECENT_NOTIFICATIONS_COUNT)
+
+  const currentLang = i18n.language
 
   const handleViewAllNotifications = () => {
     setNotificationModalOpen(false)
@@ -81,8 +82,8 @@ export function Header() {
   }
 
   const handleLanguageToggle = () => {
-    setLanguage(language === 'en' ? 'es' : 'en')
-    console.log(language)
+    const newLang = currentLang === 'en' ? 'es' : 'en'
+    i18n.changeLanguage(newLang)
   }
 
   return (
@@ -101,38 +102,13 @@ export function Header() {
           <div>
             <h1 className="text-xl font-semibold text-accent">{pageTitle}</h1>
             <p className="text-sm text-accent hidden sm:block">
-              Welcome back, {user?.firstName || 'Employee'}
+              {t('header.welcomeBack')} {user?.firstName || t('header.employee')}
             </p>
           </div>
         </div>
 
-        {/* Center - Search (hidden on mobile) */}
-        {/* <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search anything..."
-              className="pl-9 bg-muted/50"
-            />
-          </div>
-        </div> */}
-
         {/* Right side */}
         <div className="flex items-center gap-6">
-          {/* Theme toggle */}
-          {/* <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => dispatch(toggleTheme())}
-          >
-            {theme === 'light' ? (
-              <Moon className="h-5 w-5 text-accent" />
-            ) : (
-              <Sun className="h-5 w-5 text-accent" />
-            )}
-          </Button> */}
-
           {/* Language Toggle (English, Spanish) */}
           <Button
             variant="ghost"
@@ -140,7 +116,7 @@ export function Header() {
             onClick={handleLanguageToggle}
           >
             {
-              language === 'en' ? (
+              currentLang === 'en' ? (
                 <div className="h-8 w-8 text-accent flex items-center gap-2">
                   <img src="/assets/english.png" alt="English" className="h-6 w-7 rounded-full" />
                   <span className="text-xs text-accent">ENG</span>
@@ -167,7 +143,7 @@ export function Header() {
           <ModalWrapper
             open={notificationModalOpen}
             onClose={() => setNotificationModalOpen(false)}
-            title="Notifications"
+            title={t('header.notifications')}
             size="md"
             className="bg-white"
             footer={
@@ -176,7 +152,7 @@ export function Header() {
                 className="w-full"
                 onClick={handleViewAllNotifications}
               >
-                View All
+                {t('header.viewAll')}
               </Button>
             }
           >
@@ -203,7 +179,7 @@ export function Header() {
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium">
-                    {user ? `${user.firstName} ${user.lastName}` : 'Employee'}
+                    {user ? `${user.firstName} ${user.lastName}` : t('header.employee')}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {user?.email || 'employee@example.com'}
@@ -213,16 +189,16 @@ export function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate('/settings/profile')}>
                 <User className="h-4 w-4 mr-2" />
-                Profile
+                {t('header.profileMenu')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/settings/password')}>
                 <Settings className="h-4 w-4 mr-2" />
-                Settings
+                {t('header.settingsMenu')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                 <LogOut className="h-4 w-4 mr-2" />
-                Log out
+                {t('header.logOut')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

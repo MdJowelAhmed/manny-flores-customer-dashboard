@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Calendar, MapPin, Camera } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { ModalWrapper } from '@/components/common'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -21,6 +22,7 @@ function PhotoAddField({
   file: File | null
   onChange: (f: File | null) => void
 }) {
+  const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
   return (
     <div>
@@ -47,7 +49,7 @@ function PhotoAddField({
             }}
             className="text-destructive hover:text-destructive"
           >
-            Remove
+            {t('myTask.remove')}
           </Button>
         )}
         <input
@@ -78,6 +80,7 @@ export function TaskDetailsModal({
   showForm = false,
   onSubmit,
 }: TaskDetailsModalProps) {
+  const { t } = useTranslation()
   const [beforePhoto, setBeforePhoto] = useState<File | null>(null)
   const [afterPhoto, setAfterPhoto] = useState<File | null>(null)
   const [note, setNote] = useState('')
@@ -125,7 +128,7 @@ export function TaskDetailsModal({
           onClick={handleSubmit}
           className="w-full bg-primary text-white rounded-lg"
         >
-          Submit
+          {t('myTask.submit')}
         </Button>
       </div>
     ) : undefined
@@ -134,7 +137,7 @@ export function TaskDetailsModal({
     <ModalWrapper
       open={open}
       onClose={handleClose}
-      title="Task Details"
+      title={t('myTask.taskDetails')}
       size="xl"
       className="max-w-2xl bg-white"
       footer={footer}
@@ -157,13 +160,13 @@ export function TaskDetailsModal({
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">Task Name: </span>
+                  <span className="font-medium text-foreground">{t('myTask.taskName')} </span>
                   {task.taskName}
                 </p>
               </div>
               {isInProgress && (
                 <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-                  In Progress
+                  {t('myTask.inProgress')}
                 </span>
               )}
             </div>
@@ -176,14 +179,14 @@ export function TaskDetailsModal({
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="h-4 w-4 text-success shrink-0" />
               <span>
-                <span className="font-medium text-foreground">Deadline </span>
+                <span className="font-medium text-foreground">{t('myTask.deadline')} </span>
                 {formatDateDayMonth(parseISO(task.deadline))}
               </span>
             </div>
             <div className="flex items-start gap-2 text-sm">
               <MapPin className="h-4 w-4 text-success shrink-0 mt-0.5" />
               <span>
-                <span className="font-medium text-foreground">Location </span>
+                <span className="font-medium text-foreground">{t('myTask.location')} </span>
                 {task.location}
               </span>
             </div>
@@ -193,7 +196,7 @@ export function TaskDetailsModal({
         {/* Description */}
         <Card className="rounded-xl">
           <CardContent className="p-4">
-            <p className="font-bold text-foreground mb-2">Description:</p>
+            <p className="font-bold text-foreground mb-2">{t('myTask.description')}</p>
             <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
               {task.description}
             </p>
@@ -204,7 +207,7 @@ export function TaskDetailsModal({
         {task.instructions && task.instructions.length > 0 && (
           <Card className="rounded-xl">
             <CardContent className="p-4">
-              <p className="font-bold text-foreground mb-3">Instruction:</p>
+              <p className="font-bold text-foreground mb-3">{t('myTask.instruction')}</p>
               <ol className="space-y-2">
                 {task.instructions.map((instruction, index) => (
                   <li key={index} className="flex items-center gap-3">
@@ -223,7 +226,7 @@ export function TaskDetailsModal({
         {task.materials && task.materials.length > 0 && (
           <Card className="rounded-xl">
             <CardContent className="p-4">
-              <p className="font-bold text-foreground mb-3">Material Required</p>
+              <p className="font-bold text-foreground mb-3">{t('myTask.materialRequired')}</p>
               <div className="space-y-3">
                 {task.materials.map((material) => (
                   <div
@@ -239,7 +242,7 @@ export function TaskDetailsModal({
                       size="sm"
                       className="rounded-lg border-success text-success bg-green-50 hover:bg-green-100"
                     >
-                      Assign
+                      {t('myTask.assign')}
                     </Button>
                   </div>
                 ))}
@@ -253,17 +256,17 @@ export function TaskDetailsModal({
           <>
             <Card className="rounded-xl">
               <CardContent className="p-4 space-y-4">
-                <p className="font-bold text-foreground">Upload Photos</p>
+                <p className="font-bold text-foreground">{t('myTask.uploadPhotos')}</p>
                 <div className="space-y-4">
                   <PhotoAddField
-                    label="Before Photos"
-                    placeholder="Add Before Photo"
+                    label={t('myTask.beforePhotos')}
+                    placeholder={t('myTask.addBeforePhoto')}
                     file={beforePhoto}
                     onChange={setBeforePhoto}
                   />
                   <PhotoAddField
-                    label="After Photo"
-                    placeholder="Add After Photo"
+                    label={t('myTask.afterPhoto')}
+                    placeholder={t('myTask.addAfterPhoto')}
                     file={afterPhoto}
                     onChange={setAfterPhoto}
                   />
@@ -273,9 +276,9 @@ export function TaskDetailsModal({
 
             <Card className="rounded-xl">
               <CardContent className="p-4">
-                <p className="font-bold text-foreground mb-2">Add Note (optional)</p>
+                <p className="font-bold text-foreground mb-2">{t('myTask.addNote')}</p>
                 <Textarea
-                  placeholder="Enter your notes..."
+                  placeholder={t('myTask.enterNotes')}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   className="min-h-[100px] resize-none"

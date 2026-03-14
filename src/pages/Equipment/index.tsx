@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Pagination } from '@/components/common/Pagination'
@@ -17,6 +18,7 @@ import type { RequestEquipmentFormData } from './components/RequestEquipmentModa
 import { toast } from '@/utils/toast'
 
 export default function Equipment() {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
   const itemsPerPage = parseInt(searchParams.get('limit') || '9', 10) || 9
@@ -62,8 +64,8 @@ export default function Equipment() {
     _photo?: File | null
   ) => {
     toast({
-      title: 'Issue Reported',
-      description: `Issue for ${selectedEquipment?.equipmentType} (${selectedEquipment?.plate}) has been reported.`,
+      title: t('equipment.issueReported'),
+      description: t('equipment.issueReportedDescription', { type: selectedEquipment?.equipmentType, plate: selectedEquipment?.plate }),
       variant: 'success',
     })
     setShowReportModal(false)
@@ -100,8 +102,8 @@ export default function Equipment() {
     }
     setEquipment((prev) => [newEquipment, ...prev])
     toast({
-      title: 'Equipment request submitted',
-      description: 'Your equipment request has been submitted successfully.',
+      title: t('equipment.requestSubmitted'),
+      description: t('equipment.requestDescription'),
       variant: 'success',
     })
   }
@@ -115,13 +117,13 @@ export default function Equipment() {
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-xl font-semibold text-accent">
-          Assigned Equipment
+          {t('equipment.assignedEquipment')}
         </h1>
         <Button
           onClick={() => setShowRequestModal(true)}
           className="bg-primary text-white shrink-0 hover:bg-primary/90"
         >
-          Request Equipment
+          {t('equipment.requestEquipment')}
         </Button>
       </div>
 

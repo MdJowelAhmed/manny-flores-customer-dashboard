@@ -1,15 +1,8 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Calendar as CalendarIcon } from 'lucide-react'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Button } from '@/components/ui/button'
+import { useTranslation } from 'react-i18next'
+
 import { Card, CardContent } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Calendar } from '@/components/ui/calendar'
 import { Pagination } from '@/components/common/Pagination'
 import { FilterDropdown } from '@/components/common/FilterDropdown'
 import {
@@ -22,15 +15,14 @@ import { format } from 'date-fns'
 import { cn } from '@/utils/cn'
 
 export default function Attendance() {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
   const itemsPerPage = parseInt(searchParams.get('limit') || '10', 10) || 10
-
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-  const [records, setRecords] = useState<AttendanceRecord[]>(mockAttendanceRecords)
+  const [records] = useState<AttendanceRecord[]>(mockAttendanceRecords)
   const [filterStatus, setFilterStatus] = useState('all')
-  const [presentChecked, setPresentChecked] = useState(true)
-  const [absentChecked, setAbsentChecked] = useState(false)
+  const [presentChecked] = useState(true)
+  const [absentChecked] = useState(false)
 
   const setPage = (p: number) => {
     const next = new URLSearchParams(searchParams)
@@ -88,20 +80,20 @@ export default function Attendance() {
                 <h2 className="text-2xl font-bold text-accent"> {format(new Date(), 'dd MMMM, yyyy')}</h2>
                 <div className="flex flex-wrap items-center justify-around gap-4 divide-x divide-orange-400">
                   <div className="flex flex-col items-center gap-1 px-4 first:pl-0 last:pr-0">
-                    <span className="text-sm text-muted-foreground">Check In</span>
+                    <span className="text-sm text-muted-foreground">{t('attendance.checkIn')}</span>
                     <span className="font-bold text-accent text-lg">
                       {todaySummaryData.checkIn}
                     </span>
                   </div>
                   <div className="flex flex-col items-center gap-1 px-4">
-                    <span className="text-sm text-muted-foreground">Check Out</span>
+                    <span className="text-sm text-muted-foreground">{t('attendance.checkOut')}</span>
                     <span className="font-bold text-accent text-lg">
                       {todaySummaryData.checkOut}
                     </span>
                   </div>
                   <div className="flex flex-col items-center gap-1 px-4">
                     <span className="text-sm text-muted-foreground">
-                      Today Working Period
+                      {t('attendance.todayWorkingPeriod')}
                     </span>
                     <span className="font-bold text-accent text-lg">
                       {todaySummaryData.workingPeriod}
@@ -119,7 +111,7 @@ export default function Attendance() {
             value={filterStatus}
             options={ATTENDANCE_FILTER_OPTIONS}
             onChange={setFilterStatus}
-            placeholder="All"
+            placeholder={t('attendance.all')}
           />
         </div>
         {/* Table section */}
@@ -129,18 +121,18 @@ export default function Attendance() {
             <table className="w-full min-w-[500px]">
               <thead>
                 <tr className="bg-secondary-foreground text-accent">
-                  <th className="px-6 py-4 text-left text-sm font-bold">Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold">{t('attendance.date')}</th>
                   <th className="px-6 py-4 text-left text-sm font-bold">
-                    Check In
+                    {t('attendance.checkIn')}
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-bold">
-                    Check Out
+                    {t('attendance.checkOut')}
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-bold">
-                    Work hour
+                    {t('attendance.workHour')}
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-bold">
-                    Attendance
+                    {t('attendance.attendance')}
                   </th>
                 </tr>
               </thead>

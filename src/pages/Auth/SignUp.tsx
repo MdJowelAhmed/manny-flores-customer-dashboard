@@ -3,14 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Mail, Lock, ArrowLeft, ArrowRight, User, Shield, Check } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, ArrowRight, User, Shield, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAppDispatch } from '@/redux/hooks'
 import { setVerificationEmail } from '@/redux/slices/authSlice'
 import { cn } from '@/utils/cn'
-import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 const signUpSchema = z
   .object({
@@ -33,6 +33,7 @@ const signUpSchema = z
 type SignUpFormData = z.infer<typeof signUpSchema>
 
 export default function SignUp() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const [showPassword, setShowPassword] = useState(false)
@@ -58,10 +59,10 @@ export default function SignUp() {
   const password = watch('password', '')
 
   const passwordRequirements = [
-    { label: 'At least 8 characters', met: password.length >= 8 },
-    { label: 'One uppercase letter', met: /[A-Z]/.test(password) },
-    { label: 'One lowercase letter', met: /[a-z]/.test(password) },
-    { label: 'One number', met: /[0-9]/.test(password) },
+    { label: t('auth.atLeast8Chars'), met: password.length >= 8 },
+    { label: t('auth.oneUppercase'), met: /[A-Z]/.test(password) },
+    { label: t('auth.oneLowercase'), met: /[a-z]/.test(password) },
+    { label: t('auth.oneNumber'), met: /[0-9]/.test(password) },
   ]
 
   const onSubmit = async (data: SignUpFormData) => {
@@ -86,21 +87,21 @@ export default function SignUp() {
         <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
           <span className="text-primary-foreground font-bold text-xl">D</span>
         </div>
-        <span className="font-display font-bold text-2xl">Dashboard</span>
+        <span className="font-display font-bold text-2xl">{t('auth.dashboard')}</span>
       </div>
 
    
 
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight">Create account</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('auth.createAccount')}</h1>
         <p className="text-muted-foreground">
-          Enter your details to create a new employee account
+          {t('auth.enterDetails')}
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Full Name</Label>
+          <Label htmlFor="name">{t('auth.fullName')}</Label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -118,7 +119,7 @@ export default function SignUp() {
 
      
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t('auth.email')}</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -134,7 +135,7 @@ export default function SignUp() {
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="role">Role</Label>
+          <Label htmlFor="role">{t('auth.role')}</Label>
           <div className="relative">
             <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -149,13 +150,13 @@ export default function SignUp() {
 
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t('auth.password')}</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Enter your password"
+              placeholder={t('auth.enterYourPassword')}
               className={cn(
                 'pl-10 pr-10',
                 errors.password && 'border-destructive'
@@ -181,13 +182,13 @@ export default function SignUp() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="Confirm your password"
+              placeholder={t('auth.confirmYourPassword')}
               className={cn(
                 'pl-10 pr-10',
                 errors.confirmPassword && 'border-destructive'
@@ -215,7 +216,7 @@ export default function SignUp() {
 
         <div className="p-3 rounded-lg border bg-muted/30 space-y-2">
             <p className="text-xs font-medium text-muted-foreground">
-              Password Requirements
+              {t('auth.passwordRequirements')}
             </p>
             <div className="grid grid-cols-2 gap-1">
               {passwordRequirements.map((req) => (
@@ -240,7 +241,7 @@ export default function SignUp() {
         <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
           {!isLoading && (
             <>
-              Create Account
+              {t('auth.createAccountBtn')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}
@@ -248,9 +249,9 @@ export default function SignUp() {
       </form>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{' '}
+        {t('auth.alreadyHaveAccount')}{' '}
         <Link to="/auth/login" className="text-primary font-medium hover:underline">
-          Sign in
+          {t('auth.signInLink')}
         </Link>
       </p>
     </div>

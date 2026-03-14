@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Clock } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import type { TodayTask, TaskPriority } from '../dashboardOverviewData'
@@ -58,6 +59,8 @@ function TodayTaskCardItem({ task }: { task: TodayTask }) {
 }
 
 export function TodayTasks({ tasks }: TodayTasksProps) {
+  const { t } = useTranslation()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -66,7 +69,7 @@ export function TodayTasks({ tasks }: TodayTasksProps) {
     >
       <div className="border-gray-100">
     
-          <h2 className="text-lg font-semibold text-accent mb-6">Today's Task</h2>
+          <h2 className="text-lg font-semibold text-accent mb-6">{t('dashboard.todaysTask')}</h2>
    
         <div className="space-y-4">
           {tasks.map((task) => (

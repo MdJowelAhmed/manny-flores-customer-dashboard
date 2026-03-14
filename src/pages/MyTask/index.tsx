@@ -1,11 +1,13 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Pagination } from '@/components/common/Pagination'
 import { TaskCard, TaskDetailsModal } from './components'
 import { myTaskMockData, type MyTask } from './myTaskData'
 import { toast } from 'sonner'
 
 export default function MyTask() {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
   const itemsPerPage = parseInt(searchParams.get('limit') || '4', 10) || 4
@@ -66,13 +68,13 @@ export default function MyTask() {
     setShowDetailsModal(false)
     setSelectedTask(null)
     toast.success(
-      isPending ? 'Task started successfully' : 'Task submitted successfully'
+      isPending ? t('myTask.taskStarted') : t('myTask.taskSubmitted')
     )
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-accent">All Task</h1>
+      <h1 className="text-xl font-semibold text-accent">{t('myTask.allTask')}</h1>
 
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 2xl:grid-cols-3">
         {paginatedTasks.map((task) => (

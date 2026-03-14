@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ModalWrapper } from '@/components/common/ModalWrapper'
 import { Button } from '@/components/ui/button'
 import { FormTextarea } from '@/components/common/Form'
@@ -18,6 +19,7 @@ export function SafetyVerificationModal({
   projectName,
   onSuccess,
 }: SafetyVerificationModalProps) {
+  const { t } = useTranslation()
   const [answers, setAnswers] = useState<Record<number, 'yes' | 'no' | null>>({})
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -25,7 +27,7 @@ export function SafetyVerificationModal({
   const handleSubmit = async () => {
     const allAnswered = PPE_CHECK_ITEMS.every((_, i) => answers[i] != null)
     if (!allAnswered) {
-      toast({ title: 'Please answer all safety check items', variant: 'destructive' })
+      toast({ title: t('safety.answerAllItems'), variant: 'destructive' })
       return
     }
     setIsSubmitting(true)
@@ -33,15 +35,15 @@ export function SafetyVerificationModal({
       await new Promise((r) => setTimeout(r, 400))
       toast({
         variant: 'success',
-        title: 'Checklist Submitted',
-        description: `Daily safety checklist for ${projectName} has been submitted.`,
+        title: t('safety.checklistSubmitted'),
+        description: t('safety.checklistSubmittedDesc', { projectName }),
       })
       setAnswers({})
       setNotes('')
       onClose()
       onSuccess?.()
     } catch {
-      toast({ title: 'Submission failed', variant: 'destructive' })
+      toast({ title: t('safety.submissionFailed'), variant: 'destructive' })
     } finally {
       setIsSubmitting(false)
     }
@@ -51,7 +53,7 @@ export function SafetyVerificationModal({
     <ModalWrapper
       open={open}
       onClose={onClose}
-      title="Safety Verification"
+      title={t('safety.safetyVerification')}
       size="lg"
       className="bg-white max-w-2xl"
       footer={
@@ -61,14 +63,14 @@ export function SafetyVerificationModal({
           disabled={isSubmitting}
           isLoading={isSubmitting}
         >
-          Submit Checklist
+          {t('safety.submitChecklist')}
         </Button>
       }
     >
       <div className="space-y-6">
         <div>
           <h3 className="text-sm font-semibold text-foreground mb-3">
-            Complete daily safety checks
+            {t('safety.completeDailyChecks')}
           </h3>
           <div className="space-y-3">
             {PPE_CHECK_ITEMS.map((label, index) => (
@@ -90,7 +92,7 @@ export function SafetyVerificationModal({
                       }
                       className="w-4 h-4 text-[#22c55e] border-gray-300 focus:ring-[#22c55e]"
                     />
-                    <span className="text-sm text-foreground">Yes</span>
+                    <span className="text-sm text-foreground">{t('safety.yes')}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -102,7 +104,7 @@ export function SafetyVerificationModal({
                       }
                       className="w-4 h-4 text-[#22c55e] border-gray-300 focus:ring-[#22c55e]"
                     />
-                    <span className="text-sm text-foreground">No</span>
+                    <span className="text-sm text-foreground">{t('safety.no')}</span>
                   </label>
                 </div>
               </div>
@@ -111,9 +113,9 @@ export function SafetyVerificationModal({
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold text-foreground mb-2">Notes</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-2">{t('safety.notes')}</h3>
           <FormTextarea
-            placeholder="please describe the issue..."
+            placeholder={t('safety.describeIssue')}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             className="min-h-[100px] rounded-xl border-gray-200"

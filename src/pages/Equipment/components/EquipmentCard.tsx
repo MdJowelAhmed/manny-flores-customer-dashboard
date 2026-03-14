@@ -1,4 +1,5 @@
 import { Wrench } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,6 +13,7 @@ interface EquipmentCardProps {
 }
 
 export function EquipmentCard({ equipment, onReportIssue }: EquipmentCardProps) {
+  const { t } = useTranslation()
   const statusConfig = EQUIPMENT_STATUS_CONFIG[equipment.status]
 
   return (
@@ -33,16 +35,16 @@ export function EquipmentCard({ equipment, onReportIssue }: EquipmentCardProps) 
         </div>
 
         <p className="text-sm text-muted-foreground mb-4">
-          Plate: {equipment.plate} • {equipment.mileage}
+          {t('equipment.plate')}: {equipment.plate} • {equipment.mileage}
         </p>
 
         <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
           <div>
-            <p className="text-muted-foreground">Last Service</p>
+            <p className="text-muted-foreground">{t('equipment.lastService')}</p>
             <p className="font-medium text-foreground">{equipment.lastService}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Next Service</p>
+            <p className="text-muted-foreground">{t('equipment.nextService')}</p>
             <p className="font-medium text-foreground">{equipment.nextService}</p>
           </div>
         </div>
@@ -59,7 +61,7 @@ export function EquipmentCard({ equipment, onReportIssue }: EquipmentCardProps) 
             className="border-primary/30 text-primary hover:bg-primary/10 shrink-0 h-8"
             onClick={() => onReportIssue(equipment)}
           >
-            Report Issue
+            {t('equipment.reportIssue')}
           </Button>
         </div>
       </CardContent>

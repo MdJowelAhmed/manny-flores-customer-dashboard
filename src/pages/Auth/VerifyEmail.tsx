@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input'
 import { useAppSelector } from '@/redux/hooks'
 import { cn } from '@/utils/cn'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 const OTP_LENGTH = 6
 
 export default function VerifyEmail() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { passwordResetEmail, verificationEmail } = useAppSelector((state) => state.auth)
@@ -75,7 +77,7 @@ export default function VerifyEmail() {
     const code = otp.join('')
 
     if (code.length !== OTP_LENGTH) {
-      setError('Please enter the complete verification code')
+      setError(t('auth.pleaseCompleteCode'))
       return
     }
 
@@ -93,10 +95,10 @@ export default function VerifyEmail() {
           navigate('/auth/login', { state: { verified: true } })
         }
       } else {
-        setError('Invalid verification code')
+        setError(t('auth.invalidVerificationCode'))
       }
     } catch {
-      setError('An error occurred. Please try again.')
+      setError(t('auth.anErrorOccurred'))
     } finally {
       setIsLoading(false)
     }
@@ -115,7 +117,7 @@ export default function VerifyEmail() {
         <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
           <span className="text-primary-foreground font-bold text-xl">D</span>
         </div>
-        <span className="font-display font-bold text-2xl">Dashboard</span>
+        <span className="font-display font-bold text-2xl">{t('auth.dashboard')}</span>
       </div>
 
       <Link
@@ -129,18 +131,18 @@ export default function VerifyEmail() {
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back
+        {t('auth.back')}
       </Link>
 
       <div className="space-y-2 text-center">
         <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
           <Mail className="h-6 w-6 text-primary" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">Verify your email</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('auth.verifyYourEmail')}</h1>
         <p className="text-muted-foreground">
-          We sent a 6-digit code to
+          {t('auth.sentSixDigitCode')}
         </p>
-        <p className="font-medium">{email || 'your email'}</p>
+        <p className="font-medium">{email || t('auth.yourEmail')}</p>
       </div>
 
       {error && (
@@ -177,7 +179,7 @@ export default function VerifyEmail() {
         <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
           {!isLoading && (
             <>
-              Verify
+              {t('auth.verify')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}
@@ -186,24 +188,24 @@ export default function VerifyEmail() {
 
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
-          Didn't receive the code?{' '}
+          {t('auth.didntReceiveCode')}{' '}
           {resendTimer > 0 ? (
             <span className="text-muted-foreground">
-              Resend in {resendTimer}s
+              {t('auth.resendIn', { seconds: resendTimer })}
             </span>
           ) : (
             <button
               onClick={handleResend}
               className="text-primary font-medium hover:underline"
             >
-              Click to resend
+              {t('auth.clickToResend')}
             </button>
           )}
         </p>
       </div>
 
       <div className="p-4 rounded-lg bg-muted/50 border text-sm text-center">
-        <p className="text-muted-foreground">Demo: Enter any 6-digit code or use</p>
+        <p className="text-muted-foreground">{t('auth.demoEnterCode')}</p>
         <p className="font-mono font-medium">123456</p>
       </div>
     </div>

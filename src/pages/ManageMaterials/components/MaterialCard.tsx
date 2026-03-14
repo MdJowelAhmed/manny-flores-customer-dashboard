@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { ProjectMaterial } from '../materialsData'
@@ -8,6 +9,7 @@ interface MaterialCardProps {
 }
 
 export function MaterialCard({ material, onMarkTaken }: MaterialCardProps) {
+  const { t } = useTranslation()
   const isTaken = material.status === 'Taken'
   const statusDotColor = isTaken ? 'bg-blue-500' : 'bg-green-500'
 
@@ -26,29 +28,29 @@ export function MaterialCard({ material, onMarkTaken }: MaterialCardProps) {
 
         <div className="flex justify-between text-sm text-muted-foreground mb-6">
           <span>
-            Required <span className="font-medium text-foreground">{material.required}</span>
+            {t('materials.required')} <span className="font-medium text-foreground">{material.required}</span>
           </span>
           <span>
-            Delivered <span className="font-medium text-foreground">{material.delivered}</span>
+            {t('materials.delivered')} <span className="font-medium text-foreground">{material.delivered}</span>
           </span>
         </div>
 
         <div className="flex items-center justify-between gap-2 ">
           {isTaken ? (
             <span className="inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 h-8">
-              Taken
+              {t('materials.taken')}
             </span>
           ) : (
             <>
                 <span className="inline-flex items-center rounded-lg bg-green-100 px-3 py-1.5 text-sm font-medium text-green-800 h-8">
-                Delivered
+                {t('materials.delivered')}
               </span>
               <Button
                 size="sm"
                 className=" bg-secondary text-white hover:bg-primary/90 shrink-0 h-8"
                 onClick={() => onMarkTaken(material)}
               >
-                Mark Taken
+                {t('materials.markTaken')}
               </Button>
             </>
           )}

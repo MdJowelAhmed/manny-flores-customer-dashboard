@@ -1,8 +1,10 @@
 import { Outlet, Navigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '@/redux/hooks'
 import { motion } from 'framer-motion'
 
 export default function AuthLayout() {
+  const { t } = useTranslation()
   const { isAuthenticated } = useAppSelector((state) => state.auth)
 
   // If already authenticated, redirect to dashboard
@@ -40,16 +42,16 @@ export default function AuthLayout() {
             {/* Logo */}
             <div className="flex items-center gap-3 mb-12">
           
-              <span className="text-white font-display font-bold text-3xl">Employee Dashboard</span>
+              <span className="text-white font-display font-bold text-3xl">{t('auth.employeeDashboard')}</span>
             </div>
 
             <h1 className="text-4xl xl:text-5xl font-bold text-white mb-6 leading-tight">
-              Manage Everything <br />
-              <span className="text-white/80">in One Place</span>
+              {t('auth.manageEverything')} <br />
+              <span className="text-white/80">{t('auth.inOnePlace')}</span>
             </h1>
 
             <p className="text-white/70 text-lg max-w-md mb-12">
-             This is a dashboard for employees to manage their tasks, materials, vehicles, equipment, and safety compliance.
+             {t('auth.authDescription')}
             </p>
 
             {/* Features */}
