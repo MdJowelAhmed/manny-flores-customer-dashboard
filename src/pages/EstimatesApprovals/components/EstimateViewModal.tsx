@@ -51,19 +51,19 @@ export function EstimateViewModal({
       title={estimate.estimateCode}
       size="md"
       className="max-w-lg bg-white"
-      footer={
-        onEdit ? (
-          <Button
-            className="bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => {
-              onEdit(estimate)
-              onClose()
-            }}
-          >
-            Edit
-          </Button>
-        ) : undefined
-      }
+      // footer={
+      //   onEdit ? (
+      //     <Button
+      //       className="bg-green-600 hover:bg-green-700 text-white"
+      //       onClick={() => {
+      //         onEdit(estimate)
+      //         onClose()
+      //       }}
+      //     >
+      //       Edit
+      //     </Button>
+      //   ) : undefined
+      // }
     >
       <div className="space-y-6">
         {/* Customer Information */}
