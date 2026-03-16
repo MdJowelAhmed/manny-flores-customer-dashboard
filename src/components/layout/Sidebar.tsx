@@ -14,7 +14,6 @@ import {
   Star,
  
   Info,
-  FolderOpen,
   FolderKanban,
   FileCheck2,
   CreditCard,
@@ -43,13 +42,13 @@ const navItems: NavItem[] = [
     icon: LayoutDashboard,
     feature: 'dashboard',
   },
-  {
-    title: 'Recent Projects',
-    titleKey: 'sidebar.recentProjects',
-    href: '/recent-projects',
-    icon: FolderOpen,
-    feature: 'recent-projects',
-  },
+  // {
+  //   title: 'Recent Projects',
+  //   titleKey: 'sidebar.recentProjects',
+  //   href: '/recent-projects',
+  //   icon: FolderOpen,
+  //   feature: 'recent-projects',
+  // },
   {
     title: 'Projects',
     titleKey: 'sidebar.projects',
