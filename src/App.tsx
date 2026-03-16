@@ -43,6 +43,7 @@ import SafetyCompliance from './pages/SafetyCompliance/SafetyCompliance'
 import ReviewList from './pages/Reviews/ReviewList'
 import Payment from './pages/Payment'
 import ChangeOrders from './pages/ChangeOrders/ChangeOrders'
+import PermitsInspections from './pages/PermitsInspections/PermitsInspections'
 
 function AppEntryRedirect() {
   const { user } = useAppSelector((state) => state.auth)
@@ -196,6 +197,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
                 <ChangeOrders />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Permits & Inspections - Employee */}
+          <Route
+            path="permits-inspections"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <PermitsInspections />
               </RoleBasedRoute>
             }
           />

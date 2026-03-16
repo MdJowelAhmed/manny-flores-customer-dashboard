@@ -53,6 +53,7 @@ export const FEATURE_ACCESS: Record<string, UserRole[]> = {
   'resource-requests-report': [],
   'safety-compliance': [UserRole.EMPLOYEE],
   'change-orders': [UserRole.EMPLOYEE],
+  'permits-inspections': [UserRole.EMPLOYEE],
 }
 
 export type FeatureKey = keyof typeof FEATURE_ACCESS

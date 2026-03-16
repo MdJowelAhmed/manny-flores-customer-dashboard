@@ -144,6 +144,13 @@ const navItems: NavItem[] = [
     href: '/change-orders',
     icon: FileCheck2,
     feature: 'change-orders',
+  },
+  {
+    title: 'Permits & Inspections',
+    titleKey: 'sidebar.permitsInspections',
+    href: '/permits-inspections',
+    icon: FileCheck2,
+    feature: 'permits-inspections',
   }
 ]
 
