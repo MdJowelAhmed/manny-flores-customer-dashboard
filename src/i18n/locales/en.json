@@ -23,7 +23,7 @@
     "terms": "Terms",
     "privacy": "Privacy",
     "aboutUs": "About Us",
-    "footer": "© 2026 coffecito v1.0"
+    "footer": "© 2026 Manny Flores v1.0"
   },
   "header": {
     "welcomeBack": "Welcome back,",
@@ -32,7 +32,7 @@
     "profileMenu": "Profile",
     "settingsMenu": "Settings",
     "logOut": "Log out",
-    "employee": "Employee",
+    "employee": "Customer",
     "routeTitles": {
       "dashboard": "Dashboard",
       "recentProjects": "Recent Projects",
@@ -67,7 +67,7 @@
     "dontHaveAccount": "Don't have an account?",
     "alreadyHaveAccount": "Already have an account?",
     "demoCredentials": "Demo Credentials",
-    "employeeLabel": "Employee:",
+    "employeeLabel": "Customer:",
     "createAccount": "Create account",
     "enterDetails": "Enter your details to create a new employee account",
     "fullName": "Full Name",
@@ -123,7 +123,7 @@
     "confirmYourPassword": "Confirm your password",
     "enterYourEmail": "Enter your email",
     "dashboard": "Dashboard",
-    "employeeDashboard": "Employee Dashboard",
+    "employeeDashboard": "Customer Dashboard",
     "manageEverything": "Manage Everything",
     "inOnePlace": "in One Place",
     "authDescription": "This is a dashboard for employees to manage their tasks, materials, vehicles, equipment, and safety compliance."

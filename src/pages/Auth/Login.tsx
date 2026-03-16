@@ -50,7 +50,7 @@ export default function Login() {
   const demoUsers = [
     {
       id: "1",
-      email: "employee@example.com",
+      email: "customer@example.com",
       password: "password",
       role: "employee" as const,
       firstName: "Jhon",
@@ -232,8 +232,8 @@ export default function Login() {
         <p className="font-semibold text-foreground">{t('auth.demoCredentials')}:</p>
         <div className="space-y-2">
           <div>
-            <p className="font-medium">{t('auth.employeeLabel')}</p>
-            <p className="text-muted-foreground">Email: employee@example.com</p>
+            <p className="font-medium">Customer:</p>
+            <p className="text-muted-foreground">Email: customer@example.com</p>
             <p className="text-muted-foreground">Pass:  password</p>
 
           </div>

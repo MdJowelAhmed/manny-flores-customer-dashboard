@@ -73,8 +73,8 @@ export const getRoleBadgeColor = (role: string): string => {
 export const getRoleDisplayName = (role: string): string => {
   switch (role) {
     case UserRole.EMPLOYEE:
-      return 'Employee'
+      return 'Customer'
     default:
-      return 'Employee'
+      return 'Customer'
   }
 }
