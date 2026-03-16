@@ -9,14 +9,10 @@ import {
   Lock,
   FileText,
   Shield,
-  Truck,
-  Wrench,
+
   MessageCircle,
   Star,
-  Package2,
-  ClipboardCheck,
-  DollarSign,
-  ListTodo,
+ 
   Info,
   FolderOpen,
   FolderKanban,
