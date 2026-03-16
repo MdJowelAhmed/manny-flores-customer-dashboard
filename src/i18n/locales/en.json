@@ -126,7 +126,7 @@
     "employeeDashboard": "Customer Dashboard",
     "manageEverything": "Manage Everything",
     "inOnePlace": "in One Place",
-    "authDescription": "This is a dashboard for employees to manage their tasks, materials, vehicles, equipment, and safety compliance."
+    "authDescription": "This is a dashboard for customers to manage their projects, payments, reviews, and change orders."
   },
   "dashboard": {
     "welcome": "Welcome!",

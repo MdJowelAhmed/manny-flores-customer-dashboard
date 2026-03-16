@@ -126,7 +126,7 @@
     "employeeDashboard": "Panel de Empleado",
     "manageEverything": "Administre Todo",
     "inOnePlace": "en Un Solo Lugar",
-    "authDescription": "Este es un panel para que los empleados gestionen sus tareas, materiales, vehículos, equipos y cumplimiento de seguridad."
+    "authDescription": "Este es un panel para que los clientes gestionen sus proyectos, pagos, reseñas y órdenes de cambio."
   },
   "dashboard": {
     "welcome": "¡Bienvenido!",
