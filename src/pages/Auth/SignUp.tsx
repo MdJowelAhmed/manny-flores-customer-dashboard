@@ -49,7 +49,7 @@ export default function SignUp() {
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       name: '',
-      role: 'employee',
+      role: 'customer',
       email: '',
       password: '',
       confirmPassword: '',
