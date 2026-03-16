@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Card, CardContent } from '@/components/ui/card'
+import {  CardContent } from '@/components/ui/card'
 import { Eye, Trash2 } from 'lucide-react'
 import { Pagination } from '@/components/common/Pagination'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
@@ -91,13 +91,13 @@ export default function RecentProjects() {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white border-0">
+      <div className="bg-white border rounded-xl">
        
         <CardContent className="p-0">
           <div className="w-full overflow-auto">
             <table className="w-full min-w-[980px]">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
+                <tr className="bg-secondary-foreground border-b border-gray-100 text-accent">
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">ID</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
                     {t('dashboard.customerName')}
@@ -199,7 +199,7 @@ export default function RecentProjects() {
             showItemsPerPage
           />
         </CardContent>
-      </Card>
+      </div>
 
       <ProjectViewDetailsModal
         open={showViewModal}
