@@ -138,6 +138,13 @@ const navItems: NavItem[] = [
     icon: Star,
     feature: 'reviews',
   },
+  {
+    title: 'Change Orders',
+    titleKey: 'sidebar.changeOrders',
+    href: '/change-orders',
+    icon: FileCheck2,
+    feature: 'change-orders',
+  }
 ]
 
 const settingsItems: NavItem[] = [

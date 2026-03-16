@@ -1,6 +1,6 @@
 import { FileText, Info, DollarSign } from 'lucide-react'
 
-export type ChangeOrderStatus = 'Pending' | 'Approved'
+export type ChangeOrderStatus = 'Pending' | 'Approved' | 'Rejected'
 
 export interface ChangeOrder {
   id: string
@@ -13,6 +13,7 @@ export interface ChangeOrder {
   newTotal: number
   requestDate: string
   status: ChangeOrderStatus
+  approvedDate?: string
   projectStartDate: string
   amountSpent: number
   totalBudget: number
@@ -20,29 +21,37 @@ export interface ChangeOrder {
   remaining: number
   email: string
   reasonForChange: string
+  description: string
 }
 
 export const changeOrderStats = [
   {
     title: 'Total Change Orders',
-    value: 8,
+    value: 0,
     icon: FileText,
     iconBg: 'bg-purple-100',
     iconColor: 'text-purple-600',
   },
   {
-    title: 'Awaiting Response',
-    value: 2,
+    title: 'Pending Approval',
+    value: 0,
     icon: Info,
     iconBg: 'bg-amber-100',
     iconColor: 'text-amber-600',
   },
   {
-    title: 'Total Additional Revenue',
-    value: 34500,
-    icon: DollarSign,
+    title: 'Approved',
+    value: 0,
+    icon: FileText,
     iconBg: 'bg-emerald-100',
     iconColor: 'text-emerald-600',
+  },
+  {
+    title: 'Value Impact',
+    value: 0,
+    icon: DollarSign,
+    iconBg: 'bg-indigo-100',
+    iconColor: 'text-indigo-600',
   },
 ]
 
@@ -67,16 +76,18 @@ export const mockChangeOrders: ChangeOrder[] = [
     originalCost: 45000,
     additionalCost: 8500,
     newTotal: 53500,
-    requestDate: 'Feb 18, 2026',
+    requestDate: 'Feb 10, 2026',
     status: 'Pending',
+    approvedDate: undefined,
     projectStartDate: 'January 15, 2026',
     amountSpent: 28500,
     totalBudget: 45000,
     duration: '8 weeks',
     remaining: 16500,
     email: 'john@email.com',
-    reasonForChange:
-      'Customer requested to expand patio area during site visit on Feb 16, 2026. Additional space needed for outdoor dining furniture and built-in grill station.',
+    reasonForChange: 'Design modification',
+    description:
+      'Remove fountain feature, add additional garden beds.',
   },
   {
     id: 'co-2',
@@ -87,15 +98,17 @@ export const mockChangeOrders: ChangeOrder[] = [
     originalCost: 45000,
     additionalCost: 8500,
     newTotal: 53500,
-    requestDate: 'Feb 18, 2026',
+    requestDate: 'Feb 10, 2026',
     status: 'Approved',
+    approvedDate: 'Feb 11, 2026',
     projectStartDate: 'January 15, 2026',
     amountSpent: 28500,
     totalBudget: 45000,
     duration: '8 weeks',
     remaining: 16500,
     email: 'john@email.com',
-    reasonForChange:
-      'Customer requested to expand patio area during site visit on Feb 16, 2026. Additional space needed for outdoor dining furniture and built-in grill station.',
+    reasonForChange: 'Design modification',
+    description:
+      'Remove fountain feature, add additional garden beds.',
   },
 ]

@@ -42,6 +42,7 @@ import EstimatesApprovals from './pages/EstimatesApprovals'
 import SafetyCompliance from './pages/SafetyCompliance/SafetyCompliance'
 import ReviewList from './pages/Reviews/ReviewList'
 import Payment from './pages/Payment'
+import ChangeOrders from './pages/ChangeOrders/ChangeOrders'
 
 function AppEntryRedirect() {
   const { user } = useAppSelector((state) => state.auth)
@@ -185,6 +186,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
                 <Payment />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Change Orders - Employee */}
+          <Route
+            path="change-orders"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <ChangeOrders />
               </RoleBasedRoute>
             }
           />
