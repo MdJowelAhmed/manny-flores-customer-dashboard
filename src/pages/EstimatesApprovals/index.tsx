@@ -1,15 +1,15 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
-import { Eye, Trash2, Plus } from 'lucide-react'
+import { Eye, Trash2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog, Pagination } from '@/components/common'
-import { STATUS_COLORS } from '@/utils/constants'
 import { cn } from '@/utils/cn'
 import {
   estimatesData,
   type Estimate,
+  ESTIMATE_STATUS_BADGE,
 } from './estimatesData'
 import { EstimateViewModal } from './components/EstimateViewModal'
 import { EstimateEditModal } from './components/EstimateEditModal'
@@ -49,11 +49,16 @@ export default function EstimatesApprovals() {
   }, [activeTab])
 
   const getStatusClasses = (status: string) => {
-    const config = STATUS_COLORS[status] || {
-      bg: 'bg-gray-100',
-      text: 'text-gray-800',
-    }
-    return cn('inline-flex rounded-full px-3 py-1 text-xs font-medium', config.bg, config.text)
+    const config =
+      ESTIMATE_STATUS_BADGE[status as keyof typeof ESTIMATE_STATUS_BADGE] ?? {
+        bg: 'bg-gray-100',
+        text: 'text-gray-700',
+      }
+    return cn(
+      'inline-flex rounded-full px-3 py-1 text-xs font-medium',
+      config.bg,
+      config.text
+    )
   }
 
   const handleView = (estimate: Estimate) => {
@@ -87,12 +92,13 @@ export default function EstimatesApprovals() {
   }
 
   const handleSaveCreate = (newEstimate: Estimate) => {
-    const nextId = String(Math.max(...estimates.map((e) => parseInt(e.id, 10)), 0) + 1)
-    const code = `EST-2026-${String(nextId).padStart(3, '0')}`
-    setEstimates((prev) => [
-      ...prev,
-      { ...newEstimate, id: nextId, estimateCode: code },
-    ])
+    setEstimates((prev) => {
+      const nextId = String(
+        Math.max(...prev.map((e) => parseInt(e.id, 10) || 0), 0) + 1
+      )
+      const code = `EST-2026-${String(nextId).padStart(3, '0')}`
+      return [...prev, { ...newEstimate, id: nextId, estimateCode: code }]
+    })
     setShowCreateModal(false)
     setSelectedEstimate(null)
   }
@@ -107,41 +113,47 @@ export default function EstimatesApprovals() {
     customerName: '',
     email: '',
     company: '',
+    contactNumber: '',
+    businessProjectDetail: '',
+    taxRatePercent: 15,
+    lineItems: [
+      { description: '', unitCost: 0, qty: 1, taxable: true },
+    ],
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-8">
+      {/* Header — matches reference layout */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
             {t('estimates.title')}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1.5 text-sm text-gray-500">
             {t('estimates.subtitle')}
           </p>
         </div>
         <Button
-          className="bg-green-600 hover:bg-green-700 text-white gap-2"
+          type="button"
+          className="h-11 shrink-0 rounded-xl bg-[#22c55e] px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#16a34a]"
           onClick={handleCreate}
         >
-          <Plus className="h-5 w-5" />
           {t('estimates.createNew')}
         </Button>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex flex-wrap gap-5">
+      {/* Filter tabs — pill style */}
+      <div className="flex flex-wrap gap-2">
         {FILTER_TABS.map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
             className={cn(
-              'rounded-md px-4 py-2 text-sm font-medium transition-colors',
+              'rounded-full px-5 py-2.5 text-sm font-medium transition-colors',
               activeTab === tab
-                ? 'bg-green-600 text-white'
-                : 'bg-secondary-foreground text-gray-700 hover:bg-gray-200'
+                ? 'bg-[#22c55e] text-white shadow-sm'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             )}
           >
             {tab === 'all' ? t('estimates.all') : tab}
@@ -150,12 +162,12 @@ export default function EstimatesApprovals() {
       </div>
 
       {/* Table */}
-      <Card className="bg-white border shadow-sm">
+      <Card className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <CardContent className="p-0">
-          <div className="w-full overflow-auto">
-            <table className="w-full min-w-[800px] ">
+          <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[860px] border-collapse">
               <thead>
-                <tr className="bg-secondary-foreground text-accent border-b">
+                <tr className="border-b border-gray-200 bg-gray-100">
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
                     ID
                   </th>
@@ -179,55 +191,65 @@ export default function EstimatesApprovals() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-slate-700">
-                {paginatedEstimates.map((estimate, idx) => (
-                  <tr
-                    key={estimate.id}
-                    className={cn(
-                      'hover:bg-gray-50/50 transition-colors shadow-sm',
-                      idx % 2 === 1 && ''
-                    )}
-                  >
-                    <td className="px-6 py-5 text-sm font-medium">
-                      #{estimate.id}
-                    </td>
-                    <td className="px-6 py-5 text-sm">
-                      {estimate.estimateCode}
-                    </td>
-                    <td className="px-6 py-5 text-sm">{estimate.project}</td>
-                    <td className="px-6 py-5 text-sm font-medium">
-                      {estimate.amount}
-                    </td>
-                    <td className="px-6 py-5">
-                      <span className={getStatusClasses(estimate.status)}>
-                        {estimate.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5 text-sm">
-                      {estimate.startDate}
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleView(estimate)}
-                          className="text-gray-400 hover:text-gray-600 transition-colors"
-                          aria-label="View details"
-                        >
-                          <Eye className="h-5 w-5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteClick(estimate)}
-                          className="text-gray-400 hover:text-red-600 transition-colors"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      </div>
+              <tbody className="text-gray-800">
+                {paginatedEstimates.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-6 py-16 text-center text-sm text-gray-500"
+                    >
+                      {t('estimates.noEstimates')}
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  paginatedEstimates.map((estimate) => (
+                    <tr
+                      key={estimate.id}
+                      className="border-b border-gray-100 transition-colors hover:bg-gray-50/60"
+                    >
+                      <td className="px-6 py-5 text-sm font-medium text-gray-900">
+                        #{estimate.id}
+                      </td>
+                      <td className="px-6 py-5 text-sm text-gray-800">
+                        {estimate.estimateCode}
+                      </td>
+                      <td className="px-6 py-5 text-sm text-gray-800">
+                        {estimate.project}
+                      </td>
+                      <td className="px-6 py-5 text-sm font-medium text-gray-900">
+                        {estimate.amount}
+                      </td>
+                      <td className="px-6 py-5">
+                        <span className={getStatusClasses(estimate.status)}>
+                          {estimate.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 text-sm text-gray-800">
+                        {estimate.startDate}
+                      </td>
+                      <td className="px-6 py-5">
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={() => handleView(estimate)}
+                            className="rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                            aria-label="View details"
+                          >
+                            <Eye className="h-5 w-5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClick(estimate)}
+                            className="rounded-md text-rose-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                            aria-label="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -248,12 +270,6 @@ export default function EstimatesApprovals() {
           )}
         </CardContent>
       </Card>
-
-      {filteredEstimates.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          {t('estimates.noEstimates')}
-        </div>
-      )}
 
       {/* Modals */}
       <EstimateViewModal

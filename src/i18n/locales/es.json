@@ -391,7 +391,7 @@
   "estimates": {
     "title": "Estimaciones y Aprobaciones",
     "subtitle": "Gestionar estimaciones de proyectos y seguir el estado de aprobación",
-    "createNew": "Crear Nueva Estimación",
+    "createNew": "+ Crear nueva estimación",
     "all": "Todos",
     "estimate": "Estimación",
     "project": "Proyecto",

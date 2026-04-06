@@ -391,7 +391,7 @@
   "estimates": {
     "title": "Estimates & Approvals",
     "subtitle": "Manage project estimates and track approval status",
-    "createNew": "Create New Estimates",
+    "createNew": "+ Create New Estimates",
     "all": "All",
     "estimate": "Estimate",
     "project": "Project",

@@ -1,5 +1,23 @@
 export type EstimateStatus = 'Approved' | 'Pending' | 'Draft' | 'Follow Up'
 
+/** Pill styles aligned with Estimates & Approvals design */
+export const ESTIMATE_STATUS_BADGE: Record<
+  EstimateStatus,
+  { bg: string; text: string }
+> = {
+  Approved: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  'Follow Up': { bg: 'bg-amber-50', text: 'text-amber-700' },
+  Draft: { bg: 'bg-white border border-gray-300', text: 'text-gray-700' },
+  Pending: { bg: 'bg-amber-50', text: 'text-amber-800' },
+}
+
+export interface EstimateLineItem {
+  description: string
+  unitCost: number
+  qty: number
+  taxable: boolean
+}
+
 export interface Estimate {
   id: string
   estimateCode: string
@@ -13,6 +31,33 @@ export interface Estimate {
   company: string
   startDateFormatted?: string
   amountDue?: string
+  contactNumber?: string
+  /** Full business / site line (Business Information → Project Name) */
+  businessProjectDetail?: string
+  lineItems?: EstimateLineItem[]
+  /** Applied only to taxable rows; default 15 */
+  taxRatePercent?: number
+}
+
+export function getLineItemsForEstimate(est: Estimate): EstimateLineItem[] {
+  if (est.lineItems?.length) return est.lineItems
+  const raw = est.amount.replace(/,/g, '').replace(/[^0-9.]/g, '')
+  const n = Number.parseFloat(raw) || 0
+  return [{ description: est.project, unitCost: n, qty: 1, taxable: true }]
+}
+
+export function computeEstimateTotals(
+  items: EstimateLineItem[],
+  taxRatePercent: number
+) {
+  let subtotal = 0
+  let tax = 0
+  for (const row of items) {
+    const lineTotal = row.unitCost * row.qty
+    subtotal += lineTotal
+    if (row.taxable) tax += lineTotal * (taxRatePercent / 100)
+  }
+  return { subtotal, tax, total: subtotal + tax }
 }
 
 export const estimatesData: Estimate[] = [
@@ -24,10 +69,27 @@ export const estimatesData: Estimate[] = [
     status: 'Approved',
     startDate: '1/10/2026',
     customerName: 'Sarah Johnson',
-    email: 'sarah@email.com',
+    email: 'sarah@gmail.com',
     company: 'Lawn Care Package',
     startDateFormatted: 'January 15, 2026',
-    amountDue: '$45,000',
+    amountDue: '$2,075',
+    contactNumber: '+198745210',
+    businessProjectDetail: 'Green Scape Solutions, 23 Eco Street, City',
+    taxRatePercent: 15,
+    lineItems: [
+      {
+        description: 'Garden Design & Installation',
+        unitCost: 500,
+        qty: 1,
+        taxable: true,
+      },
+      {
+        description: 'Backyard Renovation',
+        unitCost: 150,
+        qty: 10,
+        taxable: false,
+      },
+    ],
   },
   {
     id: '2',

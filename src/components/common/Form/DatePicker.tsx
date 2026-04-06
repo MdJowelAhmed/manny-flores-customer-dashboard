@@ -16,6 +16,8 @@ export interface DatePickerProps {
   placeholder?: string
   label?: string
   className?: string
+  /** Merged into the trigger button (e.g. border/background) */
+  triggerClassName?: string
   disabled?: boolean
   id?: string
 }
@@ -26,6 +28,7 @@ export function DatePicker({
   placeholder = 'Pick a date',
   label,
   className,
+  triggerClassName,
   disabled = false,
   id,
 }: DatePickerProps) {
@@ -49,7 +52,8 @@ export function DatePicker({
             disabled={disabled}
             className={cn(
               'w-full justify-start text-left font-normal h-11',
-              !value && 'text-muted-foreground'
+              !value && 'text-muted-foreground',
+              triggerClassName
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
