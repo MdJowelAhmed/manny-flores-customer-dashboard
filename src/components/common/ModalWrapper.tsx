@@ -18,6 +18,8 @@ interface ModalWrapperProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
   /** Renders at bottom of modal, stays fixed when content scrolls */
   footer?: React.ReactNode
+  /** Extra classes for the header block (e.g. border under title) */
+  headerClassName?: string
 }
 
 const sizeClasses = {
@@ -37,11 +39,12 @@ export function ModalWrapper({
   className,
   size = 'md',
   footer,
+  headerClassName,
 }: ModalWrapperProps) {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className={cn(sizeClasses[size], className, 'flex flex-col max-h-[90vh]')}>
-        <DialogHeader className="flex-shrink-0">
+        <DialogHeader className={cn('flex-shrink-0', headerClassName)}>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>

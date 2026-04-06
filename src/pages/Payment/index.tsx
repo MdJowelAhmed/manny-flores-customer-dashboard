@@ -56,19 +56,34 @@ export default function Payment() {
     setCurrentPage(1)
   }, [activeFilter])
 
-  const handleAddPayment = (data: Omit<Payment, 'id'>) => {
-    const nextId = String(
-      Math.max(...payments.map((p) => parseInt(p.id, 10)), 0) + 1
-    )
-    const invoice =
-      data.invoice ||
-      `INV-${new Date().getFullYear()}-${String(nextId).padStart(3, '0')}`
-    const newPayment: Payment = {
-      ...data,
-      id: nextId,
-      invoice,
-    }
-    setPayments((prev) => [newPayment, ...prev])
+  const handleAddPayment = (payload: {
+    invoice: string
+    amountPaid: number
+    method: string
+  }) => {
+    setPayments((prev) => {
+      const idx = prev.findIndex((p) => p.invoice === payload.invoice)
+      if (idx === -1) return prev
+      const p = prev[idx]
+      const paid = p.paidAmount + payload.amountPaid
+      const outstanding = Math.max(0, p.totalAmount - paid)
+      const status: Payment['status'] =
+        outstanding <= 0 ? 'Paid' : paid > 0 ? 'Partial' : 'Pending'
+      const next = [...prev]
+      next[idx] = {
+        ...p,
+        paidAmount: paid,
+        outstandingAmount: outstanding,
+        status,
+        method: payload.method,
+        paymentDate: new Date().toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }),
+      }
+      return next
+    })
     setShowAddModal(false)
   }
 
@@ -152,6 +167,7 @@ export default function Payment() {
       <AddPaymentModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
+        payments={payments}
         onSubmit={handleAddPayment}
       />
 
