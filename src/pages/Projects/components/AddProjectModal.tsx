@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Calendar } from 'lucide-react'
 import { ModalWrapper, FormInput, FormTextarea } from '@/components/common'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -104,11 +103,10 @@ export function AddProjectModal({ open, onClose, onRequest }: AddProjectModalPro
               <Input
                 id="add-project-start"
                 type="date"
-                className={cn('h-11 pr-10', inputSurface)}
+                className={cn('h-11', inputSurface)}
                 error={!!errors.startDate}
                 {...register('startDate')}
               />
-              {/* <Calendar className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" /> */}
             </div>
             {errors.startDate && (
               <p className="text-xs text-destructive">{errors.startDate.message}</p>
@@ -120,11 +118,10 @@ export function AddProjectModal({ open, onClose, onRequest }: AddProjectModalPro
               <Input
                 id="add-project-end"
                 type="date"
-                className={cn('h-11 pr-10', inputSurface)}
+                className={cn('h-11', inputSurface)}
                 error={!!errors.endDate}
                 {...register('endDate')}
               />
-              {/* <Calendar className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" /> */}
             </div>
             {errors.endDate && (
               <p className="text-xs text-destructive">{errors.endDate.message}</p>

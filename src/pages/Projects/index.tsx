@@ -164,7 +164,7 @@ export default function Projects() {
           </table>
         </div>
 
-        {totalItems > ITEMS_PER_PAGE && (
+        {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -172,8 +172,7 @@ export default function Projects() {
             itemsPerPage={ITEMS_PER_PAGE}
             onPageChange={setCurrentPage}
             showItemsPerPage={false}
-            variant="simple"
-            className="mt-2 justify-end border-0 px-0"
+            className="mt-2 border-0 px-0"
           />
         )}
           </>
