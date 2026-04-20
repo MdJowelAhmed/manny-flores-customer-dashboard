@@ -129,19 +129,20 @@ const navItems: NavItem[] = [
   //   feature: 'payroll',
   // },
   {
-    title: 'Payment',
-    titleKey: 'sidebar.payment',
-    href: '/payment',
-    icon: CreditCard,
-    feature: 'payment',
-  },
-  {
     title: 'Review',
     titleKey: 'sidebar.review',
     href: '/reviews',
     icon: Star,
     feature: 'reviews',
   },
+  {
+    title: 'Payment',
+    titleKey: 'sidebar.payment',
+    href: '/payment',
+    icon: CreditCard,
+    feature: 'payment',
+  },
+
   {
     title: 'Change Orders',
     titleKey: 'sidebar.changeOrders',

@@ -146,7 +146,7 @@ export default function Projects() {
                         className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
                         aria-label={t('projects.viewDetails')}
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-5 w-5" />
                       </button>
                       <button
                         type="button"
@@ -154,7 +154,7 @@ export default function Projects() {
                         className="rounded-lg p-1.5 text-rose-500 transition-colors hover:bg-rose-50 hover:text-rose-600"
                         aria-label={t('projects.deleteProject')}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-5 w-5" />
                       </button>
                     </div>
                   </td>
