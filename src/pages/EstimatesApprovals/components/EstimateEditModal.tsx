@@ -27,6 +27,7 @@ const ESTIMATE_STATUS_OPTIONS = [
   { value: 'Pending', label: 'Pending' },
   { value: 'Draft', label: 'Draft' },
   { value: 'Follow Up', label: 'Follow Up' },
+  { value: 'Rejected', label: 'Rejected' },
 ]
 
 const fieldInputClass =
@@ -183,7 +184,7 @@ export function EstimateEditModal({
       onClose={onClose}
       title={modalTitle}
       size="full"
-      className="max-w-5xl w-[min(56rem,96vw)] bg-white p-6 sm:rounded-xl"
+      className="max-w-5xl  bg-white p-6 sm:rounded-xl"
       footer={
         <div className="w-full space-y-5">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">

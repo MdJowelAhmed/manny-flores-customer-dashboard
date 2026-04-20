@@ -1,6 +1,40 @@
-export type EstimateStatus = 'Approved' | 'Pending' | 'Draft' | 'Follow Up'
+import { format, isValid, parse } from 'date-fns'
 
-/** Pill styles aligned with Estimates & Approvals design */
+export type EstimateStatus =
+  | 'Approved'
+  | 'Pending'
+  | 'Draft'
+  | 'Follow Up'
+  | 'Rejected'
+
+/** Pill styles for list cards (matches Estimates & Quoting design). */
+export const ESTIMATE_LIST_BADGE: Record<
+  EstimateStatus,
+  { label: string; className: string }
+> = {
+  Pending: {
+    label: 'SENT',
+    className: 'bg-purple-100 text-purple-800',
+  },
+  Approved: {
+    label: 'APPROVED',
+    className: 'bg-[#22c55e] text-white',
+  },
+  Draft: {
+    label: 'DRAFT',
+    className: 'bg-gray-200 text-gray-800',
+  },
+  'Follow Up': {
+    label: 'FOLLOW UP',
+    className: 'bg-amber-100 text-amber-900',
+  },
+  Rejected: {
+    label: 'REJECTED',
+    className: 'bg-red-100 text-red-800',
+  },
+}
+
+/** @deprecated Use ESTIMATE_LIST_BADGE for new UI */
 export const ESTIMATE_STATUS_BADGE: Record<
   EstimateStatus,
   { bg: string; text: string }
@@ -8,7 +42,8 @@ export const ESTIMATE_STATUS_BADGE: Record<
   Approved: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
   'Follow Up': { bg: 'bg-amber-50', text: 'text-amber-700' },
   Draft: { bg: 'bg-white border border-gray-300', text: 'text-gray-700' },
-  Pending: { bg: 'bg-amber-50', text: 'text-amber-800' },
+  Pending: { bg: 'bg-purple-100', text: 'text-purple-800' },
+  Rejected: { bg: 'bg-red-50', text: 'text-red-700' },
 }
 
 export interface EstimateLineItem {
@@ -18,6 +53,25 @@ export interface EstimateLineItem {
   taxable: boolean
 }
 
+export interface EstimateDetailBreakdown {
+  labor: { quantity: number; price: number }
+  material: {
+    name: string
+    quantity: number
+    unitPriceLabel: string
+    unitPrice: number
+    totalPrice: number
+  }
+  equipment: {
+    name: string
+    quantity: number
+    unitPriceLabel: string
+    unitPrice: number
+    totalPrice: number
+  }
+  price: { totalPrice: number; taxPercent?: number }
+}
+
 export interface Estimate {
   id: string
   estimateCode: string
@@ -25,24 +79,50 @@ export interface Estimate {
   amount: string
   status: EstimateStatus
   startDate: string
-  // For view/edit modals
   customerName: string
   email: string
   company: string
   startDateFormatted?: string
   amountDue?: string
   contactNumber?: string
-  /** Full business / site line (Business Information → Project Name) */
   businessProjectDetail?: string
   lineItems?: EstimateLineItem[]
-  /** Applied only to taxable rows; default 15 */
   taxRatePercent?: number
+  /** List card: e.g. Rock/Stone */
+  materialSummary?: string
+  summaryQty?: number
+  /** Shown as "Cost: N" metadata */
+  summaryCostCount?: number
+  /** Modal sections; if absent, derived from line items */
+  detailBreakdown?: EstimateDetailBreakdown
+}
+
+export function formatEstimateCardDate(startDate: string): string {
+  const fmts = ['d/M/yyyy', 'M/d/yyyy', 'dd/MM/yyyy', 'd/M/yy']
+  for (const f of fmts) {
+    const d = parse(startDate, f, new Date())
+    if (isValid(d)) return format(d, 'dd/MM/yy')
+  }
+  return startDate
+}
+
+export function parseAmountToNumber(amount: string): number {
+  const raw = amount.replace(/,/g, '').replace(/[^0-9.]/g, '')
+  return Number.parseFloat(raw) || 0
+}
+
+export function fmtUsd(n: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(n)
 }
 
 export function getLineItemsForEstimate(est: Estimate): EstimateLineItem[] {
   if (est.lineItems?.length) return est.lineItems
-  const raw = est.amount.replace(/,/g, '').replace(/[^0-9.]/g, '')
-  const n = Number.parseFloat(raw) || 0
+  const n = parseAmountToNumber(est.amount)
   return [{ description: est.project, unitCost: n, qty: 1, taxable: true }]
 }
 
@@ -60,21 +140,95 @@ export function computeEstimateTotals(
   return { subtotal, tax, total: subtotal + tax }
 }
 
+export function getDetailBreakdownForEstimate(
+  est: Estimate
+): EstimateDetailBreakdown {
+  if (est.detailBreakdown) return est.detailBreakdown
+
+  const items = getLineItemsForEstimate(est)
+  const taxPct = est.taxRatePercent ?? 10
+  const { total } = computeEstimateTotals(items, taxPct)
+  const first = items[0]
+  const second = items[1] ?? first
+  const laborQty = items.reduce((a, b) => a + b.qty, 0)
+  const laborPrice = first ? first.unitCost * Math.min(first.qty, 10) : 0
+
+  return {
+    labor: {
+      quantity: laborQty || 10,
+      price: laborPrice || 850,
+    },
+    material: {
+      name: first?.description ?? 'Synthetic Grass',
+      quantity: first?.qty ?? 15,
+      unitPriceLabel: 'Unit Price/sq.ft',
+      unitPrice: first?.unitCost ?? 450,
+      totalPrice: first ? first.unitCost * first.qty : 1050,
+    },
+    equipment: {
+      name: second?.description ?? 'Synthetic Grass',
+      quantity: second?.qty ?? 15,
+      unitPriceLabel: 'Unit Price/sq.ft',
+      unitPrice: second?.unitCost ?? 450,
+      totalPrice: second ? second.unitCost * second.qty : 1050,
+    },
+    price: {
+      totalPrice: total || 450,
+      taxPercent: taxPct,
+    },
+  }
+}
+
 export const estimatesData: Estimate[] = [
   {
     id: '1',
-    estimateCode: 'EST-2026-001',
+    estimateCode: 'EST-501',
+    project: 'Rock/Stone installation',
+    amount: '$8,500',
+    status: 'Pending',
+    startDate: '4/3/2026',
+    customerName: 'Karim Ullah',
+    email: 'karim@email.com',
+    company: 'Outdoor Works',
+    materialSummary: 'Rock/Stone',
+    summaryQty: 4,
+    summaryCostCount: 3,
+    taxRatePercent: 10,
+    detailBreakdown: {
+      labor: { quantity: 10, price: 850 },
+      material: {
+        name: 'Synthetic Grass',
+        quantity: 15,
+        unitPriceLabel: 'Unit Price/sq.ft',
+        unitPrice: 450,
+        totalPrice: 1050,
+      },
+      equipment: {
+        name: 'Synthetic Grass',
+        quantity: 15,
+        unitPriceLabel: 'Unit Price/sq.ft',
+        unitPrice: 450,
+        totalPrice: 1050,
+      },
+      price: { totalPrice: 8500, taxPercent: 10 },
+    },
+    lineItems: [
+      { description: 'Rock/Stone', unitCost: 2125, qty: 4, taxable: true },
+    ],
+  },
+  {
+    id: '2',
+    estimateCode: 'EST-502',
     project: 'Garden Design & Installation',
-    amount: '€12,560',
+    amount: '$12,560',
     status: 'Approved',
-    startDate: '1/10/2026',
+    startDate: '10/1/2026',
     customerName: 'Sarah Johnson',
     email: 'sarah@gmail.com',
     company: 'Lawn Care Package',
-    startDateFormatted: 'January 15, 2026',
-    amountDue: '$2,075',
-    contactNumber: '+198745210',
-    businessProjectDetail: 'Green Scape Solutions, 23 Eco Street, City',
+    materialSummary: 'Garden mix',
+    summaryQty: 2,
+    summaryCostCount: 4,
     taxRatePercent: 15,
     lineItems: [
       {
@@ -92,120 +246,115 @@ export const estimatesData: Estimate[] = [
     ],
   },
   {
-    id: '2',
-    estimateCode: 'EST-2026-002',
+    id: '3',
+    estimateCode: 'EST-503',
     project: 'Backyard Renovation',
-    amount: '€18,960',
-    status: 'Follow Up',
+    amount: '$18,960',
+    status: 'Pending',
     startDate: '3/10/2026',
     customerName: 'Michael Chen',
     email: 'michael@email.com',
     company: 'Green Space Solutions',
-    startDateFormatted: 'March 3, 2026',
-    amountDue: '$18,960',
+    materialSummary: 'Sod & soil',
+    summaryQty: 8,
+    summaryCostCount: 5,
   },
   {
-    id: '3',
-    estimateCode: 'EST-2026-003',
+    id: '4',
+    estimateCode: 'EST-504',
     project: 'Front Yard Landscaping',
-    amount: '€17,160',
+    amount: '$17,160',
     status: 'Approved',
     startDate: '5/10/2026',
     customerName: 'Lisa Anderson',
     email: 'lisa@email.com',
     company: 'Lawn Care Package',
-    startDateFormatted: 'May 5, 2026',
-    amountDue: '$17,160',
+    materialSummary: 'Shrubs',
+    summaryQty: 12,
+    summaryCostCount: 2,
   },
   {
-    id: '4',
-    estimateCode: 'EST-2026-004',
+    id: '5',
+    estimateCode: 'EST-505',
     project: 'Patio & Deck Construction',
-    amount: '€16,500',
+    amount: '$16,500',
     status: 'Draft',
     startDate: '15/10/2026',
     customerName: 'Emily Davis',
     email: 'emily@email.com',
     company: 'Outdoor Living Co',
-    startDateFormatted: 'October 15, 2026',
-    amountDue: '$16,500',
+    materialSummary: 'Timber',
+    summaryQty: 6,
+    summaryCostCount: 4,
   },
   {
-    id: '5',
-    estimateCode: 'EST-2026-005',
+    id: '6',
+    estimateCode: 'EST-506',
     project: 'Pool Landscaping',
-    amount: '€14,990',
+    amount: '$14,990',
     status: 'Pending',
     startDate: '19/10/2026',
     customerName: 'Robert Brown',
     email: 'robert@email.com',
     company: 'Aqua Landscapes',
-    startDateFormatted: 'October 19, 2026',
-    amountDue: '$14,990',
+    materialSummary: 'Stone pavers',
+    summaryQty: 20,
+    summaryCostCount: 6,
   },
   {
-    id: '6',
-    estimateCode: 'EST-2026-006',
+    id: '7',
+    estimateCode: 'EST-507',
     project: 'Commercial Landscaping',
-    amount: '€19,250',
+    amount: '$19,250',
     status: 'Approved',
     startDate: '21/10/2026',
     customerName: 'Maria Garcia',
     email: 'maria@email.com',
     company: 'Green Space Solutions',
-    startDateFormatted: 'October 21, 2026',
-    amountDue: '$19,250',
+    materialSummary: 'Mulch',
+    summaryQty: 3,
+    summaryCostCount: 3,
   },
   {
-    id: '7',
-    estimateCode: 'EST-2026-007',
+    id: '8',
+    estimateCode: 'EST-508',
     project: 'Irrigation System',
-    amount: '€8,750',
+    amount: '$8,750',
     status: 'Follow Up',
     startDate: '29/10/2026',
     customerName: 'John Williams',
     email: 'john@email.com',
     company: 'Lawn Care Package',
-    startDateFormatted: 'October 29, 2026',
-    amountDue: '$8,750',
+    materialSummary: 'PVC & heads',
+    summaryQty: 14,
+    summaryCostCount: 2,
   },
   {
-    id: '8',
-    estimateCode: 'EST-2026-008',
+    id: '9',
+    estimateCode: 'EST-509',
     project: 'Driveway Paving',
-    amount: '€22,400',
+    amount: '$22,400',
     status: 'Draft',
     startDate: '2/11/2026',
     customerName: 'Sarah Johnson',
     email: 'sarah@email.com',
     company: 'Lawn Care Package',
-    startDateFormatted: 'November 2, 2026',
-    amountDue: '$22,400',
+    materialSummary: 'Asphalt',
+    summaryQty: 1,
+    summaryCostCount: 2,
   },
   {
-    id: '9',
-    estimateCode: 'EST-2026-009',
+    id: '10',
+    estimateCode: 'EST-510',
     project: 'Fence Installation',
-    amount: '€11,200',
+    amount: '$11,200',
     status: 'Pending',
     startDate: '5/11/2026',
     customerName: 'Mike Johnson',
     email: 'mike@email.com',
     company: 'Lawn Care Package',
-    startDateFormatted: 'November 5, 2026',
-    amountDue: '$11,200',
-  },
-  {
-    id: '10',
-    estimateCode: 'EST-2026-010',
-    project: 'Tree Removal & Planting',
-    amount: '€9,500',
-    status: 'Approved',
-    startDate: '10/11/2026',
-    customerName: 'Lisa Anderson',
-    email: 'lisa@email.com',
-    company: 'Green Space Solutions',
-    startDateFormatted: 'November 10, 2026',
-    amountDue: '$9,500',
+    materialSummary: 'Cedar panels',
+    summaryQty: 9,
+    summaryCostCount: 4,
   },
 ]

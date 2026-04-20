@@ -17,6 +17,7 @@ import {
   FolderKanban,
   FileCheck2,
   CreditCard,
+  Receipt,
 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -62,6 +63,13 @@ const navItems: NavItem[] = [
     href: '/estimates-approvals',
     icon: FileCheck2,
     feature: 'estimates-approvals',
+  },
+  {
+    title: 'Invoice',
+    titleKey: 'sidebar.invoice',
+    href: '/invoice',
+    icon: Receipt,
+    feature: 'invoice',
   },
   {
     title: 'Communication',

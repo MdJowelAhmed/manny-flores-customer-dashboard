@@ -26,6 +26,7 @@ const routeTitleKeys: Record<string, string> = {
   '/recent-projects': 'header.routeTitles.recentProjects',
   '/projects': 'header.routeTitles.projects',
   '/estimates-approvals': 'header.routeTitles.estimatesApprovals',
+  '/invoice': 'header.routeTitles.invoice',
   '/my-task': 'header.routeTitles.myTask',
   '/attendance': 'header.routeTitles.attendance',
   '/communication': 'header.routeTitles.communication',

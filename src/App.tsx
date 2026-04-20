@@ -39,6 +39,7 @@ import MyTask from './pages/MyTask'
 import RecentProjects from './pages/RecentProjects'
 import Projects from './pages/Projects'
 import EstimatesApprovals from './pages/EstimatesApprovals'
+import InvoicePage from './pages/Invoice'
 import SafetyCompliance from './pages/SafetyCompliance/SafetyCompliance'
 import ReviewList from './pages/Reviews/ReviewList'
 import Payment from './pages/Payment'
@@ -133,6 +134,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
                 <EstimatesApprovals />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Invoice - Employee */}
+          <Route
+            path="invoice"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <InvoicePage />
               </RoleBasedRoute>
             }
           />

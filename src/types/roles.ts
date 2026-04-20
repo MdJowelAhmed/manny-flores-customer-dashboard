@@ -24,6 +24,7 @@ export const FEATURE_ACCESS: Record<string, UserRole[]> = {
   'recent-projects': [UserRole.EMPLOYEE],
   projects: [UserRole.EMPLOYEE],
   'estimates-approvals': [UserRole.EMPLOYEE],
+  invoice: [UserRole.EMPLOYEE],
   'project-scheduling': [UserRole.EMPLOYEE],
   'documents-approvals': [UserRole.EMPLOYEE],
   communication: [UserRole.EMPLOYEE],
