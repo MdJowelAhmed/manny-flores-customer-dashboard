@@ -21,7 +21,7 @@ interface PaginationProps {
   className?: string
   showItemsPerPage?: boolean
   /** Use 'revenue' for Result Per Page label instead of Showing X to Y */
-  variant?: 'default' | 'revenue'
+  variant?: 'default' | 'revenue' | 'simple'
 }
 
 export function Pagination({
@@ -79,17 +79,25 @@ export function Pagination({
     return pages
   }
 
-  if (totalPages <= 1 && !showItemsPerPage) {
+  const isSimple = variant === 'simple'
+
+  if (totalPages <= 1 && !showItemsPerPage && !isSimple) {
+    return null
+  }
+
+  if (totalPages <= 1 && isSimple) {
     return null
   }
 
   return (
     <div
       className={cn(
-        'flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-4',
+        'flex flex-col sm:flex-row items-center gap-4 px-2 py-4',
+        isSimple ? 'justify-end' : 'justify-between',
         className
       )}
     >
+      {!isSimple && (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         {variant === 'revenue' ? (
           <span className="flex items-center gap-2">
@@ -137,8 +145,10 @@ export function Pagination({
           </>
         )}
       </div>
+      )}
 
       <div className="flex items-center gap-1">
+        {!isSimple && (
         <Button
           variant="outline"
           size="icon-sm"
@@ -148,6 +158,7 @@ export function Pagination({
         >
           <ChevronsLeft className="h-4 w-4" />
         </Button>
+        )}
         <Button
           variant="outline"
           size="icon-sm"
@@ -164,10 +175,24 @@ export function Pagination({
             typeof page === 'number' ? (
               <Button
                 key={index}
-                variant={currentPage === page ? 'default' : 'outline'}
+                variant={
+                  isSimple
+                    ? 'outline'
+                    : currentPage === page
+                      ? 'default'
+                      : 'outline'
+                }
                 size="icon-sm"
                 onClick={() => onPageChange(page)}
-                className="w-8 h-8 rounded-full"
+                className={cn(
+                  'w-8 h-8 rounded-full',
+                  isSimple &&
+                    currentPage === page &&
+                    'border-gray-800 bg-gray-800 text-white hover:bg-gray-800 hover:text-white',
+                  isSimple &&
+                    currentPage !== page &&
+                    'border-gray-300 bg-white text-gray-600 hover:bg-gray-50',
+                )}
               >
                 {page}
               </Button>
@@ -189,6 +214,7 @@ export function Pagination({
           {/* {variant === 'revenue' && <span>Next</span>} */}
           <ChevronRight className="h-4 w-4" />
         </Button>
+        {!isSimple && (
         <Button
           variant="outline"
           size="icon-sm"
@@ -198,6 +224,7 @@ export function Pagination({
         >
           <ChevronsRight className="h-4 w-4" />
         </Button>
+        )}
       </div>
     </div>
   )
