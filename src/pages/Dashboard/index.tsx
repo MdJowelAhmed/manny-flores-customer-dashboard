@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { BarChart3, Clock } from 'lucide-react'
 import {
   dashboardStats,
@@ -6,23 +6,16 @@ import {
   recentProjectsData,
 } from './dashboardOverviewData'
 import { DashboardStatCard } from './components'
-import { ProjectVisibilityChart } from './ProjectVisibilityChart'
+import { ProjectStatusOverviewChart } from './ProjectStatusOverviewChart'
 import { UpcomingInspections } from './UpcomingInspections'
 import { RecentProjectsTable } from './RecentProjectsTable'
-import { projectVisibilityYearlyData } from './dashboardData'
 import { ConfirmDialog } from '@/components/common'
 import { toast } from 'sonner'
 import type { RecentProject } from './dashboardOverviewData'
 
 export default function Dashboard() {
-  const [selectedYear, setSelectedYear] = useState('2025')
   const [deleteProject, setDeleteProject] = useState<RecentProject | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-
-  const chartData = useMemo(
-    () => projectVisibilityYearlyData[selectedYear] ?? projectVisibilityYearlyData['2025'],
-    [selectedYear]
-  )
 
   const handleDeleteProject = async () => {
     if (!deleteProject) return
@@ -61,14 +54,10 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Middle - Project Visibility Chart & Upcoming Inspections */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <ProjectVisibilityChart
-            chartData={chartData}
-            selectedYear={selectedYear}
-            onYearChange={setSelectedYear}
-          />
+      {/* Middle - Project status overview & Upcoming Inspections */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="lg:col-span-1">
+          <ProjectStatusOverviewChart />
         </div>
         <div>
           <UpcomingInspections inspections={upcomingInspectionsData} />
