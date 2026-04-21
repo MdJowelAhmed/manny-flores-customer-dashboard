@@ -25,7 +25,7 @@ export function InvoiceCard({ invoice, viewLabel, onView }: InvoiceCardProps) {
         <button
           type="button"
           onClick={() => onView(invoice)}
-          className="shrink-0 self-start text-left text-sm font-medium text-gray-800 hover:text-gray-950 sm:self-auto"
+          className="shrink-0 self-start text-left text-sm font-medium text-blue-600 hover:text-blue-700 hover:text-bold underline sm:self-auto"
         >
           {viewLabel}
         </button>

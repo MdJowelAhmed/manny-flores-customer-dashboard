@@ -431,7 +431,31 @@
     "reference": "Reference",
     "lineSummary": "Summary",
     "notes": "Notes",
-    "total": "Total"
+    "total": "Total",
+    "customerInfo": "Customer",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "dueDate": "Due date",
+    "labor": "Labor",
+    "material": "Material",
+    "equipment": "Equipment",
+    "priceSection": "Price",
+    "quantity": "Quantity:",
+    "price": "Price:",
+    "name": "Name:",
+    "unitPricePerSqFt": "Unit Price/sq.ft:",
+    "lineTotal": "Total Price:",
+    "subtotal": "Subtotal:",
+    "discount": "Discount:",
+    "taxWithPercent": "Tax ({{percent}}%):",
+    "grandTotal": "Grand total",
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "draft": "Draft"
+    }
   },
   "projects": {
     "title": "Project Visibility",

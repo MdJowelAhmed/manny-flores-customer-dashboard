@@ -431,7 +431,31 @@
     "reference": "Referencia",
     "lineSummary": "Resumen",
     "notes": "Notas",
-    "total": "Total"
+    "total": "Total",
+    "customerInfo": "Cliente",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "dueDate": "Vencimiento",
+    "labor": "Mano de obra",
+    "material": "Material",
+    "equipment": "Equipo",
+    "priceSection": "Precio",
+    "quantity": "Cantidad:",
+    "price": "Precio:",
+    "name": "Nombre:",
+    "unitPricePerSqFt": "Precio unitario/pie²:",
+    "lineTotal": "Precio total:",
+    "subtotal": "Subtotal:",
+    "discount": "Descuento:",
+    "taxWithPercent": "Impuesto ({{percent}}%):",
+    "grandTotal": "Total general",
+    "status": {
+      "pending": "Pendiente",
+      "paid": "Pagado",
+      "overdue": "Vencido",
+      "draft": "Borrador"
+    }
   },
   "payment": {
     "title": "Seguimiento de Pagos",
