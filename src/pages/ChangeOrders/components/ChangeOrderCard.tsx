@@ -68,7 +68,7 @@ export function ChangeOrderCard({
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-5 text-xs text-muted-foreground">
+        {/* <div className="flex flex-col items-end gap-5 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -101,7 +101,7 @@ export function ChangeOrderCard({
               </span>
             </div>
           )}
-        </div>
+        </div> */}
       </div>
 
       <div className="mt-6 bg-[#9810FA0D] px-6 py-4 flex flex-wrap items-center gap-6 rounded-xl mx-10 mb-4">
