@@ -12,12 +12,16 @@ interface EstimateListCardProps {
   estimate: Estimate
   onViewDetails: (estimate: Estimate) => void
   viewDetailsLabel: string
+  onApprove?: (estimate: Estimate) => void
+  approveLabel?: string
 }
 
 export function EstimateListCard({
   estimate,
   onViewDetails,
   viewDetailsLabel,
+  onApprove,
+  approveLabel = 'Approved',
 }: EstimateListCardProps) {
   const badge = ESTIMATE_LIST_BADGE[estimate.status]
   const material = estimate.materialSummary ?? estimate.project
@@ -52,13 +56,25 @@ export function EstimateListCard({
         </p>
       </div>
       <div className="flex shrink-0 sm:items-center">
-        <Button
-          type="button"
-          className="h-11 w-full rounded-xl bg-[#22c55e] px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#16a34a] sm:w-auto"
-          onClick={() => onViewDetails(estimate)}
-        >
-          {viewDetailsLabel}
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full rounded-xl border-gray-300 bg-white px-6 text-sm font-semibold text-gray-800 shadow-sm hover:bg-gray-50 sm:w-auto"
+            onClick={() => onViewDetails(estimate)}
+          >
+            {viewDetailsLabel}
+          </Button>
+          {estimate.status === 'Pending' && onApprove ? (
+            <Button
+              type="button"
+              className="h-11 w-full rounded-xl bg-[#22c55e] px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#16a34a] sm:w-auto"
+              onClick={() => onApprove(estimate)}
+            >
+              {approveLabel}
+            </Button>
+          ) : null}
+        </div>
       </div>
     </div>
   )

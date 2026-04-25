@@ -6,6 +6,8 @@ export type EstimateStatus =
   | 'Draft'
   | 'Follow Up'
   | 'Rejected'
+  | 'Invoiced'
+  | 'Project Created'
 
 /** Pill styles for list cards (matches Estimates & Quoting design). */
 export const ESTIMATE_LIST_BADGE: Record<
@@ -19,6 +21,14 @@ export const ESTIMATE_LIST_BADGE: Record<
   Approved: {
     label: 'APPROVED',
     className: 'bg-[#22c55e] text-white',
+  },
+  Invoiced: {
+    label: 'INVOICED',
+    className: 'bg-blue-100 text-blue-800',
+  },
+  'Project Created': {
+    label: 'PROJECT',
+    className: 'bg-emerald-100 text-emerald-800',
   },
   Draft: {
     label: 'DRAFT',
@@ -44,6 +54,8 @@ export const ESTIMATE_STATUS_BADGE: Record<
   Draft: { bg: 'bg-white border border-gray-300', text: 'text-gray-700' },
   Pending: { bg: 'bg-purple-100', text: 'text-purple-800' },
   Rejected: { bg: 'bg-red-50', text: 'text-red-700' },
+  Invoiced: { bg: 'bg-blue-50', text: 'text-blue-700' },
+  'Project Created': { bg: 'bg-emerald-50', text: 'text-emerald-700' },
 }
 
 export interface EstimateLineItem {

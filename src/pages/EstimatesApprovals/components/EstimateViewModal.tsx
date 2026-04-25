@@ -6,7 +6,6 @@ import {
   getDetailBreakdownForEstimate,
   type Estimate,
 } from '../estimatesData'
-import { toast } from 'sonner'
 
 interface EstimateViewModalProps {
   open: boolean
@@ -57,14 +56,14 @@ export function EstimateViewModal({
   const handleApprove = () => {
     onApprove?.(estimate)
     onClose()
-    toast.success(t('estimates.approvedToast'))
   }
 
   const handleReject = () => {
     onReject?.(estimate)
     onClose()
-    toast.message(t('estimates.rejectedToast'))
   }
+
+  const canRespond = estimate.status === 'Pending'
 
   return (
     <ModalWrapper
@@ -81,6 +80,7 @@ export function EstimateViewModal({
             variant="outline"
             className="h-11 rounded-md border-gray-300 bg-white font-medium text-gray-700 shadow-sm hover:bg-gray-50"
             onClick={handleReject}
+            disabled={!canRespond}
           >
             {t('estimates.reject')}
           </Button>
@@ -88,6 +88,7 @@ export function EstimateViewModal({
             type="button"
             className="h-11 rounded-md  font-semibold text-white "
             onClick={handleApprove}
+            disabled={!canRespond}
           >
             {t('estimates.approved')}
           </Button>

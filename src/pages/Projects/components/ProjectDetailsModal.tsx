@@ -37,7 +37,24 @@ export function ProjectDetailsModal({
       headerClassName="pb-2"
     >
       <div className="space-y-4 pr-1">
+        <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-gray-800">{project.status}</p>
+            <p className="text-sm font-semibold text-gray-900">{project.progress}%</p>
+          </div>
+          <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-gray-200">
+            <div
+              className="h-full rounded-full bg-green-500 transition-all"
+              style={{ width: `${project.progress}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
+            Progress updates will appear here as work completes.
+          </p>
+        </div>
+
         <DetailLine label={t('projects.projectName')} value={project.projectName} />
+        <DetailLine label="Project Value" value={project.projectValue} />
         <DetailLine
           label={t('projects.startDate')}
           value={formatProjectDisplayDate(project.startDate)}
