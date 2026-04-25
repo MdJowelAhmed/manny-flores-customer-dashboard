@@ -1,15 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ModalWrapper } from '@/components/common'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { fmtInvoiceUsd, getInvoiceBreakdown, type Invoice, type InvoiceStatus } from '../invoicesData'
 
 interface InvoiceViewModalProps {
   open: boolean
   onClose: () => void
-  invoice: Invoice | null
+  invoice: Invoice
+  onApprove?: (invoiceId: string, payload: { signatureDataUrl: string; approvedAt: string }) => void
 }
 
 function safeFormatDate(iso: string, fmt: string) {
@@ -74,9 +76,8 @@ function statusBadgeVariant(status: InvoiceStatus): 'warning' | 'success' | 'err
   }
 }
 
-export function InvoiceViewModal({ open, onClose, invoice }: InvoiceViewModalProps) {
+export function InvoiceViewModal({ open, onClose, invoice, onApprove }: InvoiceViewModalProps) {
   const { t } = useTranslation()
-  if (!invoice) return null
 
   const breakdown = getInvoiceBreakdown(invoice)
   const issueStr = safeFormatDate(invoice.invoiceDate, 'dd/MM/yyyy')
@@ -84,6 +85,106 @@ export function InvoiceViewModal({ open, onClose, invoice }: InvoiceViewModalPro
   const status = invoice.status ?? 'pending'
 
   const statusLabel = t(`invoice.status.${status}`)
+
+  const isApproved = status === 'paid' && !!invoice.signatureDataUrl
+  const canApprove = (status === 'pending' || status === 'overdue') && !isApproved && !!onApprove
+
+  const approvedAtStr = useMemo(() => {
+    if (!invoice.approvedAt) return ''
+    return safeFormatDate(invoice.approvedAt, 'dd/MM/yyyy')
+  }, [invoice.approvedAt])
+
+  // Signature pad
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const drawingRef = useRef(false)
+  const [sigDataUrl, setSigDataUrl] = useState<string>('')
+
+  useEffect(() => {
+    // Reset signature draft when switching invoices
+    setSigDataUrl('')
+  }, [invoice.id])
+
+  const hasSignature = !!sigDataUrl || !!invoice.signatureDataUrl
+
+  const resizeCanvas = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const dpr = window.devicePixelRatio || 1
+    const rect = canvas.getBoundingClientRect()
+    const nextW = Math.max(1, Math.floor(rect.width * dpr))
+    const nextH = Math.max(1, Math.floor(rect.height * dpr))
+    if (canvas.width === nextW && canvas.height === nextH) return
+    canvas.width = nextW
+    canvas.height = nextH
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.scale(dpr, dpr)
+    ctx.lineWidth = 2.2
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = '#111827'
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, rect.width, rect.height)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    resizeCanvas()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, invoice.id])
+
+  const getPoint = (e: PointerEvent, canvas: HTMLCanvasElement) => {
+    const rect = canvas.getBoundingClientRect()
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top }
+  }
+
+  const beginDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    drawingRef.current = true
+    canvas.setPointerCapture(e.pointerId)
+    const p = getPoint(e.nativeEvent, canvas)
+    ctx.beginPath()
+    ctx.moveTo(p.x, p.y)
+  }
+
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!drawingRef.current) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const p = getPoint(e.nativeEvent, canvas)
+    ctx.lineTo(p.x, p.y)
+    ctx.stroke()
+  }
+
+  const endDraw = () => {
+    if (!drawingRef.current) return
+    drawingRef.current = false
+    const canvas = canvasRef.current
+    if (!canvas) return
+    try {
+      setSigDataUrl(canvas.toDataURL('image/png'))
+    } catch {
+      // ignore
+    }
+  }
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const rect = canvas.getBoundingClientRect()
+    ctx.clearRect(0, 0, rect.width, rect.height)
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, rect.width, rect.height)
+    setSigDataUrl('')
+  }
 
   return (
     <ModalWrapper
@@ -182,6 +283,70 @@ export function InvoiceViewModal({ open, onClose, invoice }: InvoiceViewModalPro
             <p className="mt-1 text-sm leading-relaxed text-gray-900">{invoice.description}</p>
           </div>
         ) : null}
+
+        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-base font-semibold text-gray-900">{t('invoice.signature')}</p>
+            {isApproved ? (
+              <span className="text-xs font-semibold text-green-700">
+                {t('invoice.signedOn')} {approvedAtStr}
+              </span>
+            ) : null}
+          </div>
+
+          {isApproved && invoice.signatureDataUrl ? (
+            <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 p-3">
+              <img
+                src={invoice.signatureDataUrl}
+                alt={t('invoice.signature')}
+                className="h-24 w-full object-contain"
+              />
+            </div>
+          ) : (
+            <>
+              <p className="mt-1 text-sm text-gray-500">{t('invoice.signatureHint')}</p>
+              <div className="mt-3 rounded-lg border border-gray-200 bg-white">
+                <canvas
+                  ref={canvasRef}
+                  className="h-28 w-full touch-none rounded-lg"
+                  onPointerDown={beginDraw}
+                  onPointerMove={draw}
+                  onPointerUp={endDraw}
+                  onPointerCancel={endDraw}
+                  aria-label={t('invoice.signature')}
+                />
+              </div>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 rounded-lg border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
+                  onClick={clearSignature}
+                >
+                  {t('invoice.clearSignature')}
+                </Button>
+                <Button
+                  type="button"
+                  className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"
+                  disabled={!sigDataUrl || !canApprove}
+                  onClick={() => {
+                    if (!sigDataUrl) return
+                    const approvedAt = new Date().toISOString()
+                    onApprove?.(invoice.id, { signatureDataUrl: sigDataUrl, approvedAt })
+                  }}
+                >
+                  {t('invoice.approveInvoice')}
+                </Button>
+              </div>
+              {!canApprove ? (
+                <p className="mt-2 text-xs text-gray-500">{t('invoice.approveLocked')}</p>
+              ) : null}
+              {canApprove && !hasSignature ? (
+                <p className="mt-2 text-xs text-gray-500">{t('invoice.signatureRequired')}</p>
+              ) : null}
+            </>
+          )}
+        </div>
       </div>
     </ModalWrapper>
   )

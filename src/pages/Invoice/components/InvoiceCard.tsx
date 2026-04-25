@@ -1,4 +1,5 @@
 import { fmtInvoiceUsd, type Invoice } from '../invoicesData'
+import { Badge } from '@/components/ui/badge'
 
 interface InvoiceCardProps {
   invoice: Invoice
@@ -7,10 +8,19 @@ interface InvoiceCardProps {
 }
 
 export function InvoiceCard({ invoice, viewLabel, onView }: InvoiceCardProps) {
+  const status = invoice.status ?? 'pending'
+  const badgeVariant =
+    status === 'paid' ? 'success' : status === 'overdue' ? 'error' : status === 'draft' ? 'secondary' : 'warning'
+
   return (
     <div className="rounded-xl bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <span className="text-sm text-gray-500">{invoice.refCode}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">{invoice.refCode}</span>
+          <Badge variant={badgeVariant} className="capitalize">
+            {status}
+          </Badge>
+        </div>
         <span className="shrink-0 rounded-lg bg-[#22c55e] px-3 py-1.5 text-sm font-semibold text-white">
           {fmtInvoiceUsd(invoice.amount)}
         </span>

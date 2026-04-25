@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format, parseISO, isValid } from 'date-fns'
 import { Calendar as CalendarIcon } from 'lucide-react'
@@ -14,12 +14,19 @@ import { cn } from '@/utils/cn'
 import { invoicesData, type Invoice } from './invoicesData'
 import { InvoiceCard } from './components/InvoiceCard'
 import { InvoiceViewModal } from './components/InvoiceViewModal'
+import { useAppSelector } from '@/redux/hooks'
 
 const ITEMS_PER_PAGE = 6
 
 export default function InvoicePage() {
   const { t } = useTranslation()
-  const [invoices] = useState<Invoice[]>(invoicesData)
+  const user = useAppSelector((s) => s.auth.user)
+  const currentCustomerName = user ? `${user.firstName} ${user.lastName}`.trim() : 'Karim Ullah'
+  const currentCustomerEmail = user?.email?.toLowerCase().trim() ?? ''
+
+  const [invoices, setInvoices] = useState<Invoice[]>(invoicesData)
+  const seededRef = useRef(false)
+  const userTouchedRef = useRef(false)
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [selected, setSelected] = useState<Invoice | null>(null)
@@ -27,10 +34,44 @@ export default function InvoicePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE)
 
-  const filteredInvoices = useMemo(() => {
-    if (!filterDate) return invoices
-    const key = format(filterDate, 'yyyy-MM-dd')
+  const visibleInvoices = useMemo(() => {
     return invoices.filter((inv) => {
+      if (inv.customerName === currentCustomerName) return true
+      if (currentCustomerEmail && inv.customerEmail?.toLowerCase().trim() === currentCustomerEmail) return true
+      return false
+    })
+  }, [invoices, currentCustomerName, currentCustomerEmail])
+
+  useEffect(() => {
+    if (seededRef.current) return
+    if (userTouchedRef.current) return
+    if (visibleInvoices.length > 0) {
+      seededRef.current = true
+      return
+    }
+
+    // Seed 3-5 invoices for the current user (demo only, state-based).
+    setInvoices((prev) => {
+      const seeded = prev.map((inv, idx) => {
+        if (idx >= 5) return inv
+        return {
+          ...inv,
+          customerName: currentCustomerName,
+          customerEmail: currentCustomerEmail || inv.customerEmail,
+          customerPhone: inv.customerPhone ?? '+1 (555) 201-2033',
+          customerAddress: inv.customerAddress ?? '120 Oak Ridge Dr, Austin, TX 78701',
+        }
+      })
+      return seeded
+    })
+
+    seededRef.current = true
+  }, [currentCustomerName, currentCustomerEmail, visibleInvoices.length])
+
+  const filteredInvoices = useMemo(() => {
+    if (!filterDate) return visibleInvoices
+    const key = format(filterDate, 'yyyy-MM-dd')
+    return visibleInvoices.filter((inv) => {
       try {
         const d = parseISO(inv.invoiceDate)
         return isValid(d) && format(d, 'yyyy-MM-dd') === key
@@ -38,7 +79,7 @@ export default function InvoicePage() {
         return false
       }
     })
-  }, [invoices, filterDate])
+  }, [visibleInvoices, filterDate])
 
   const totalItems = filteredInvoices.length
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage))
@@ -56,8 +97,37 @@ export default function InvoicePage() {
   }, [filterDate])
 
   const openView = (inv: Invoice) => {
+    userTouchedRef.current = true
     setSelected(inv)
     setViewOpen(true)
+  }
+
+  const handleApproveInvoice = (id: string, payload: { signatureDataUrl: string; approvedAt: string }) => {
+    userTouchedRef.current = true
+    setInvoices((prev) =>
+      prev.map((x) =>
+        x.id === id
+          ? {
+              ...x,
+              status: 'paid',
+              signatureDataUrl: payload.signatureDataUrl,
+              approvedAt: payload.approvedAt,
+            }
+          : x
+      )
+    )
+
+    // Keep modal content in sync if currently open.
+    setSelected((prev) => {
+      if (!prev) return prev
+      if (prev.id !== id) return prev
+      return {
+        ...prev,
+        status: 'paid',
+        signatureDataUrl: payload.signatureDataUrl,
+        approvedAt: payload.approvedAt,
+      }
+    })
   }
 
   return (
@@ -153,14 +223,17 @@ export default function InvoicePage() {
         />
       )}
 
-      <InvoiceViewModal
-        open={viewOpen}
-        onClose={() => {
-          setViewOpen(false)
-          setSelected(null)
-        }}
-        invoice={selected}
-      />
+      {selected ? (
+        <InvoiceViewModal
+          open={viewOpen}
+          onClose={() => {
+            setViewOpen(false)
+            setSelected(null)
+          }}
+          invoice={selected}
+          onApprove={handleApproveInvoice}
+        />
+      ) : null}
     </div>
   )
 }

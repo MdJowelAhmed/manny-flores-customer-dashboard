@@ -41,6 +41,10 @@ export interface Invoice {
   /** Tax percent e.g. 10 for 10% */
   taxPercent?: number
   discountAmount?: number
+  /** Digital signature (data URL) captured on approval */
+  signatureDataUrl?: string
+  /** ISO timestamp when user approved/signed */
+  approvedAt?: string
 }
 
 export function fmtInvoiceUsd(n: number) {

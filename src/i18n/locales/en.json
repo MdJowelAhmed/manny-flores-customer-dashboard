@@ -450,6 +450,13 @@
     "discount": "Discount:",
     "taxWithPercent": "Tax ({{percent}}%):",
     "grandTotal": "Grand total",
+    "approveInvoice": "Approve Invoice",
+    "signature": "Digital Signature",
+    "signatureHint": "Draw your signature below to approve this invoice.",
+    "clearSignature": "Clear",
+    "signatureRequired": "Signature is required to approve.",
+    "signedOn": "Signed on",
+    "approveLocked": "This invoice can’t be approved in its current status.",
     "status": {
       "pending": "Pending",
       "paid": "Paid",

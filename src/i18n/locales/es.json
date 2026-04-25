@@ -450,6 +450,13 @@
     "discount": "Descuento:",
     "taxWithPercent": "Impuesto ({{percent}}%):",
     "grandTotal": "Total general",
+    "approveInvoice": "Aprobar factura",
+    "signature": "Firma digital",
+    "signatureHint": "Dibuje su firma a continuación para aprobar esta factura.",
+    "clearSignature": "Borrar",
+    "signatureRequired": "La firma es obligatoria para aprobar.",
+    "signedOn": "Firmado el",
+    "approveLocked": "Esta factura no se puede aprobar en su estado actual.",
     "status": {
       "pending": "Pendiente",
       "paid": "Pagado",
