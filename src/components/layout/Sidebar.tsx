@@ -50,13 +50,7 @@ const navItems: NavItem[] = [
   //   icon: FolderOpen,
   //   feature: 'recent-projects',
   // },
-  {
-    title: 'Projects',
-    titleKey: 'sidebar.projects',
-    href: '/projects',
-    icon: FolderKanban,
-    feature: 'projects',
-  },
+
   {
     title: 'Estimates & Approvals',
     titleKey: 'sidebar.estimatesApprovals',
@@ -70,6 +64,13 @@ const navItems: NavItem[] = [
     href: '/invoice',
     icon: Receipt,
     feature: 'invoice',
+  },
+  {
+    title: 'Projects',
+    titleKey: 'sidebar.projects',
+    href: '/projects',
+    icon: FolderKanban,
+    feature: 'projects',
   },
   {
     title: 'Communication',

@@ -7,7 +7,7 @@ import { EstimateViewModal } from './components/EstimateViewModal'
 import { EstimateListCard } from './components/EstimateListCard'
 import { toast } from 'sonner'
 import { ProjectDetailsModal } from '@/pages/Projects/components/ProjectDetailsModal'
-import type { Project } from '@/pages/Projects/projectsData'
+import { projectsData, type Project } from '@/pages/Projects/projectsData'
 import { useAppSelector } from '@/redux/hooks'
 
 export default function EstimatesApprovals() {
@@ -87,25 +87,16 @@ export default function EstimatesApprovals() {
 
   useEffect(() => {
     if (userTouchedRef.current) return
-    // Seed one dummy project so users understand the post-invoice flow.
+    // Seed a few projects for the current customer so the table has demo data.
     setWorkflowProjects((prev) => {
       const alreadyHas = prev.some((p) => p.customerName === currentCustomerName)
       if (alreadyHas) return prev
-      return [
-        {
-          id: 'PROJ-DEMO',
-          projectName: 'Garden Design & Installation',
-          category: 'Garden Design & Installation',
-          customerName: currentCustomerName,
-          status: 'In Progress',
-          progress: 55,
-          location: '—',
-          dateRange: '—',
-          projectValue: '$12,560',
-          description: 'Demo project (shows after admin creates invoice).',
-        },
-        ...prev,
-      ]
+      const seeded = projectsData.slice(0, 3).map((p, idx) => ({
+        ...p,
+        id: `PROJ-DEMO-${idx + 1}`,
+        customerName: currentCustomerName,
+      }))
+      return [...seeded, ...prev]
     })
   }, [currentCustomerName])
 
