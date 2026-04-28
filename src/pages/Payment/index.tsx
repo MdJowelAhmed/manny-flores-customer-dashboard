@@ -17,6 +17,7 @@ import {
   AddPaymentModal,
   RecordPaymentModal,
 } from './components'
+import type { AddPaymentSubmitPayload } from './components/AddPaymentModal'
 
 export default function Payment() {
   const { t } = useTranslation()
@@ -56,11 +57,7 @@ export default function Payment() {
     setCurrentPage(1)
   }, [activeFilter])
 
-  const handleAddPayment = (payload: {
-    invoice: string
-    amountPaid: number
-    method: string
-  }) => {
+  const handleAddPayment = (payload: AddPaymentSubmitPayload) => {
     setPayments((prev) => {
       const idx = prev.findIndex((p) => p.invoice === payload.invoice)
       if (idx === -1) return prev
@@ -76,6 +73,7 @@ export default function Payment() {
         outstandingAmount: outstanding,
         status,
         method: payload.method,
+        note: payload.note ?? p.note,
         paymentDate: new Date().toLocaleDateString('en-GB', {
           day: '2-digit',
           month: '2-digit',

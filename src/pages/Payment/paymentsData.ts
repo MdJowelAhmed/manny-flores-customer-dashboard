@@ -11,6 +11,8 @@ export interface Payment {
   method: string
   status: PaymentStatus
   paymentDate?: string
+  /** Merged note from add-payment flow (check filename, employee contact, user note) */
+  note?: string
 }
 
 export const PAYMENT_METHODS = [
@@ -69,7 +71,6 @@ export const paymentsData: Payment[] = [
     status: 'Pending',
   },
 ]
-
 export interface PaymentSummary {
   totalPaid: number
   totalCollected: number
@@ -105,3 +106,4 @@ export const paymentChartYearlyData: Record<string, ReturnType<typeof generatePa
   '2024': generatePaymentChartData('2024'),
   '2023': generatePaymentChartData('2023'),
 }
+

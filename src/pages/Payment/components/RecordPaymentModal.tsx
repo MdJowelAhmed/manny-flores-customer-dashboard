@@ -92,6 +92,9 @@ export function RecordPaymentModal({
                 value={payment.paymentDate}
               />
             )}
+            {payment.note ? (
+              <DetailRow label={t('payment.note')} value={payment.note} />
+            ) : null}
             <DetailRow
               label={t('payment.status')}
               value={payment.status}

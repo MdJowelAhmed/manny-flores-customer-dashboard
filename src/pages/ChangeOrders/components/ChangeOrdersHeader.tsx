@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import type { ChangeOrderStatus } from '../changeOrdersData'
@@ -19,10 +18,8 @@ const tabs: { label: string; value: 'all' | ChangeOrderStatus }[] = [
 ]
 
 export function ChangeOrdersHeader({
-
   activeTab,
   onTabChange,
-  onOpenNewOrder,
 }: ChangeOrdersHeaderProps) {
   return (
     <div className="space-y-4">

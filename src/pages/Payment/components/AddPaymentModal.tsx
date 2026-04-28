@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowLeftRight,
+  Banknote,
   CreditCard,
-  Hand,
-  Smartphone,
+  FileImage,
 } from 'lucide-react'
 import { ModalWrapper } from '@/components/common'
 import { FormSelect } from '@/components/common/Form'
@@ -16,20 +16,20 @@ import { cn } from '@/utils/cn'
 import { toast } from 'sonner'
 import type { Payment } from '../paymentsData'
 
+export type CashPaidTo = 'admin' | 'employee'
+
 export interface AddPaymentSubmitPayload {
   invoice: string
   amountPaid: number
   method: string
+  note?: string
+  cashPaidTo?: CashPaidTo
+  employeeName?: string
+  employeePhone?: string
+  checkImageName?: string | null
 }
 
-type MethodKey = 'card' | 'wire' | 'cashapp' | 'tap'
-
-const METHOD_MAP: Record<MethodKey, string> = {
-  card: 'Card',
-  wire: 'Bank Transfer',
-  cashapp: 'Cash App / Links',
-  tap: 'Tap to Pay',
-}
+type MethodKey = 'card' | 'check' | 'cash' | 'wire'
 
 const primaryMethodGreen = '#00B050'
 const completeButtonGreen = '#66D87D'
@@ -95,6 +95,42 @@ function MethodCard({
 const inputClass =
   'h-11 rounded-lg border-0 bg-[#F3F4F6] shadow-none ring-1 ring-inset ring-gray-100 placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-[#00B050]/30'
 
+function formatCardNumberInput(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 19)
+  return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trimEnd()
+}
+
+function formatExpiryInput(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 4)
+  if (digits.length <= 2) return digits
+  return `${digits.slice(0, 2)}/${digits.slice(2)}`
+}
+
+function cardDigitsOnly(formatted: string): string {
+  return formatted.replace(/\D/g, '')
+}
+
+function isValidExpiryMmYy(value: string): boolean {
+  const d = cardDigitsOnly(value)
+  if (d.length !== 4) return false
+  const month = Number.parseInt(d.slice(0, 2), 10)
+  return month >= 1 && month <= 12
+}
+
+function mergeNote(
+  base: string,
+  extras: { checkName?: string | null; employeeName?: string; employeePhone?: string }
+): string | undefined {
+  const parts: string[] = []
+  const t = base.trim()
+  if (t) parts.push(t)
+  if (extras.checkName) parts.push(`Check image: ${extras.checkName}`)
+  if (extras.employeeName && extras.employeePhone) {
+    parts.push(`Employee: ${extras.employeeName.trim()}, ${extras.employeePhone.trim()}`)
+  }
+  return parts.length ? parts.join(' · ') : undefined
+}
+
 export function AddPaymentModal({
   open,
   onClose,
@@ -102,13 +138,18 @@ export function AddPaymentModal({
   onSubmit,
 }: AddPaymentModalProps) {
   const { t } = useTranslation()
+  const checkInputRef = useRef<HTMLInputElement>(null)
   const [invoice, setInvoice] = useState('')
   const [amountToPay, setAmountToPay] = useState('')
   const [note, setNote] = useState('')
   const [methodKey, setMethodKey] = useState<MethodKey>('card')
+  const [checkFile, setCheckFile] = useState<File | null>(null)
+  const [cashPaidTo, setCashPaidTo] = useState<CashPaidTo>('admin')
+  const [employeeName, setEmployeeName] = useState('')
+  const [employeePhone, setEmployeePhone] = useState('')
   const [cardNumber, setCardNumber] = useState('')
-  const [expiry, setExpiry] = useState('')
-  const [cvc, setCvc] = useState('')
+  const [cardExpiry, setCardExpiry] = useState('')
+  const [cardZip, setCardZip] = useState('')
 
   const payables = useMemo(
     () => payments.filter((p) => p.outstandingAmount > 0),
@@ -122,6 +163,14 @@ export function AddPaymentModal({
         label: `${p.invoice} (${p.customer})`,
       })),
     [payables]
+  )
+
+  const cashRecipientOptions = useMemo(
+    () => [
+      { value: 'admin', label: t('payment.cashPaidToAdmin') },
+      { value: 'employee', label: t('payment.cashPaidToEmployee') },
+    ],
+    [t]
   )
 
   const selectedPayment = useMemo(
@@ -140,9 +189,14 @@ export function AddPaymentModal({
     setAmountToPay(suggested)
     setNote('')
     setMethodKey('card')
+    setCheckFile(null)
+    setCashPaidTo('admin')
+    setEmployeeName('')
+    setEmployeePhone('')
     setCardNumber('')
-    setExpiry('')
-    setCvc('')
+    setCardExpiry('')
+    setCardZip('')
+    if (checkInputRef.current) checkInputRef.current.value = ''
   }, [open, payables])
 
   const handleClose = () => {
@@ -168,10 +222,76 @@ export function AddPaymentModal({
       return
     }
 
+    if (methodKey === 'check' && !checkFile) {
+      toast.error(t('payment.checkImageRequired'))
+      return
+    }
+
+    if (methodKey === 'cash' && cashPaidTo === 'employee') {
+      if (!employeeName.trim()) {
+        toast.error(t('payment.employeeNameRequired'))
+        return
+      }
+      if (!employeePhone.trim()) {
+        toast.error(t('payment.employeePhoneRequired'))
+        return
+      }
+    }
+
+    if (methodKey === 'card') {
+      const pan = cardDigitsOnly(cardNumber)
+      const zip = cardZip.trim()
+      if (pan.length < 13) {
+        toast.error(t('payment.cardNumberInvalid'))
+        return
+      }
+      if (!isValidExpiryMmYy(cardExpiry)) {
+        toast.error(t('payment.cardExpiryInvalid'))
+        return
+      }
+      if (zip.length < 3) {
+        toast.error(t('payment.zipCodeInvalid'))
+        return
+      }
+    }
+
+    const method =
+      methodKey === 'cash'
+        ? cashPaidTo === 'admin'
+          ? t('payment.methodDisplayCashAdmin')
+          : t('payment.methodDisplayCashEmployee')
+        : methodKey === 'card'
+          ? t('payment.methodDisplayCard')
+          : methodKey === 'check'
+            ? t('payment.methodDisplayCheck')
+            : t('payment.methodDisplayWire')
+    const mergedNote = mergeNote(note, {
+      checkName: methodKey === 'check' ? checkFile?.name ?? null : null,
+      employeeName:
+        methodKey === 'cash' && cashPaidTo === 'employee'
+          ? employeeName
+          : undefined,
+      employeePhone:
+        methodKey === 'cash' && cashPaidTo === 'employee'
+          ? employeePhone
+          : undefined,
+    })
+
     onSubmit({
       invoice,
       amountPaid: pay,
-      method: METHOD_MAP[methodKey],
+      method,
+      note: mergedNote,
+      cashPaidTo: methodKey === 'cash' ? cashPaidTo : undefined,
+      employeeName:
+        methodKey === 'cash' && cashPaidTo === 'employee'
+          ? employeeName.trim()
+          : undefined,
+      employeePhone:
+        methodKey === 'cash' && cashPaidTo === 'employee'
+          ? employeePhone.trim()
+          : undefined,
+      checkImageName: methodKey === 'check' ? checkFile?.name ?? null : null,
     })
     toast.success(t('payment.paymentRecorded'))
     handleClose()
@@ -179,12 +299,12 @@ export function AddPaymentModal({
 
   const rightTitle =
     methodKey === 'card'
-      ? t('payment.cardPaymentInfo')
-      : methodKey === 'wire'
-        ? t('payment.wireTransferInfo')
-        : methodKey === 'cashapp'
-          ? t('payment.cashAppInfo')
-          : t('payment.tapToPayInfo')
+      ? t('payment.cardStripeTitle')
+      : methodKey === 'check'
+        ? t('payment.checkPaymentTitle')
+        : methodKey === 'cash'
+          ? t('payment.cashPaymentTitle')
+          : t('payment.wireTransferInfo')
 
   return (
     <ModalWrapper
@@ -263,8 +383,22 @@ export function AddPaymentModal({
                 active={methodKey === 'card'}
                 icon={CreditCard}
                 title={t('payment.methodCard')}
-                subtitle={t('payment.methodCardSub')}
+                subtitle={t('payment.methodCardSubStripe')}
                 onClick={() => setMethodKey('card')}
+              />
+              <MethodCard
+                active={methodKey === 'check'}
+                icon={FileImage}
+                title={t('payment.methodCheck')}
+                subtitle={t('payment.methodCheckSub')}
+                onClick={() => setMethodKey('check')}
+              />
+              <MethodCard
+                active={methodKey === 'cash'}
+                icon={Banknote}
+                title={t('payment.methodCash')}
+                subtitle={t('payment.methodCashSub')}
+                onClick={() => setMethodKey('cash')}
               />
               <MethodCard
                 active={methodKey === 'wire'}
@@ -272,20 +406,6 @@ export function AddPaymentModal({
                 title={t('payment.methodWire')}
                 subtitle={t('payment.methodWireSub')}
                 onClick={() => setMethodKey('wire')}
-              />
-              <MethodCard
-                active={methodKey === 'cashapp'}
-                icon={Smartphone}
-                title={t('payment.methodCashApp')}
-                subtitle={t('payment.methodCashAppSub')}
-                onClick={() => setMethodKey('cashapp')}
-              />
-              <MethodCard
-                active={methodKey === 'tap'}
-                icon={Hand}
-                title={t('payment.methodTap')}
-                subtitle={t('payment.methodTapSub')}
-                onClick={() => setMethodKey('tap')}
               />
             </div>
 
@@ -306,45 +426,163 @@ export function AddPaymentModal({
             </h3>
 
             {methodKey === 'card' ? (
-              <>
-                <p className="mt-6 text-center text-xs font-bold uppercase tracking-wider text-gray-500">
+              <div className="mt-6 flex-1 space-y-5">
+                <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
                   {t('payment.enterCardDetails')}
                 </p>
-                <div className="mt-6 space-y-4">
-                  <div className="space-y-1.5">
-                    <Label className="sr-only">{t('payment.cardNumber')}</Label>
-                    <Input
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      placeholder={t('payment.cardNumber')}
-                      className={inputClass}
-                      autoComplete="cc-number"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-gray-100 bg-gradient-to-b from-[#F9FAFB] to-white p-5 shadow-sm ring-1 ring-inset ring-gray-50">
+                  <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <Label className="sr-only">{t('payment.expiry')}</Label>
+                      <Label
+                        htmlFor="add-pay-card-number"
+                        className="text-sm font-medium text-gray-800"
+                      >
+                        {t('payment.cardNumber')}
+                      </Label>
                       <Input
-                        value={expiry}
-                        onChange={(e) => setExpiry(e.target.value)}
-                        placeholder={t('payment.expiry')}
-                        className={inputClass}
-                        autoComplete="cc-exp"
+                        id="add-pay-card-number"
+                        value={cardNumber}
+                        onChange={(e) =>
+                          setCardNumber(formatCardNumberInput(e.target.value))
+                        }
+                        placeholder={t('payment.cardNumberPlaceholder')}
+                        className={cn(inputClass, 'font-mono text-base tracking-wide')}
+                        inputMode="numeric"
+                        autoComplete="cc-number"
                       />
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="sr-only">{t('payment.cvc')}</Label>
-                      <Input
-                        value={cvc}
-                        onChange={(e) => setCvc(e.target.value)}
-                        placeholder={t('payment.cvc')}
-                        className={inputClass}
-                        autoComplete="cc-csc"
-                      />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="add-pay-card-expiry"
+                          className="text-sm font-medium text-gray-800"
+                        >
+                          {t('payment.validDate')}
+                        </Label>
+                        <Input
+                          id="add-pay-card-expiry"
+                          value={cardExpiry}
+                          onChange={(e) =>
+                            setCardExpiry(formatExpiryInput(e.target.value))
+                          }
+                          placeholder={t('payment.expiry')}
+                          className={cn(inputClass, 'font-mono')}
+                          inputMode="numeric"
+                          autoComplete="cc-exp"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label
+                          htmlFor="add-pay-card-zip"
+                          className="text-sm font-medium text-gray-800"
+                        >
+                          {t('payment.zipCode')}
+                        </Label>
+                        <Input
+                          id="add-pay-card-zip"
+                          value={cardZip}
+                          onChange={(e) =>
+                            setCardZip(
+                              e.target.value.replace(/[^\dA-Za-z\-\s]/g, '').slice(0, 10)
+                            )
+                          }
+                          placeholder={t('payment.zipCodePlaceholder')}
+                          className={inputClass}
+                          autoComplete="postal-code"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </>
+                <p className="text-xs leading-relaxed text-gray-500">
+                  {t('payment.stripePlaceholderBody')}
+                </p>
+              </div>
+            ) : methodKey === 'check' ? (
+              <div className="mt-6 flex-1 space-y-4">
+                <p className="text-sm text-gray-600">
+                  {t('payment.checkUploadHint')}
+                </p>
+                <input
+                  ref={checkInputRef}
+                  type="file"
+                  accept="image/*,.pdf"
+                  className="sr-only"
+                  id="check-upload"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] ?? null
+                    setCheckFile(f)
+                  }}
+                />
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-lg border-gray-200"
+                    onClick={() => checkInputRef.current?.click()}
+                  >
+                    {t('payment.checkChooseFile')}
+                  </Button>
+                  {checkFile ? (
+                    <span className="text-sm text-gray-700 truncate max-w-[220px]">
+                      {checkFile.name}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-500">
+                      {t('payment.checkNoFile')}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : methodKey === 'cash' ? (
+              <div className="mt-6 flex-1 space-y-4">
+                <p className="text-sm text-gray-600">
+                  {t('payment.cashIntro')}
+                </p>
+                <FormSelect
+                  label={t('payment.cashPaidToLabel')}
+                  value={cashPaidTo}
+                  options={cashRecipientOptions}
+                  onChange={(v) => {
+                    setCashPaidTo(v as CashPaidTo)
+                    if (v === 'admin') {
+                      setEmployeeName('')
+                      setEmployeePhone('')
+                    }
+                  }}
+                  placeholder={t('common.select')}
+                  triggerClassName={cn(inputClass, 'h-11')}
+                />
+                {cashPaidTo === 'employee' ? (
+                  <div className="space-y-3 pt-1">
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium text-gray-800">
+                        {t('payment.employeeName')}
+                      </Label>
+                      <Input
+                        value={employeeName}
+                        onChange={(e) => setEmployeeName(e.target.value)}
+                        placeholder={t('payment.employeeNamePlaceholder')}
+                        className={inputClass}
+                        autoComplete="name"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium text-gray-800">
+                        {t('payment.employeePhone')}
+                      </Label>
+                      <Input
+                        value={employeePhone}
+                        onChange={(e) => setEmployeePhone(e.target.value)}
+                        placeholder={t('payment.employeePhonePlaceholder')}
+                        className={inputClass}
+                        type="tel"
+                        autoComplete="tel"
+                      />
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             ) : (
               <p className="mt-6 flex-1 text-sm leading-relaxed text-gray-600">
                 {t('payment.alternateMethodHint')}

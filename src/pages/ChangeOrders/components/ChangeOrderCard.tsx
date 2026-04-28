@@ -18,8 +18,6 @@ export function ChangeOrderCard({
   order,
   index,
   onChangeStatus,
-  onUploadDocument,
-  onNewChangeOrder,
   onApprove,
   onReject,
 }: ChangeOrderCardProps) {
