@@ -45,6 +45,7 @@ import ReviewList from './pages/Reviews/ReviewList'
 import Payment from './pages/Payment'
 import ChangeOrders from './pages/ChangeOrders/ChangeOrders'
 import PermitsInspections from './pages/PermitsInspections/PermitsInspections'
+import Documents from './pages/Documents'
 
 function AppEntryRedirect() {
   const { user } = useAppSelector((state) => state.auth)
@@ -198,6 +199,16 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
                 <Payment />
+              </RoleBasedRoute>
+            }
+          />
+
+          {/* Documents - Employee */}
+          <Route
+            path="documents"
+            element={
+              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <Documents />
               </RoleBasedRoute>
             }
           />

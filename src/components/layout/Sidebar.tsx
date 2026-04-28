@@ -142,6 +142,13 @@ const navItems: NavItem[] = [
     icon: CreditCard,
     feature: 'payment',
   },
+  {
+    title: 'Documents',
+    titleKey: 'sidebar.documents',
+    href: '/documents',
+    icon: FileText,
+    feature: 'documents-approvals',
+  },
 
   {
     title: 'Change Orders',

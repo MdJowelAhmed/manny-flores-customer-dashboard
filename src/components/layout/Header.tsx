@@ -33,6 +33,7 @@ const routeTitleKeys: Record<string, string> = {
   '/manage-materials': 'header.routeTitles.materials',
   '/payroll': 'header.routeTitles.paymentHistory',
   '/payment': 'header.routeTitles.payment',
+  '/documents': 'header.routeTitles.documents',
   '/resource-requests-report': 'header.routeTitles.resourceRequests',
   '/vehicles': 'header.routeTitles.vehicles',
   '/equipment': 'header.routeTitles.assignedEquipment',
