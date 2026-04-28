@@ -119,24 +119,32 @@ export function InvoiceViewModal({ open, onClose, invoice, onApprove }: InvoiceV
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.setTransform(1, 0, 0, 1, 0, 0)
-    ctx.scale(dpr, dpr)
-    ctx.lineWidth = 2.2
+    // Draw in device pixels; pointer points are mapped via scale factors.
+    ctx.lineWidth = 2.2 * dpr
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.strokeStyle = '#111827'
     ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, rect.width, rect.height)
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   useEffect(() => {
     if (!open) return
     resizeCanvas()
+    const onResize = () => resizeCanvas()
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, invoice.id])
 
   const getPoint = (e: PointerEvent, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect()
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    const scaleX = canvas.width / Math.max(1, rect.width)
+    const scaleY = canvas.height / Math.max(1, rect.height)
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    }
   }
 
   const beginDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -179,10 +187,9 @@ export function InvoiceViewModal({ open, onClose, invoice, onApprove }: InvoiceV
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    const rect = canvas.getBoundingClientRect()
-    ctx.clearRect(0, 0, rect.width, rect.height)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, rect.width, rect.height)
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
     setSigDataUrl('')
   }
 
@@ -308,7 +315,7 @@ export function InvoiceViewModal({ open, onClose, invoice, onApprove }: InvoiceV
               <div className="mt-3 rounded-lg border border-gray-200 bg-white">
                 <canvas
                   ref={canvasRef}
-                  className="h-28 w-full touch-none rounded-lg"
+                  className="block h-28 w-full touch-none rounded-lg"
                   onPointerDown={beginDraw}
                   onPointerMove={draw}
                   onPointerUp={endDraw}

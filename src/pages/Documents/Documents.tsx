@@ -13,7 +13,7 @@ const statusStyles: Record<
   DocumentRequest['status'],
   { bg: string; text: string; labelKey: string }
 > = {
-  pending: { bg: 'bg-amber-100', text: 'text-amber-700', labelKey: 'documents.statusPending' },
+  pending: { bg: 'bg-amber-100', text: 'text-gray-900', labelKey: 'documents.statusPending' },
   submitted: { bg: 'bg-emerald-100', text: 'text-emerald-700', labelKey: 'documents.statusSubmitted' },
 }
 
