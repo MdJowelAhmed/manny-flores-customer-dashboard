@@ -88,17 +88,17 @@ export function PaymentTable({
                   <td className="px-6 py-5 text-sm">{payment.customer}</td>
                   <td className="px-6 py-5 text-sm">{payment.project}</td>
                   <td className="px-6 py-5 text-sm font-medium">
-                    {formatCurrency(payment.totalAmount, 'EUR')}
+                    {formatCurrency(payment.totalAmount, 'USD')}
                   </td>
                   <td className="px-6 py-5 text-sm">
                     <span className="text-green-600 font-medium">
-                      {formatCurrency(payment.paidAmount, 'EUR')}
+                      {formatCurrency(payment.paidAmount, 'USD')}
                     </span>
                     {payment.outstandingAmount > 0 && (
                       <>
                         {' '}
                         <span className="text-red-600">
-                          {formatCurrency(payment.outstandingAmount, 'EUR')}
+                          {formatCurrency(payment.outstandingAmount, 'USD')}
                         </span>
                       </>
                     )}

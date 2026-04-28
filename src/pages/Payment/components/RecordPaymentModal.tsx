@@ -73,17 +73,17 @@ export function RecordPaymentModal({
             <DetailRow label={t('payment.paymentMethod')} value={payment.method} />
             <DetailRow
               label={t('payment.totalAmount')}
-              value={formatCurrency(payment.totalAmount, 'EUR')}
+              value={formatCurrency(payment.totalAmount, 'USD')}
               valueClassName="text-green-600"
             />
             <DetailRow
               label={t('payment.amountDue')}
-              value={formatCurrency(payment.outstandingAmount, 'EUR')}
+              value={formatCurrency(payment.outstandingAmount, 'USD')}
               valueClassName="text-red-600"
             />
             <DetailRow
               label={t('payment.paymentAmount')}
-              value={formatCurrency(payment.paidAmount, 'EUR')}
+              value={formatCurrency(payment.paidAmount, 'USD')}
               valueClassName="text-green-600"
             />
             {payment.paymentDate && (
