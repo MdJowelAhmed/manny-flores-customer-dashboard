@@ -6,8 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
-  mockCustomerConversations,
-  mockEmployeeConversations,
   type Conversation,
   type Message,
 } from './communicationData'
@@ -31,16 +29,63 @@ function getTimeForList() {
   return `${h}:${mins.toString().padStart(2, '0')}${ampm}`
 }
 
-const allConversationsInitial = [
-  ...JSON.parse(JSON.stringify(mockCustomerConversations)),
-  ...JSON.parse(JSON.stringify(mockEmployeeConversations)),
-]
+const adminConversationInitial: Conversation = {
+  id: 'admin-support',
+  type: 'employee',
+  name: 'Admin Support',
+  avatar: 'https://i.pravatar.cc/150?u=admin-support',
+  lastMessage: 'Admin: Got it — we’ll check and update you.',
+  lastMessageIsFromYou: false,
+  lastMessageTime: '09:10AM',
+  messages: [
+    {
+      id: 'seed-1',
+      senderId: 'me',
+      senderName: 'You',
+      text: 'I’m facing an issue in the project — the updates are not saving. Can you help?',
+      timestamp: '09:02AM',
+      isOutgoing: true,
+      isRead: true,
+    },
+    {
+      id: 'seed-2',
+      senderId: 'admin',
+      senderName: 'Admin',
+      senderAvatar: 'https://i.pravatar.cc/150?u=admin-support',
+      text: 'Understood. Please share your Project ID / Order ID and tell us which screen you’re seeing the issue on.',
+      timestamp: '09:04AM',
+      isOutgoing: false,
+      isRead: true,
+    },
+    {
+      id: 'seed-3',
+      senderId: 'me',
+      senderName: 'You',
+      text: 'Also, I’d like to talk to someone from the admin team. Who is available?',
+      timestamp: '09:06AM',
+      isOutgoing: true,
+      isRead: true,
+    },
+    {
+      id: 'seed-4',
+      senderId: 'admin',
+      senderName: 'Admin',
+      senderAvatar: 'https://i.pravatar.cc/150?u=admin-support',
+      text: 'Got it — we’ll check and update you. If it’s urgent, please send “Urgent”.',
+      timestamp: '09:10AM',
+      isOutgoing: false,
+      isRead: true,
+    },
+  ],
+}
 
 export default function Communication() {
   const { t } = useTranslation()
-  const [conversations, setConversations] = useState<Conversation[]>(allConversationsInitial)
+  const [conversations, setConversations] = useState<Conversation[]>([
+    JSON.parse(JSON.stringify(adminConversationInitial)),
+  ])
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(
-    () => allConversationsInitial[0]
+    () => conversations[0] ?? null
   )
   const [messageInput, setMessageInput] = useState('')
 
@@ -79,21 +124,6 @@ export default function Communication() {
       transition={{ duration: 0.3 }}
       className="h-[calc(100vh-8rem)] flex bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm"
     >
-      {/* Left Panel - Conversation List */}
-      <div className="w-[340px] min-w-[340px] flex flex-col border-r border-gray-100 bg-white">
-        <div className="px-4 pt-4 pb-2 border-b border-gray-100">
-          <h2 className="font-semibold text-accent">{t('communication.messages')}</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {t('communication.allContacts')}
-          </p>
-        </div>
-        <ConversationList
-          conversations={conversations}
-          selected={selectedConversation}
-          onSelect={setSelectedConversation}
-        />
-      </div>
-
       {/* Right Panel - Chat */}
       <div className="flex-1 flex flex-col min-w-0 bg-white">
         {selectedConversation ? (
@@ -113,74 +143,6 @@ export default function Communication() {
         )}
       </div>
     </motion.div>
-  )
-}
-
-interface ConversationListProps {
-  conversations: Conversation[]
-  selected: Conversation | null
-  onSelect: (c: Conversation) => void
-}
-
-function ConversationList({
-  conversations,
-  selected,
-  onSelect,
-}: ConversationListProps) {
-  const { t } = useTranslation()
-  return (
-    <div className="overflow-y-auto scrollbar-thin flex-1">
-      {conversations.map((conv) => {
-        const isSelected = selected?.id === conv.id
-        return (
-          <button
-            key={conv.id}
-            type="button"
-            onClick={() => onSelect(conv)}
-            className={cn(
-              'w-full flex items-start gap-3 px-4 py-3 text-left transition-colors',
-              isSelected
-                ? 'bg-primary/10 border-l-2 border-l-primary'
-                : 'hover:bg-gray-50'
-            )}
-          >
-            <Avatar className="h-12 w-12 shrink-0">
-              <AvatarImage src={conv.avatar} alt={conv.name} />
-              <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
-                {conv.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p
-                className={cn(
-                  'font-semibold truncate',
-                  isSelected ? 'text-primary' : 'text-accent'
-                )}
-              >
-                {conv.name}
-              </p>
-              <p
-                className={cn(
-                  'text-sm truncate',
-                  isSelected ? 'text-primary/80' : 'text-muted-foreground'
-                )}
-              >
-                {conv.lastMessageIsFromYou ? t('communication.you') + ' ' : ''}
-                {conv.lastMessage}
-              </p>
-            </div>
-            <span
-              className={cn(
-                'text-xs shrink-0',
-                isSelected ? 'text-primary' : 'text-muted-foreground'
-              )}
-            >
-              {conv.lastMessageTime}
-            </span>
-          </button>
-        )
-      })}
-    </div>
   )
 }
 
