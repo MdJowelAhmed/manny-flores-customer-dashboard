@@ -5,13 +5,9 @@ import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/common'
 import {
   paymentsData,
-  paymentSummaryData,
-  paymentChartYearlyData,
   type Payment,
 } from './paymentsData'
 import {
-  PaymentSummaryCards,
-  PaymentVisibilityChart,
   PaymentStatusFilters,
   PaymentTable,
   AddPaymentModal,
@@ -23,7 +19,6 @@ export default function Payment() {
   const { t } = useTranslation()
   const [payments, setPayments] = useState<Payment[]>(paymentsData)
   const [activeFilter, setActiveFilter] = useState<string>('all')
-  const [selectedYear, setSelectedYear] = useState('2025')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
@@ -31,11 +26,7 @@ export default function Payment() {
   const [showViewModal, setShowViewModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-  const chartData = useMemo(
-    () =>
-      paymentChartYearlyData[selectedYear] ?? paymentChartYearlyData['2025'],
-    [selectedYear]
-  )
+
 
   const filteredPayments = useMemo(() => {
     if (activeFilter === 'all') return payments
@@ -123,15 +114,7 @@ export default function Payment() {
         </Button>
       </div>
 
-      {/* Summary Cards */}
-      <PaymentSummaryCards summary={paymentSummaryData} />
 
-      {/* Chart */}
-      <PaymentVisibilityChart
-        chartData={chartData}
-        selectedYear={selectedYear}
-        onYearChange={setSelectedYear}
-      />
 
       {/* Filter tabs */}
       <PaymentStatusFilters

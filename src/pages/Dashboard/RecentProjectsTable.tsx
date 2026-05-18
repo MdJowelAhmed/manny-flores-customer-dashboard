@@ -41,12 +41,7 @@ export function RecentProjectsTable({
             <CardTitle className="text-lg font-semibold text-gray-800">
               {t('dashboard.recentProjects')}
             </CardTitle>
-            <Link
-              to="/recent-projects"
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              {t('dashboard.viewAll')}
-            </Link>
+          
           </div>
         </CardHeader>
         <CardContent className="p-0">

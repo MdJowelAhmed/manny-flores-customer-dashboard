@@ -15,32 +15,20 @@ import { Login, SignUp, ForgotPassword, VerifyEmail, ResetPassword } from '@/pag
 
 // Dashboard Pages
 import Dashboard from '@/pages/Dashboard'
-import UserList from '@/pages/Users/UserList'
-import ProductList from '@/pages/Products/ProductList'
-import CategoryList from '@/pages/Categories/CategoryList'
 import ProfileSettings from '@/pages/Settings/Profile/ProfileSettings'
 import ChangePassword from '@/pages/Settings/ChangePassword/ChangePassword'
 import TermsSettings from '@/pages/Settings/Terms/TermsSettings'
 import PrivacySettings from '@/pages/Settings/Privacy/PrivacySettings'
 import AboutUsSettings from '@/pages/Settings/AboutUs/AboutUsSettings'
-// import AddCar from './pages/carlist/AddCar'
-import ClientManagement from './pages/ClientManagement/ClientManagement'
-import Calender from './pages/calender/Calender'
 import NotFound from './pages/NotFound/NotFound'
 
-import Vehicles from './pages/Vehicles'
-import Equipment from './pages/Equipment'
   import Communication from './pages/Communication/Communication'
-import ManageMaterials from './pages/ManageMaterials/ManageMaterials'
 import Attendance from './pages/Attendance/Attendance'
-import Payroll from './pages/Payroll'
 import Notifications from './pages/Notifications/Notifications'
 import MyTask from './pages/MyTask'
-import RecentProjects from './pages/RecentProjects'
 import Projects from './pages/Projects'
 import EstimatesApprovals from './pages/EstimatesApprovals'
 import InvoicePage from './pages/Invoice'
-import SafetyCompliance from './pages/SafetyCompliance/SafetyCompliance'
 import ReviewList from './pages/Reviews/ReviewList'
 import Payment from './pages/Payment'
 import ChangeOrders from './pages/ChangeOrders/ChangeOrders'
@@ -109,15 +97,7 @@ function App() {
             }
           />
 
-          {/* Recent Projects - Employee */}
-          <Route
-            path="recent-projects"
-            element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
-                <RecentProjects />
-              </RoleBasedRoute>
-            }
-          />
+   
 
           {/* Projects - Employee */}
           <Route
@@ -183,15 +163,7 @@ function App() {
 
         
 
-          {/* Payroll - Employee */}
-          <Route
-            path="payroll"
-            element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
-                <Payroll />
-              </RoleBasedRoute>
-            }
-          />
+    
 
           {/* Payment - Employee */}
           <Route
@@ -233,15 +205,7 @@ function App() {
             }
           />
 
-          {/* Safety Compliance - Employee */}
-          <Route
-            path="safety-compliance"
-            element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
-                <SafetyCompliance />
-              </RoleBasedRoute>
-            }
-          />
+       
 
           {/* Review - Employee */}
           <Route
@@ -254,24 +218,7 @@ function App() {
           />
 
           {/* Admin-only routes - Redirect to dashboard (no employee access) */}
-          <Route path="users" element={<RoleBasedRoute allowedRoles={[]}><UserList /></RoleBasedRoute>} />
-          <Route path="vehicles" element={<RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}><Vehicles /></RoleBasedRoute>} />
-          <Route path="equipment" element={<RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}><Equipment /></RoleBasedRoute>} />
-          <Route
-            path="manage-materials"
-            element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
-                <ManageMaterials />
-              </RoleBasedRoute>
-            }
-          />
-
-          {/* Admin-only routes (no employee access) */}
-          <Route path="calender" element={<RoleBasedRoute allowedRoles={[]}><Calender /></RoleBasedRoute>} />
-          <Route path="clients" element={<RoleBasedRoute allowedRoles={[]}><ClientManagement /></RoleBasedRoute>} />
-          <Route path="products" element={<RoleBasedRoute allowedRoles={[]}><ProductList /></RoleBasedRoute>} />
-          <Route path="categories" element={<RoleBasedRoute allowedRoles={[]}><CategoryList /></RoleBasedRoute>} />
-            
+   
 
           {/* Settings - Employee */}
           <Route path="settings">
