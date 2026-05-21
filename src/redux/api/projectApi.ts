@@ -66,13 +66,6 @@ export interface GetProjectsParams {
     limit?: number
 }
 
-function resolveAssetUrl(path?: string | null): string | undefined {
-    if (!path) return undefined
-    if (path.startsWith('http://') || path.startsWith('https://')) return path
-    const base = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
-    return `${base}${path.startsWith('/') ? path : `/${path}`}`
-}
-
 function toIsoDateOnly(date: string): string {
     const parsed = new Date(date)
     if (Number.isNaN(parsed.getTime())) return date
@@ -122,7 +115,7 @@ export function mapProjectApiDocToUi(doc: ProjectApiDoc): Project {
         startDate,
         endDate,
         customerEmail: estimate.customerEmail,
-        signatureUrl: resolveAssetUrl(doc.invoiceWithSignatures?.customerSignature),
+        signatureUrl: doc.invoiceWithSignatures?.customerSignature || undefined,
         hasSignature: doc.invoiceWithSignatures?.isProvideSignature ?? false,
     }
 }

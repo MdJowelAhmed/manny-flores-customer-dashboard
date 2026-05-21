@@ -13,6 +13,7 @@ import {
   fmtProjectMoney,
   type Project,
 } from '../projectsData'
+import { imageUrl } from '@/components/common/getImageUrl'
 
 interface ProjectDetailsModalProps {
   open: boolean
@@ -210,7 +211,7 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
             </p>
             <div className="rounded-lg border border-gray-200 bg-white p-4">
               <img
-                src={preview.signatureUrl}
+                src={imageUrl(preview.signatureUrl)}
                 alt={t('projects.signature', { defaultValue: 'Customer signature' })}
                 className="mx-auto max-h-32 w-full object-contain"
               />
