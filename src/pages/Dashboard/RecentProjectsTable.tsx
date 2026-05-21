@@ -41,7 +41,7 @@ export function RecentProjectsTable({
             <CardTitle className="text-lg font-semibold text-gray-800">
               {t('dashboard.recentProjects')}
             </CardTitle>
-          
+
           </div>
         </CardHeader>
         <CardContent className="p-0">

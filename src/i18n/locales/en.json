@@ -45,10 +45,10 @@
       "attendance": "Attendance",
       "communication": "Communication",
       "materials": "Materials",
-    "paymentHistory": "Payment History",
-    "payment": "Payment Tracking",
+      "paymentHistory": "Payment History",
+      "payment": "Payment Tracking",
       "documents": "Documents",
-    "resourceRequests": "Resource Requests & Report",
+      "resourceRequests": "Resource Requests & Report",
       "vehicles": "Vehicles",
       "assignedEquipment": "Assigned Equipment",
       "profileSettings": "Profile Settings",
@@ -207,6 +207,29 @@
     "inProgress": "In Progress",
     "pending": "Pending",
     "completed": "Completed"
+  },
+  "projectDetailsModal": {
+    "customerInformation": "Customer Information",
+    "projectInformation": "Project Information",
+    "customerName": "Customer Name",
+    "email": "Email",
+    "company": "Company",
+    "projectName": "Document Name",
+    "totalBudget": "Total Budget",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "progress": "Progress",
+    "projectPlan": "Project plan",
+    "downloadPlan": "Download plan",
+    "removePlan": "Remove plan",
+    "noPlansYet": "No project plans uploaded yet.",
+    "description": "Description"
+  },
+  "recentProjectsPage": {
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "scheduled": "Scheduled",
+    "pendingApproval": "Pending Approval"
   },
   "myTask": {
     "allTask": "All Task",
