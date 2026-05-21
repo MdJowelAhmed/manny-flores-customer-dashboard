@@ -81,7 +81,7 @@ function App() {
           <Route
             path="dashboard"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <Dashboard />
               </RoleBasedRoute>
             }
@@ -91,7 +91,7 @@ function App() {
           <Route
             path="notifications"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <Notifications />
               </RoleBasedRoute>
             }
@@ -103,7 +103,7 @@ function App() {
           <Route
             path="projects"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <Projects />
               </RoleBasedRoute>
             }
@@ -113,7 +113,7 @@ function App() {
           <Route
             path="estimates-approvals"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <EstimatesApprovals />
               </RoleBasedRoute>
             }
@@ -123,7 +123,7 @@ function App() {
           <Route
             path="invoice"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <InvoicePage />
               </RoleBasedRoute>
             }
@@ -133,7 +133,7 @@ function App() {
           <Route
             path="my-task"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <MyTask />
               </RoleBasedRoute>
             }
@@ -143,7 +143,7 @@ function App() {
           <Route
             path="attendance"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <Attendance />
               </RoleBasedRoute>
             }
@@ -153,7 +153,7 @@ function App() {
           <Route
             path="communication"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <Communication />
               </RoleBasedRoute>
             }
@@ -169,7 +169,7 @@ function App() {
           <Route
             path="payment"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <Payment />
               </RoleBasedRoute>
             }
@@ -179,7 +179,7 @@ function App() {
           <Route
             path="documents"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <Documents />
               </RoleBasedRoute>
             }
@@ -189,7 +189,7 @@ function App() {
           <Route
             path="change-orders"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <ChangeOrders />
               </RoleBasedRoute>
             }
@@ -199,7 +199,7 @@ function App() {
           <Route
             path="permits-inspections"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <PermitsInspections />
               </RoleBasedRoute>
             }
@@ -211,7 +211,7 @@ function App() {
           <Route
             path="reviews"
             element={
-              <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+              <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                 <ReviewList />
               </RoleBasedRoute>
             }
@@ -225,7 +225,7 @@ function App() {
             <Route
               path="profile"
               element={
-                <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                   <ProfileSettings />
                 </RoleBasedRoute>
               }
@@ -233,7 +233,7 @@ function App() {
             <Route
               path="password"
               element={
-                <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                   <ChangePassword />
                 </RoleBasedRoute>
               }
@@ -241,7 +241,7 @@ function App() {
             <Route
               path="terms"
               element={
-                <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                   <TermsSettings />
                 </RoleBasedRoute>
               }
@@ -249,7 +249,7 @@ function App() {
             <Route
               path="privacy"
               element={
-                <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                   <PrivacySettings />
                 </RoleBasedRoute>
               }
@@ -257,7 +257,7 @@ function App() {
             <Route
               path="about-us"
               element={
-                <RoleBasedRoute allowedRoles={[UserRole.EMPLOYEE]}>
+                <RoleBasedRoute allowedRoles={[UserRole.USER]}>
                   <AboutUsSettings />
                 </RoleBasedRoute>
               }

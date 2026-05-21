@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAppSelector } from '@/redux/hooks'
 import { UserRole } from '@/types/roles'
 
-const VALID_ROLES = [UserRole.EMPLOYEE]
+const VALID_ROLES = [UserRole.USER]
 
 interface ProtectedRouteProps {
   children: React.ReactNode

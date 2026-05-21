@@ -1,6 +1,6 @@
-// Role definitions: employee (primary - employee dashboard)
+// Role definitions: customer dashboard (API returns USER)
 export enum UserRole {
-  EMPLOYEE = 'employee',
+  USER = 'USER',
 }
 
 export type UserRoleType = (typeof UserRole)[keyof typeof UserRole]
@@ -12,25 +12,25 @@ export interface RoutePermission {
 }
 
 /**
- * Feature-based access matrix (Employee Dashboard):
- * - employee: Dashboard, Profile, Attendance, Payroll, Projects, Documents, Communication, Safety Reports, Notifications
+ * Feature-based access matrix (Customer Dashboard):
+ * - USER: Dashboard, Profile, Attendance, Payroll, Projects, Documents, Communication, Safety Reports, Notifications
  */
 export const FEATURE_ACCESS: Record<string, UserRole[]> = {
-  dashboard: [UserRole.EMPLOYEE],
-  profile: [UserRole.EMPLOYEE],
-  attendance: [UserRole.EMPLOYEE],
-  'payroll-management': [UserRole.EMPLOYEE],
-  payroll: [UserRole.EMPLOYEE],
-  'recent-projects': [UserRole.EMPLOYEE],
-  projects: [UserRole.EMPLOYEE],
-  'estimates-approvals': [UserRole.EMPLOYEE],
-  invoice: [UserRole.EMPLOYEE],
-  'project-scheduling': [UserRole.EMPLOYEE],
-  'documents-approvals': [UserRole.EMPLOYEE],
-  communication: [UserRole.EMPLOYEE],
-  'daily-safety-reports': [UserRole.EMPLOYEE],
-  notifications: [UserRole.EMPLOYEE],
-  'my-task': [UserRole.EMPLOYEE],
+  dashboard: [UserRole.USER],
+  profile: [UserRole.USER],
+  attendance: [UserRole.USER],
+  'payroll-management': [UserRole.USER],
+  payroll: [UserRole.USER],
+  'recent-projects': [UserRole.USER],
+  projects: [UserRole.USER],
+  'estimates-approvals': [UserRole.USER],
+  invoice: [UserRole.USER],
+  'project-scheduling': [UserRole.USER],
+  'documents-approvals': [UserRole.USER],
+  communication: [UserRole.USER],
+  'daily-safety-reports': [UserRole.USER],
+  notifications: [UserRole.USER],
+  'my-task': [UserRole.USER],
   orders: [],
   'shop-management': [],
   'shop-management-shop': [],
@@ -44,17 +44,17 @@ export const FEATURE_ACCESS: Record<string, UserRole[]> = {
   'customer-management': [],
   'employee-management': [],
   'vehicle-maintenance': [],
-  vehicles: [UserRole.EMPLOYEE],
+  vehicles: [UserRole.USER],
   'equipment-maintenance': [],
-  equipment: [UserRole.EMPLOYEE],
-  reviews: [UserRole.EMPLOYEE],
-  'manage-materials': [UserRole.EMPLOYEE],
-  payment: [UserRole.EMPLOYEE],
+  equipment: [UserRole.USER],
+  reviews: [UserRole.USER],
+  'manage-materials': [UserRole.USER],
+  payment: [UserRole.USER],
   'customer-finance': [],
   'resource-requests-report': [],
-  'safety-compliance': [UserRole.EMPLOYEE],
-  'change-orders': [UserRole.EMPLOYEE],
-  'permits-inspections': [UserRole.EMPLOYEE],
+  'safety-compliance': [UserRole.USER],
+  'change-orders': [UserRole.USER],
+  'permits-inspections': [UserRole.USER],
 }
 
 export type FeatureKey = keyof typeof FEATURE_ACCESS
@@ -62,4 +62,10 @@ export type FeatureKey = keyof typeof FEATURE_ACCESS
 export const hasFeatureAccess = (userRole: UserRole, feature: FeatureKey): boolean => {
   const roles = FEATURE_ACCESS[feature]
   return roles ? roles.includes(userRole) : false
+}
+
+/** Map API role string to app UserRole enum */
+export const normalizeApiRole = (role?: string): UserRole => {
+  if (role?.toUpperCase() === 'USER') return UserRole.USER
+  return UserRole.USER
 }

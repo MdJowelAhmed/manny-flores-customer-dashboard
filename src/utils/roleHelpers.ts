@@ -25,7 +25,7 @@ export const filterDataByRole = <T extends Record<string, unknown>>(
   userBusinessId?: string,
   businessIdField: string = 'businessId'
 ): T[] => {
-  if (userRole === UserRole.EMPLOYEE) return data
+  if (userRole === UserRole.USER) return data
   if (userBusinessId)
     return data.filter((item) => item[businessIdField] === userBusinessId)
   return []
@@ -40,7 +40,7 @@ export const canAccessItem = (
   userBusinessId?: string,
   businessIdField: string = 'businessId'
 ): boolean => {
-  if (userRole === UserRole.EMPLOYEE) return true
+  if (userRole === UserRole.USER) return true
   if (userBusinessId) return item[businessIdField] === userBusinessId
   return false
 }
@@ -60,7 +60,7 @@ export const canAccessFeature = (
  */
 export const getRoleBadgeColor = (role: string): string => {
   switch (role) {
-    case UserRole.EMPLOYEE:
+    case UserRole.USER:
       return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
     default:
       return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
@@ -72,7 +72,7 @@ export const getRoleBadgeColor = (role: string): string => {
  */
 export const getRoleDisplayName = (role: string): string => {
   switch (role) {
-    case UserRole.EMPLOYEE:
+    case UserRole.USER:
       return 'Customer'
     default:
       return 'Customer'

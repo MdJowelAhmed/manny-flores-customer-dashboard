@@ -16,7 +16,7 @@ export const useRoleBasedData = <T extends DataItem>(data: T[]): T[] => {
 
   return useMemo(() => {
     if (!user) return []
-    if (user.role === UserRole.EMPLOYEE) return data
+    if (user.role === UserRole.USER) return data
     return []
   }, [data, user])
 }
@@ -33,7 +33,7 @@ export const useIsAdmin = (): boolean => {
  */
 export const useIsBusiness = (): boolean => {
   const { user } = useAppSelector((state) => state.auth)
-  return !!user && user.role === UserRole.EMPLOYEE
+  return !!user && user.role === UserRole.USER
 }
 
 /**
@@ -51,7 +51,7 @@ export const useCanModifyItem = (item: DataItem): boolean => {
   const { user } = useAppSelector((state) => state.auth)
 
   if (!user) return false
-  if (user.role === UserRole.EMPLOYEE) {
+  if (user.role === UserRole.USER) {
     return item.businessId === user.businessId || item.userId === user.id
   }
   return false

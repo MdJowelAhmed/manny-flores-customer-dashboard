@@ -234,7 +234,7 @@ export function Sidebar() {
   const { user } = useAppSelector((state) => state.auth)
   const location = useLocation()
 
-  const userRole = (user?.role as UserRole) ?? UserRole.EMPLOYEE
+  const userRole = (user?.role as UserRole) ?? UserRole.USER
   const filteredNavItems = filterNavByRole(navItems, userRole)
   const filteredSettingsItems = filterNavByRole(settingsItems, userRole)
 

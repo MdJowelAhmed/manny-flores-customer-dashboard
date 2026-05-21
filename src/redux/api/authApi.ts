@@ -2,9 +2,12 @@ import { baseApi } from "../baseApi";
 
 interface LoginResponse {
     success: boolean;
+    statusCode?: number;
     message: string;
     data?: {
-        accessToken?: string;
+        accessToken: string;
+        refreshToken: string;
+        role: string;
     };
 }
 

@@ -32,7 +32,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth)
   const location = useLocation()
 
-  if (!isAuthenticated || !user || user.role !== UserRole.EMPLOYEE) {
+  if (!isAuthenticated || !user || user.role !== UserRole.USER) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />
   }
 
