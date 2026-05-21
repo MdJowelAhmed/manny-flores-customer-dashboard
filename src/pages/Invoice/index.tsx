@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format, parseISO, isValid } from 'date-fns'
 import { Calendar as CalendarIcon } from 'lucide-react'
@@ -11,22 +11,21 @@ import {
 } from '@/components/ui/popover'
 import { Pagination } from '@/components/common'
 import { cn } from '@/utils/cn'
-import { invoicesData, type Invoice } from './invoicesData'
+import { type Invoice } from './invoicesData'
 import { InvoiceCard } from './components/InvoiceCard'
 import { InvoiceViewModal } from './components/InvoiceViewModal'
-import { useAppSelector } from '@/redux/hooks'
+import {
+  mapInvoiceApiDocToUi,
+  useAddInvoiceSignatureMutation,
+  useGetInvoicesQuery,
+} from '@/redux/api/invoiceApi'
+import { toast } from 'sonner'
 
-const ITEMS_PER_PAGE = 6
+const ITEMS_PER_PAGE = 10
 
 export default function InvoicePage() {
   const { t } = useTranslation()
-  const user = useAppSelector((s) => s.auth.user)
-  const currentCustomerName = user ? `${user.firstName} ${user.lastName}`.trim() : 'Karim Ullah'
-  const currentCustomerEmail = user?.email?.toLowerCase().trim() ?? ''
 
-  const [invoices, setInvoices] = useState<Invoice[]>(invoicesData)
-  const seededRef = useRef(false)
-  const userTouchedRef = useRef(false)
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [selected, setSelected] = useState<Invoice | null>(null)
@@ -34,44 +33,21 @@ export default function InvoicePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE)
 
-  const visibleInvoices = useMemo(() => {
-    return invoices.filter((inv) => {
-      if (inv.customerName === currentCustomerName) return true
-      if (currentCustomerEmail && inv.customerEmail?.toLowerCase().trim() === currentCustomerEmail) return true
-      return false
-    })
-  }, [invoices, currentCustomerName, currentCustomerEmail])
+  const { data, isLoading, isError, refetch } = useGetInvoicesQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+  })
+  const [addInvoiceSignature, { isLoading: isSigning }] = useAddInvoiceSignatureMutation()
 
-  useEffect(() => {
-    if (seededRef.current) return
-    if (userTouchedRef.current) return
-    if (visibleInvoices.length > 0) {
-      seededRef.current = true
-      return
-    }
-
-    // Seed 3-5 invoices for the current user (demo only, state-based).
-    setInvoices((prev) => {
-      const seeded = prev.map((inv, idx) => {
-        if (idx >= 5) return inv
-        return {
-          ...inv,
-          customerName: currentCustomerName,
-          customerEmail: currentCustomerEmail || inv.customerEmail,
-          customerPhone: inv.customerPhone ?? '+1 (555) 201-2033',
-          customerAddress: inv.customerAddress ?? '120 Oak Ridge Dr, Austin, TX 78701',
-        }
-      })
-      return seeded
-    })
-
-    seededRef.current = true
-  }, [currentCustomerName, currentCustomerEmail, visibleInvoices.length])
+  const invoices = useMemo(
+    () => (data?.data ?? []).map(mapInvoiceApiDocToUi),
+    [data?.data]
+  )
 
   const filteredInvoices = useMemo(() => {
-    if (!filterDate) return visibleInvoices
+    if (!filterDate) return invoices
     const key = format(filterDate, 'yyyy-MM-dd')
-    return visibleInvoices.filter((inv) => {
+    return invoices.filter((inv) => {
       try {
         const d = parseISO(inv.invoiceDate)
         return isValid(d) && format(d, 'yyyy-MM-dd') === key
@@ -79,14 +55,20 @@ export default function InvoicePage() {
         return false
       }
     })
-  }, [visibleInvoices, filterDate])
+  }, [invoices, filterDate])
 
-  const totalItems = filteredInvoices.length
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage))
+  const totalItems = filterDate
+    ? filteredInvoices.length
+    : (data?.pagination?.total ?? filteredInvoices.length)
+  const totalPages = filterDate
+    ? Math.max(1, Math.ceil(filteredInvoices.length / itemsPerPage))
+    : Math.max(1, data?.pagination?.totalPage ?? 1)
+
   const paginated = useMemo(() => {
+    if (!filterDate) return filteredInvoices
     const start = (currentPage - 1) * itemsPerPage
     return filteredInvoices.slice(start, start + itemsPerPage)
-  }, [filteredInvoices, currentPage, itemsPerPage])
+  }, [filteredInvoices, filterDate, currentPage, itemsPerPage])
 
   useEffect(() => {
     if (currentPage > totalPages && totalPages >= 1) setCurrentPage(1)
@@ -97,37 +79,41 @@ export default function InvoicePage() {
   }, [filterDate])
 
   const openView = (inv: Invoice) => {
-    userTouchedRef.current = true
     setSelected(inv)
     setViewOpen(true)
   }
 
-  const handleApproveInvoice = (id: string, payload: { signatureDataUrl: string; approvedAt: string }) => {
-    userTouchedRef.current = true
-    setInvoices((prev) =>
-      prev.map((x) =>
-        x.id === id
-          ? {
-              ...x,
-              status: 'paid',
-              signatureDataUrl: payload.signatureDataUrl,
-              approvedAt: payload.approvedAt,
-            }
-          : x
-      )
-    )
-
-    // Keep modal content in sync if currently open.
-    setSelected((prev) => {
-      if (!prev) return prev
-      if (prev.id !== id) return prev
-      return {
-        ...prev,
-        status: 'paid',
+  const handleApproveInvoice = async (
+    estimateId: string,
+    payload: { signatureDataUrl: string; approvedAt: string }
+  ) => {
+    try {
+      await addInvoiceSignature({
+        estimateId,
         signatureDataUrl: payload.signatureDataUrl,
-        approvedAt: payload.approvedAt,
-      }
-    })
+      }).unwrap()
+      await refetch()
+      setSelected((prev) => {
+        if (!prev || prev.id !== estimateId) return prev
+        return {
+          ...prev,
+          status: 'paid',
+          signatureDataUrl: payload.signatureDataUrl,
+          approvedAt: payload.approvedAt,
+        }
+      })
+      toast.success(
+        t('invoice.signatureSuccess', {
+          defaultValue: 'Invoice signed successfully',
+        })
+      )
+    } catch {
+      toast.error(
+        t('invoice.signatureError', {
+          defaultValue: 'Failed to submit signature',
+        })
+      )
+    }
   }
 
   return (
@@ -191,7 +177,15 @@ export default function InvoicePage() {
         </p>
       )}
 
-      {totalItems === 0 ? (
+      {isLoading ? (
+        <div className="py-16 text-center text-sm text-gray-500">
+          {t('common.loading', { defaultValue: 'Loading...' })}
+        </div>
+      ) : isError ? (
+        <div className="py-16 text-center text-sm text-red-600">
+          {t('invoice.loadError', { defaultValue: 'Failed to load invoices' })}
+        </div>
+      ) : paginated.length === 0 ? (
         <div className="py-16 text-center text-sm text-gray-500">
           {t('invoice.noInvoices')}
         </div>
@@ -208,7 +202,7 @@ export default function InvoicePage() {
         </div>
       )}
 
-      {totalItems > 0 && (
+      {totalItems > 0 && !isLoading && !isError && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -232,6 +226,7 @@ export default function InvoicePage() {
           }}
           invoice={selected}
           onApprove={handleApproveInvoice}
+          isSubmittingSignature={isSigning}
         />
       ) : null}
     </div>

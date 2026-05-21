@@ -1,130 +1,78 @@
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pagination } from '@/components/common'
-import { estimatesData, type Estimate } from './estimatesData'
+import { type Estimate } from './estimatesData'
 import { EstimateViewModal } from './components/EstimateViewModal'
 import { EstimateListCard } from './components/EstimateListCard'
 import { toast } from 'sonner'
 import { ProjectDetailsModal } from '@/pages/Projects/components/ProjectDetailsModal'
-import { useAppSelector } from '@/redux/hooks'
+import {
+  mapEstimateApiDocToApprovalEstimate,
+  useGetEstimatesQuery,
+  useUpdateEstimateStatusMutation,
+} from '@/redux/api/estimateApi'
 
 export default function EstimatesApprovals() {
   const { t } = useTranslation()
-  const user = useAppSelector((s) => s.auth.user)
-  const currentCustomerName = user ? `${user.firstName} ${user.lastName}`.trim() : 'Karim Ullah'
-  const currentCustomerEmail = user?.email?.toLowerCase().trim() ?? ''
-
-  const [estimates, setEstimates] = useState<Estimate[]>(estimatesData)
   const [selectedProject, setSelectedProject] = useState<any | null>(null)
   const [showProjectModal, setShowProjectModal] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(5)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
   const [selectedEstimate, setSelectedEstimate] = useState<Estimate | null>(null)
   const [showViewModal, setShowViewModal] = useState(false)
-  const timersRef = useRef<number[]>([])
-  const userTouchedRef = useRef(false)
-  const seededRef = useRef(false)
 
-  const visibleEstimates = useMemo(() => {
-    return estimates.filter((e) => {
-      if (e.customerName === currentCustomerName) return true
-      if (currentCustomerEmail && e.email?.toLowerCase().trim() === currentCustomerEmail) return true
-      return false
-    })
-  }, [estimates, currentCustomerName, currentCustomerEmail])
+  const { data, isLoading, isError, refetch } = useGetEstimatesQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+  })
+  const [updateEstimateStatus, { isLoading: isUpdatingStatus }] =
+    useUpdateEstimateStatusMutation()
 
+  const estimates = useMemo(
+    () => (data?.data ?? []).map(mapEstimateApiDocToApprovalEstimate),
+    [data?.data]
+  )
 
-
-  const totalItems = visibleEstimates.length
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage))
-  const paginatedEstimates = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage
-    return visibleEstimates.slice(start, start + itemsPerPage)
-  }, [visibleEstimates, currentPage, itemsPerPage])
+  const totalItems = data?.pagination?.total ?? estimates.length
+  const totalPages = Math.max(1, data?.pagination?.totalPage ?? 1)
 
   useEffect(() => {
     if (currentPage > totalPages && totalPages >= 1) setCurrentPage(1)
   }, [totalPages, currentPage])
-
-  useEffect(() => {
-    return () => {
-      for (const id of timersRef.current) window.clearTimeout(id)
-      timersRef.current = []
-    }
-  }, [])
-
-  useEffect(() => {
-    if (seededRef.current) return
-    if (userTouchedRef.current) return
-
-    // Seed a few estimates for the current customer so the UI isn't empty in demos.
-    const hasAnyForUser = estimatesData.some((e) => {
-      if (e.customerName === currentCustomerName) return true
-      if (currentCustomerEmail && e.email?.toLowerCase().trim() === currentCustomerEmail) return true
-      return false
-    })
-    if (hasAnyForUser) {
-      seededRef.current = true
-      return
-    }
-
-    const seeded = estimatesData.map((e, idx) => {
-      if (idx >= 3) return e
-      return {
-        ...e,
-        customerName: currentCustomerName,
-        email: currentCustomerEmail || e.email,
-      }
-    })
-    setEstimates(seeded)
-    seededRef.current = true
-  }, [currentCustomerName, currentCustomerEmail])
-
-
 
   const handleView = (estimate: Estimate) => {
     setSelectedEstimate(estimate)
     setShowViewModal(true)
   }
 
-  const handleApprove = (e: Estimate) => {
-    userTouchedRef.current = true
-    // User approves -> show waiting message, then admin creates invoice -> project appears.
-    setEstimates((prev) =>
-      prev.map((x) =>
-        x.id === e.id
-          ? { ...x, status: 'Approved' as const, approvedAt: new Date().toISOString() }
-          : x
-      )
-    )
-    setSelectedEstimate(null)
-    toast.success(t('estimates.approvedToast'))
-
-    const timerId = window.setTimeout(() => {
-      setEstimates((prev) =>
-        prev.map((x) =>
-          x.id === e.id
-            ? {
-                ...x,
-                status: 'Project Created' as const,
-                invoicedAt: new Date().toISOString(),
-                projectCreatedAt: new Date().toISOString(),
-              }
-            : x
-        )
-      )
-    }, 1500)
-
-    timersRef.current.push(timerId)
+  const handleApprove = async (e: Estimate) => {
+    try {
+      await updateEstimateStatus({
+        id: e.id,
+        isApproved: true,
+        projectStatus: 'IN_PROGRESS',
+      }).unwrap()
+      setSelectedEstimate(null)
+      toast.success(t('estimates.approvedToast'))
+      refetch()
+    } catch {
+      toast.error(t('estimates.updateError', { defaultValue: 'Failed to update estimate' }))
+    }
   }
 
-  const handleReject = (e: Estimate) => {
-    userTouchedRef.current = true
-    setEstimates((prev) =>
-      prev.map((x) => (x.id === e.id ? { ...x, status: 'Rejected' as const } : x))
-    )
-    setSelectedEstimate(null)
-    toast.message(t('estimates.rejectedToast'))
+  const handleReject = async (e: Estimate) => {
+    try {
+      await updateEstimateStatus({
+        id: e.id,
+        isApproved: false,
+        projectStatus: 'CANCELLED',
+      }).unwrap()
+      setSelectedEstimate(null)
+      toast.message(t('estimates.rejectedToast'))
+      refetch()
+    } catch {
+      toast.error(t('estimates.updateError', { defaultValue: 'Failed to update estimate' }))
+    }
   }
 
   return (
@@ -136,16 +84,23 @@ export default function EstimatesApprovals() {
           </h1>
           <p className="mt-1.5 text-sm text-gray-500">{t('estimates.subtitle')}</p>
         </div>
-        {/* customer can't create estimates */}
       </div>
 
-      {visibleEstimates.length === 0 ? (
+      {isLoading ? (
+        <div className="py-16 text-center text-sm text-gray-500">
+          {t('common.loading', { defaultValue: 'Loading...' })}
+        </div>
+      ) : isError ? (
+        <div className="py-16 text-center text-sm text-red-600">
+          {t('estimates.loadError', { defaultValue: 'Failed to load estimates' })}
+        </div>
+      ) : estimates.length === 0 ? (
         <div className="py-16 text-center text-sm text-gray-500">
           {t('estimates.noEstimates')}
         </div>
       ) : (
         <div className="space-y-4">
-          {paginatedEstimates.map((estimate) => (
+          {estimates.map((estimate) => (
             <div key={estimate.id} className="space-y-2">
               <EstimateListCard
                 estimate={estimate}
@@ -153,11 +108,12 @@ export default function EstimatesApprovals() {
                 viewDetailsLabel={t('estimates.viewDetails')}
                 onApprove={handleApprove}
                 approveLabel={t('estimates.approved')}
+                approveDisabled={isUpdatingStatus}
               />
 
               {estimate.status === 'Approved' ? (
                 <p className="text-right text-sm text-gray-500">
-                  please waiting admin create  Invoice ...
+                  please waiting admin create Invoice ...
                 </p>
               ) : null}
             </div>
@@ -165,9 +121,7 @@ export default function EstimatesApprovals() {
         </div>
       )}
 
-
-
-      {totalItems > 0 && (
+      {totalItems > 0 && !isLoading && !isError && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
@@ -191,6 +145,7 @@ export default function EstimatesApprovals() {
         estimate={selectedEstimate}
         onApprove={handleApprove}
         onReject={handleReject}
+        actionsDisabled={isUpdatingStatus}
       />
 
       <ProjectDetailsModal

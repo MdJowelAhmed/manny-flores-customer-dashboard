@@ -13,6 +13,7 @@ interface EstimateViewModalProps {
   estimate: Estimate | null
   onApprove?: (estimate: Estimate) => void
   onReject?: (estimate: Estimate) => void
+  actionsDisabled?: boolean
 }
 
 function SectionCard({
@@ -47,6 +48,7 @@ export function EstimateViewModal({
   estimate,
   onApprove,
   onReject,
+  actionsDisabled = false,
 }: EstimateViewModalProps) {
   const { t } = useTranslation()
   if (!estimate) return null
@@ -80,7 +82,7 @@ export function EstimateViewModal({
             variant="outline"
             className="h-11 rounded-md border-gray-300 bg-white font-medium text-gray-700 shadow-sm hover:bg-gray-50"
             onClick={handleReject}
-            disabled={!canRespond}
+            disabled={!canRespond || actionsDisabled}
           >
             {t('estimates.reject')}
           </Button>
@@ -88,7 +90,7 @@ export function EstimateViewModal({
             type="button"
             className="h-11 rounded-md  font-semibold text-white "
             onClick={handleApprove}
-            disabled={!canRespond}
+            disabled={!canRespond || actionsDisabled}
           >
             {t('estimates.approved')}
           </Button>

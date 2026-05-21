@@ -11,7 +11,11 @@ interface InvoiceViewModalProps {
   open: boolean
   onClose: () => void
   invoice: Invoice
-  onApprove?: (invoiceId: string, payload: { signatureDataUrl: string; approvedAt: string }) => void
+  onApprove?: (
+    invoiceId: string,
+    payload: { signatureDataUrl: string; approvedAt: string }
+  ) => void | Promise<void>
+  isSubmittingSignature?: boolean
 }
 
 function safeFormatDate(iso: string, fmt: string) {
@@ -76,7 +80,13 @@ function statusBadgeVariant(status: InvoiceStatus): 'warning' | 'success' | 'err
   }
 }
 
-export function InvoiceViewModal({ open, onClose, invoice, onApprove }: InvoiceViewModalProps) {
+export function InvoiceViewModal({
+  open,
+  onClose,
+  invoice,
+  onApprove,
+  isSubmittingSignature = false,
+}: InvoiceViewModalProps) {
   const { t } = useTranslation()
 
   const breakdown = getInvoiceBreakdown(invoice)
@@ -335,11 +345,14 @@ export function InvoiceViewModal({ open, onClose, invoice, onApprove }: InvoiceV
                 <Button
                   type="button"
                   className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"
-                  disabled={!sigDataUrl || !canApprove}
+                  disabled={!sigDataUrl || !canApprove || isSubmittingSignature}
                   onClick={() => {
                     if (!sigDataUrl) return
                     const approvedAt = new Date().toISOString()
-                    onApprove?.(invoice.id, { signatureDataUrl: sigDataUrl, approvedAt })
+                    void onApprove?.(invoice.id, {
+                      signatureDataUrl: sigDataUrl,
+                      approvedAt,
+                    })
                   }}
                 >
                   {t('invoice.approveInvoice')}
