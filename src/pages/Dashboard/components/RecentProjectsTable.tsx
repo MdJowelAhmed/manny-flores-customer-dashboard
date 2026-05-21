@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { motion } from 'framer-motion'
 import { Eye } from 'lucide-react'
@@ -153,12 +153,7 @@ export function RecentProjectsTable() {
             <Card className="bg-white border-0">
                 <CardHeader className="flex flex-row items-center justify-between pb-6">
                     <CardTitle className="text-xl font-bold text-slate-800">{t('dashboard.recentProjects')}</CardTitle>
-                    <Link
-                        to="/recent-projects"
-                        className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors"
-                    >
-                        {t('dashboard.viewAll')}
-                    </Link>
+
                 </CardHeader>
                 <CardContent className="p-0">
                     <div className="w-full overflow-auto">

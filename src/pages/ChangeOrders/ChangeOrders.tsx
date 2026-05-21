@@ -4,8 +4,6 @@ import { ViewChangeOrderDetailsModal } from './components/ViewChangeOrderDetails
 import { UpdateStatusModal } from './components/UpdateStatusModal'
 import {
   changeOrderStats,
-  mockChangeOrders,
-  type ChangeOrder,
   type ChangeOrderStatus,
 } from './changeOrdersData'
 import { formatCurrency } from '@/utils/formatters'
@@ -15,44 +13,65 @@ import { ChangeOrderCard } from './components/ChangeOrderCard'
 import { NewOrderModal } from './components/NewOrderModal'
 import { NewChangeOrderModal } from './components/NewChangeOrderModal'
 import { UploadDocumentsModal } from './components/UploadDocumentsModal'
+import { useChangeOrderStatusMutation, useGetChangeOrdersQuery } from '@/redux/slices/customer/changeOrdersApi'
+import Spinner from '@/components/common/Spinner'
+import { Pagination } from '@/components/common/Pagination'
+import { sonnerToast } from '@/utils/toast'
 
 export default function ChangeOrders() {
-  const [orders, setOrders] = useState<ChangeOrder[]>(mockChangeOrders)
   const [activeTab, setActiveTab] = useState<'all' | ChangeOrderStatus>('all')
-  const [selectedOrder, setSelectedOrder] = useState<ChangeOrder | null>(null)
-  const [orderForStatusUpdate, setOrderForStatusUpdate] = useState<ChangeOrder | null>(null)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null)
+  const [orderForStatusUpdate, setOrderForStatusUpdate] = useState<any | null>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false)
   const [showNewOrderModal, setShowNewOrderModal] = useState(false)
   const [showNewChangeOrderModal, setShowNewChangeOrderModal] = useState(false)
   const [showUploadDocumentsModal, setShowUploadDocumentsModal] = useState(false)
 
-  const filteredOrders = useMemo(() => {
-    return orders.filter((o) => {
-      const matchesTab = activeTab === 'all' || o.status === activeTab
-      return matchesTab
-    })
-  }, [orders, activeTab])
 
-  const handleStatusClick = (o: ChangeOrder) => {
+
+  // API CALLS
+  const { data: changeOrdersData, isLoading: changeOrdersLoading, refetch } = useGetChangeOrdersQuery({
+    page,
+    limit,
+    status: activeTab === 'all' ? undefined : activeTab.toUpperCase()
+  });
+  const [changeOrderStatusMutation] = useChangeOrderStatusMutation();
+
+  const apiOrders = changeOrdersData?.data || [];
+  const pagination = changeOrdersData?.pagination;
+
+  const filteredOrders = apiOrders;
+
+  const handleStatusClick = (o: any) => {
     setOrderForStatusUpdate(o)
     setIsStatusModalOpen(true)
   }
 
-  const handleStatusUpdate = (orderId: string, status: ChangeOrderStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status } : o))
-    )
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder((prev) => (prev ? { ...prev, status } : null))
+  const handleStatusUpdate = async (orderId: string, status: string) => {
+    try {
+      sonnerToast.promise(changeOrderStatusMutation({ id: orderId, status: status.toUpperCase() }).unwrap(), {
+        loading: 'Updating status...',
+        success: (res) => {
+          refetch();
+          return res?.message || 'Status updated successfully'
+        },
+        error: (error) => {
+          return error?.message || 'Failed to update status'
+        },
+      })
+    } catch (e) {
+      console.error(e)
     }
   }
 
   const stats = useMemo(() => {
-    const total = orders.length
-    const pending = orders.filter((o) => o.status === 'Pending').length
-    const approved = orders.filter((o) => o.status === 'Approved').length
-    const valueImpact = orders.reduce((sum, o) => sum + o.additionalCost, 0)
+    const total = apiOrders.length
+    const pending = apiOrders.filter((o: any) => o.status === 'PENDING').length
+    const approved = apiOrders.filter((o: any) => o.status === 'APPROVED').length
+    const valueImpact = apiOrders.reduce((sum: number, o: any) => sum + o.additionalCost, 0)
 
     return [
       { ...changeOrderStats[0], value: total },
@@ -60,7 +79,11 @@ export default function ChangeOrders() {
       { ...changeOrderStats[2], value: approved },
       { ...changeOrderStats[3], value: valueImpact },
     ]
-  }, [orders])
+  }, [apiOrders])
+
+  if (changeOrdersLoading) {
+    return <Spinner />
+  }
 
   return (
     <motion.div
@@ -71,18 +94,18 @@ export default function ChangeOrders() {
     >
       {/* Info Banner */}
       <div className="flex gap-3 p-4 rounded-2xl  ">
-       
+
         <div>
           <h3 className="font-semibold text-foreground">Change Order</h3>
           <p className="text-sm text-muted-foreground mt-1">
-          Manage project scope changes and cost adjustments
+            Manage project scope changes and cost adjustments
           </p>
         </div>
       </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-        {stats.map((stat, index) => {
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
+        {stats?.map((stat, index) => {
           const Icon = stat.icon
           return (
             <motion.div
@@ -113,19 +136,19 @@ export default function ChangeOrders() {
       </div>
 
       <ChangeOrdersHeader
-        
-       
+
+
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onOpenNewOrder={() => setShowNewOrderModal(true)}
         onOpenNewChangeOrder={() => setShowNewChangeOrderModal(true)}
       />
 
-    
+
 
       {/* All Change Orders */}
       <div className="rounded-2xl overflow-hidden shadow-sm space-y-4">
-       
+
 
         <div className="space-y-4">
           {filteredOrders.length === 0 ? (
@@ -133,7 +156,7 @@ export default function ChangeOrders() {
               No change orders found
             </div>
           ) : (
-            filteredOrders.map((o, index) => (
+            filteredOrders?.map((o: any, index: number) => (
               <ChangeOrderCard
                 key={o.id}
                 order={o}
@@ -142,19 +165,31 @@ export default function ChangeOrders() {
                 onUploadDocument={() => setShowUploadDocumentsModal(true)}
                 onNewChangeOrder={() => setShowNewChangeOrderModal(true)}
                 onApprove={
-                  o.status === 'Pending'
-                    ? () => handleStatusUpdate(o.id, 'Approved')
+                  o.status === 'PENDING'
+                    ? () => handleStatusUpdate(o.id, 'APPROVED')
                     : undefined
                 }
                 onReject={
-                  o.status === 'Pending'
-                    ? () => handleStatusUpdate(o.id, 'Rejected')
+                  o.status === 'PENDING'
+                    ? () => handleStatusUpdate(o.id, 'REJECTED')
                     : undefined
                 }
               />
             ))
           )}
         </div>
+        {pagination && (
+          <div className="border-t border-gray-100 bg-white px-6">
+            <Pagination
+              currentPage={page}
+              totalPages={pagination.totalPage}
+              totalItems={pagination.total}
+              itemsPerPage={limit}
+              onPageChange={setPage}
+              onItemsPerPageChange={setLimit}
+            />
+          </div>
+        )}
       </div>
 
       <ViewChangeOrderDetailsModal
@@ -180,13 +215,13 @@ export default function ChangeOrders() {
       <NewChangeOrderModal
         open={showNewChangeOrderModal}
         onClose={() => setShowNewChangeOrderModal(false)}
-        onCreate={(order) => setOrders((prev) => [order, ...prev])}
+        onCreate={() => refetch()}
       />
 
       <NewOrderModal
         open={showNewOrderModal}
         onClose={() => setShowNewOrderModal(false)}
-        onCreate={(order) => setOrders((prev) => [order, ...prev])}
+        onCreate={() => refetch()}
       />
 
       <UploadDocumentsModal

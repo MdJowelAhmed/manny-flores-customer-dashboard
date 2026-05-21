@@ -1,6 +1,6 @@
 import { FileText, Info, DollarSign } from 'lucide-react'
 
-export type ChangeOrderStatus = 'Pending' | 'Approved' | 'Rejected'
+export type ChangeOrderStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
 export interface ChangeOrder {
   id: string
@@ -62,53 +62,8 @@ export const statusFilterOptions = [
 ]
 
 export const statusUpdateOptions: { value: ChangeOrderStatus; label: string }[] = [
-  { value: 'Pending', label: 'Pending' },
-  { value: 'Approved', label: 'Approved' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'APPROVED', label: 'Approved' },
+  { value: 'REJECTED', label: 'Rejected' },
 ]
 
-export const mockChangeOrders: ChangeOrder[] = [
-  {
-    id: 'co-1',
-    orderId: 'CO-2026-012',
-    customerName: 'Mike Johnson',
-    projectName: 'Residential Backyard Renovation',
-    company: 'Lawn Care Package',
-    originalCost: 45000,
-    additionalCost: 8500,
-    newTotal: 53500,
-    requestDate: 'Feb 10, 2026',
-    status: 'Pending',
-    approvedDate: undefined,
-    projectStartDate: 'January 15, 2026',
-    amountSpent: 28500,
-    totalBudget: 45000,
-    duration: '8 weeks',
-    remaining: 16500,
-    email: 'john@email.com',
-    reasonForChange: 'Design modification',
-    description:
-      'Remove fountain feature, add additional garden beds.',
-  },
-  {
-    id: 'co-2',
-    orderId: 'CO-2026-011',
-    customerName: 'John Smith',
-    projectName: 'Residential Backyard Renovation',
-    company: 'Lawn Care Package',
-    originalCost: 45000,
-    additionalCost: 8500,
-    newTotal: 53500,
-    requestDate: 'Feb 10, 2026',
-    status: 'Approved',
-    approvedDate: 'Feb 11, 2026',
-    projectStartDate: 'January 15, 2026',
-    amountSpent: 28500,
-    totalBudget: 45000,
-    duration: '8 weeks',
-    remaining: 16500,
-    email: 'john@email.com',
-    reasonForChange: 'Design modification',
-    description:
-      'Remove fountain feature, add additional garden beds.',
-  },
-]

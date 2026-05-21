@@ -5,7 +5,7 @@ import { formatCurrency } from '@/utils/formatters'
 import type { ChangeOrder } from '../changeOrdersData'
 
 interface ChangeOrderCardProps {
-  order: ChangeOrder
+  order: any
   index: number
   onChangeStatus: () => void
   onUploadDocument: () => void
@@ -34,18 +34,18 @@ export function ChangeOrderCard({
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm font-semibold text-[#0F172A]">
-              {order.orderId}
+              #{order.id.slice(0, 8).toUpperCase()}
             </span>
             <button
               type="button"
               onClick={onChangeStatus}
               className={cn(
                 'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium cursor-pointer transition-colors',
-                order.status === 'Approved' &&
+                order.status === 'APPROVED' &&
                 'bg-emerald-50 text-emerald-700 border border-emerald-100',
-                order.status === 'Pending' &&
+                order.status === 'PENDING' &&
                 'bg-[#FFF4E5] text-[#FF8A00] border border-[#FFE1B5]',
-                order.status === 'Rejected' &&
+                order.status === 'REJECTED' &&
                 'bg-red-50 text-red-600 border border-red-100'
               )}
             >
@@ -53,8 +53,8 @@ export function ChangeOrderCard({
             </button>
           </div>
           <div>
-            <p className="font-semibold text-base text-[#0F172A]">{order.customerName}</p>
-            <p className="text-sm text-accent">{order.projectName}</p>
+            <p className="font-semibold text-base text-[#0F172A]">{order.project?.estimates?.customerName || order.user?.name || 'Unknown'}</p>
+            <p className="text-sm text-accent">{order.project?.estimates?.projectName || 'N/A'}</p>
           </div>
           <div className="text-sm text-accent">
             <span className="font-medium text-[#0F172A]">Description: </span>
@@ -110,7 +110,7 @@ export function ChangeOrderCard({
           highlight
           negative={isNegativeChange}
         />
-        <AmountItem label="Total Amount" value={order.newTotal} strong />
+        <AmountItem label="Total Amount" value={order.totalCost} strong />
 
         <div className="ml-auto flex items-center gap-3">
           {onReject && (
