@@ -22,6 +22,8 @@ function statusBadgeClass(status: Project['status']): string {
       return 'bg-purple-100 text-purple-800'
     case 'Scheduled':
       return 'bg-amber-100 text-amber-900'
+    case 'Cancelled':
+      return 'bg-red-100 text-red-800'
     default:
       return 'bg-orange-100 text-orange-800'
   }
