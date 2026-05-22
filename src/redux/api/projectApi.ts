@@ -66,6 +66,13 @@ export interface GetProjectsParams {
     limit?: number
 }
 
+export interface CompleteProjectResponse {
+    success: boolean
+    statusCode?: number
+    message: string
+    data?: ProjectApiDoc
+}
+
 function toIsoDateOnly(date: string): string {
     const parsed = new Date(date)
     if (Number.isNaN(parsed.getTime())) return date
@@ -133,7 +140,15 @@ const projectApi = baseApi.injectEndpoints({
             }),
             providesTags: ['Project'],
         }),
+        completeProject: builder.mutation<CompleteProjectResponse, string>({
+            query: (id) => ({
+                url: `/project/complete/${id}`,
+                method: 'PATCH',
+                body: { projectStatus: 'COMPLETED' },
+            }),
+            invalidatesTags: ['Project'],
+        }),
     }),
 })
 
-export const { useGetProjectsQuery } = projectApi
+export const { useGetProjectsQuery, useCompleteProjectMutation } = projectApi

@@ -1,8 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ModalWrapper } from '@/components/common'
+import { toast } from 'sonner'
+import { ConfirmDialog, ModalWrapper } from '@/components/common'
 import { Button } from '@/components/ui/button'
 import { useGetSingleEstimateQuery } from '@/redux/api/estimateApi'
+import { useCompleteProjectMutation } from '@/redux/api/projectApi'
 import { formatDateDayMonth } from '@/utils/formatters'
 import {
   buildLineItemsFromEstimate,
@@ -33,12 +35,34 @@ function formatPreviewDateRange(start?: string, end?: string): string {
 
 export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsModalProps) {
   const { t } = useTranslation()
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [completeProject, { isLoading: isCompleting }] = useCompleteProjectMutation()
 
   const estimateId = project?.estimateId ?? ''
   const { data: estimateResponse, isLoading: isEstimateLoading } = useGetSingleEstimateQuery(
     estimateId,
     { skip: !open || !estimateId }
   )
+
+  const handleConfirmComplete = async () => {
+    if (!project?.id) return
+    try {
+      await completeProject(project.id).unwrap()
+      toast.success(
+        t('projects.completeSuccess', {
+          defaultValue: 'Project marked as completed',
+        })
+      )
+      setConfirmOpen(false)
+      onClose()
+    } catch {
+      toast.error(
+        t('projects.completeError', {
+          defaultValue: 'Failed to complete project',
+        })
+      )
+    }
+  }
 
   const preview = useMemo(() => {
     if (!project) return null
@@ -75,6 +99,8 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
 
   if (!project || !preview) return null
 
+
+
   return (
     <ModalWrapper
       open={open}
@@ -93,6 +119,16 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
           >
             {t('common.close', { defaultValue: 'Close' })}
           </Button>
+          {project.status !== 'Completed' ? (
+            <Button
+              type="button"
+              className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"
+              onClick={() => setConfirmOpen(true)}
+              disabled={isCompleting}
+            >
+              {t('projects.completeProject', { defaultValue: 'Complete Project' })}
+            </Button>
+          ) : null}
         </div>
       }
     >
@@ -196,7 +232,7 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
                   <span>{fmtProjectMoney(preview.taxAmount)}</span>
                 </div> */}
                 <div className="flex justify-between border-t border-gray-200 pt-2 text-base font-bold text-gray-900">
-                  <span>{t('projects.balanceDue', { defaultValue: 'Balance due' })}</span>
+                  <span>{t('projects.balanceDue', { defaultValue: 'Total cost' })}</span>
                   <span className="text-[#22c55e]">{fmtProjectMoney(preview.balanceDue)}</span>
                 </div>
               </div>
@@ -219,6 +255,23 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
           </div>
         ) : null}
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmComplete}
+        title={t('projects.completeConfirmTitle', {
+          defaultValue: 'Complete this project?',
+        })}
+        description={t('projects.completeConfirmDescription', {
+          defaultValue:
+            'Are you sure your project is complete? This will mark the project as COMPLETED.',
+        })}
+        confirmText={t('projects.completeConfirm', { defaultValue: 'Yes, complete' })}
+        cancelText={t('common.cancel', { defaultValue: 'Cancel' })}
+        variant="info"
+        isLoading={isCompleting}
+      />
     </ModalWrapper>
   )
 }
