@@ -8,7 +8,7 @@ import { cn } from '@/utils/cn'
 interface ViewChangeOrderDetailsModalProps {
   open: boolean
   onClose: () => void
-  order: ChangeOrder | null
+  order: any | null
   onStatusUpdate?: (orderId: string, status: ChangeOrderStatus) => void
 }
 
@@ -64,7 +64,7 @@ export function ViewChangeOrderDetailsModal({
     <ModalWrapper
       open={open}
       onClose={onClose}
-      title={order.orderId}
+      title={`#${order.id?.slice(0, 8).toUpperCase()}`}
       description="Complete change order details and approval status"
       size="lg"
       className="max-w-2xl bg-white"
@@ -73,42 +73,43 @@ export function ViewChangeOrderDetailsModal({
         <div>
           <SectionHeader icon={Calendar} title="Project Information" />
           <div className="space-y-1 pl-9">
-            <DetailRow label="Project Name" value={order.projectName} />
-            <DetailRow label="Start Date" value={order.projectStartDate} />
+            <DetailRow label="Project Name" value={order.project?.estimates?.projectName || 'N/A'} />
+            <DetailRow label="Start Date" value={order.project?.estimates?.estimateStartDate ? new Date(order.project.estimates.estimateStartDate).toLocaleDateString() : 'N/A'} />
             <DetailRow
-              label="Amount Spent"
-              value={order.amountSpent}
+              label="Original Cost"
+              value={order.originalCost || 0}
               valueHighlight
             />
-            <DetailRow label="Total Budget" value={order.totalBudget} />
-            <DetailRow label="Duration" value={order.duration} />
-            <DetailRow label="Remaining" value={order.remaining} />
+            <DetailRow label="Total Amount" value={order.totalCost || 0} />
+            <DetailRow label="Reason" value={order.reasonForChange || 'N/A'} />
           </div>
         </div>
 
         <div>
           <SectionHeader icon={User} title="Customer Information" />
           <div className="space-y-1 pl-9">
-            <DetailRow label="Customer name" value={order.customerName} />
-            <DetailRow label="Email" value={order.email} />
-            <DetailRow label="Company" value={order.company} />
+            <DetailRow label="Customer name" value={order.project?.estimates?.customerName || order.user?.name || 'N/A'} />
+            <DetailRow label="Email" value={order.project?.estimates?.customerEmail || order.user?.email || 'N/A'} />
+            <DetailRow label="Address" value={order.project?.estimates?.customerAddress || 'N/A'} />
           </div>
         </div>
 
         <div>
-          <SectionHeader icon={Info} title="Reason for Change" />
+          <SectionHeader icon={Info} title="Description" />
           <p className="text-sm text-muted-foreground pl-9 leading-relaxed">
-            {order.reasonForChange}
+            {order.description || 'No description provided.'}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2 pt-4 border-t justify-end">
-          <Button
-            onClick={() => handleStatusChange('Approved')}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            Approved
-          </Button>
+          {order.status === 'PENDING' && (
+            <Button
+              onClick={() => handleStatusChange('APPROVED')}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              Approve
+            </Button>
+          )}
         </div>
       </div>
     </ModalWrapper>

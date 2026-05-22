@@ -15,14 +15,14 @@ import { cn } from '@/utils/cn'
 interface UpdateStatusModalProps {
   open: boolean
   onClose: () => void
-  order: ChangeOrder | null
+  order: any | null
   onUpdate: (orderId: string, status: ChangeOrderStatus) => void
 }
 
 const STATUS_STYLES: Record<ChangeOrderStatus, string> = {
-  Pending: 'bg-amber-100 text-amber-700',
-  Approved: 'bg-emerald-100 text-emerald-700',
-  Rejected: 'bg-red-100 text-red-700',
+  PENDING: 'bg-amber-100 text-amber-700',
+  APPROVED: 'bg-emerald-100 text-emerald-700',
+  REJECTED: 'bg-red-100 text-red-700',
 }
 
 export function UpdateStatusModal({
@@ -32,7 +32,7 @@ export function UpdateStatusModal({
   onUpdate,
 }: UpdateStatusModalProps) {
   const [selectedStatus, setSelectedStatus] = useState<ChangeOrderStatus>(
-    order?.status ?? 'Pending'
+    order?.status ?? 'PENDING'
   )
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export function UpdateStatusModal({
       open={open}
       onClose={onClose}
       title="Update Status"
-      description={`Change order ${order.orderId}`}
+      description={`Change order #${order.id?.slice(0, 8).toUpperCase()}`}
       size="sm"
       className="max-w-sm bg-white"
     >
@@ -63,7 +63,7 @@ export function UpdateStatusModal({
           <span
             className={cn(
               'inline-flex px-3 py-1.5 rounded-full text-sm font-medium',
-              STATUS_STYLES[order.status]
+              STATUS_STYLES[order.status as ChangeOrderStatus]
             )}
           >
             {order.status}

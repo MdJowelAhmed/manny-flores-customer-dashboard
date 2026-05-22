@@ -2,20 +2,19 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FileUp } from 'lucide-react'
 import { ModalWrapper } from '@/components/common'
-import { TiptapEditor } from '@/components/common/TiptapEditor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/utils/cn'
 import { toast } from 'sonner'
-import type { DocumentRequest } from '../documentsData'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface UploadCustomerDocumentModalProps {
   open: boolean
   onClose: () => void
-  request: DocumentRequest | null
-  onSubmit: (args: { descriptionHtml: string; file: File }) => void
+  request: any
+  onSubmit: (args: { documentType: string; file: File }) => void
 }
 
 const inputClass =
@@ -31,17 +30,17 @@ export function UploadCustomerDocumentModal({
 }: UploadCustomerDocumentModalProps) {
   const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [descriptionHtml, setDescriptionHtml] = useState('')
+  const [documentType, setDocumentType] = useState('PDF')
   const [file, setFile] = useState<File | null>(null)
 
   const headerText = useMemo(() => {
     if (!request) return ''
-    return t('documents.uploadHeader', { project: request.projectName })
+    return t('documents.uploadHeader', { project: request.project?.estimates?.projectName || 'Project' })
   }, [request, t])
 
   useEffect(() => {
     if (!open) return
-    setDescriptionHtml('')
+    setDocumentType('PDF')
     setFile(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }, [open])
@@ -57,12 +56,12 @@ export function UploadCustomerDocumentModal({
       toast.error(t('documents.fileRequired'))
       return
     }
-    if (!descriptionHtml.trim()) {
-      toast.error(t('documents.descriptionRequired'))
+    if (!documentType) {
+      toast.error('Please select a document type')
       return
     }
-    onSubmit({ descriptionHtml, file })
-    toast.success(t('documents.submitted'))
+    onSubmit({ documentType, file })
+    // toast.success(t('documents.submitted'))
     handleClose()
   }
 
@@ -84,7 +83,7 @@ export function UploadCustomerDocumentModal({
           <Label className="text-sm font-medium text-gray-800">
             {t('documents.projectName')}
           </Label>
-          <Input value={request.projectName} readOnly className={cn(inputClass, 'bg-[#EEF2FF]')} />
+          <Input value={request.project?.estimates?.projectName || ''} readOnly className={cn(inputClass, 'bg-[#EEF2FF]')} />
         </div>
 
         <div className="space-y-1.5">
@@ -92,7 +91,7 @@ export function UploadCustomerDocumentModal({
             {t('documents.reason')}
           </Label>
           <Textarea
-            value={request.reason}
+            value={request.description || ''}
             readOnly
             rows={3}
             className={cn(
@@ -103,14 +102,17 @@ export function UploadCustomerDocumentModal({
 
         <div className="space-y-1.5">
           <Label className="text-sm font-medium text-gray-800">
-            {t('documents.description')}
+            Document Type
           </Label>
-          <TiptapEditor
-            content={descriptionHtml}
-            onChange={setDescriptionHtml}
-            placeholder={t('documents.descriptionPlaceholder')}
-            className="min-h-[220px]"
-          />
+          <Select value={documentType} onValueChange={setDocumentType}>
+            <SelectTrigger className={cn(inputClass, ' w-full')}>
+              <SelectValue placeholder="Select document type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PDF">PDF</SelectItem>
+              <SelectItem value="IMAGE">Image</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-1.5">

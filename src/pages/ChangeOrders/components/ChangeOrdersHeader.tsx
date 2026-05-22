@@ -12,9 +12,9 @@ interface ChangeOrdersHeaderProps {
 
 const tabs: { label: string; value: 'all' | ChangeOrderStatus }[] = [
   { label: 'All', value: 'all' },
-  { label: 'Pending', value: 'Pending' },
-  { label: 'Approved', value: 'Approved' },
-  { label: 'Rejected', value: 'Rejected' },
+  { label: 'Pending', value: 'PENDING' },
+  { label: 'Approved', value: 'APPROVED' },
+  { label: 'Rejected', value: 'REJECTED' },
 ]
 
 export function ChangeOrdersHeader({
