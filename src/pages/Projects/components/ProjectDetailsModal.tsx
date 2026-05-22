@@ -186,7 +186,7 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
                   <span>{t('projects.subtotal', { defaultValue: 'Subtotal' })}</span>
                   <span>{fmtProjectMoney(preview.subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-gray-500">
+                {/* <div className="flex justify-between text-gray-500">
                   <span>
                     {t('projects.tax', {
                       defaultValue: 'Tax ({{percent}}%)',
@@ -194,7 +194,7 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
                     })}
                   </span>
                   <span>{fmtProjectMoney(preview.taxAmount)}</span>
-                </div>
+                </div> */}
                 <div className="flex justify-between border-t border-gray-200 pt-2 text-base font-bold text-gray-900">
                   <span>{t('projects.balanceDue', { defaultValue: 'Balance due' })}</span>
                   <span className="text-[#22c55e]">{fmtProjectMoney(preview.balanceDue)}</span>

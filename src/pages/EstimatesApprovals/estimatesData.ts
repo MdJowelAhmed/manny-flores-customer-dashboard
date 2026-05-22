@@ -107,11 +107,6 @@ export interface Estimate {
   summaryCostCount?: number
   /** Modal sections; if absent, derived from line items */
   detailBreakdown?: EstimateDetailBreakdown
-  estimateStartDate?: string
-  estimateEndDate?: string
-  materials?: any[]
-  equipment?: any[]
-  vehicles?: any[]
 }
 
 export function formatEstimateCardDate(startDate: string): string {

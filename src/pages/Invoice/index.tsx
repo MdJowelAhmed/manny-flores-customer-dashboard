@@ -20,6 +20,7 @@ import {
   useGetInvoicesQuery,
 } from '@/redux/api/invoiceApi'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 
 const ITEMS_PER_PAGE = 10
 
@@ -32,7 +33,7 @@ export default function InvoicePage() {
   const [viewOpen, setViewOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE)
-
+  const navigate = useNavigate()
   const { data, isLoading, isError, refetch } = useGetInvoicesQuery({
     page: currentPage,
     limit: itemsPerPage,
@@ -106,6 +107,7 @@ export default function InvoicePage() {
           defaultValue: 'Invoice signed successfully',
         })
       )
+      navigate('/projects')
     } catch {
       toast.error(
         t('invoice.signatureError', {
