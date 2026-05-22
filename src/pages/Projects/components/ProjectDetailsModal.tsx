@@ -81,7 +81,7 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
       onClose={onClose}
       title={t('projects.previewTitle', { defaultValue: 'Estimate preview' })}
       size="xl"
-      className="max-w-3xl bg-white sm:rounded-2xl"
+      className="max-w-4xl bg-white sm:rounded-2xl"
       headerClassName="border-b border-gray-100 pb-4"
       footer={
         <div className="flex justify-end gap-3">
