@@ -1,110 +1,117 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ModalWrapper } from '@/components/common'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { fmtInvoiceUsd, getInvoiceBreakdown, type Invoice, type InvoiceStatus } from '../invoicesData'
+import { useGetSingleEstimateQuery } from '@/redux/api/estimateApi'
+import { imageUrl } from '@/components/common/getImageUrl'
+import { formatDateDayMonth } from '@/utils/formatters'
+import {
+  buildLineItemsFromEstimate,
+  computeProjectTotals,
+} from '@/pages/Projects/projectEstimateUtils'
+import { COMPANY_INFO, fmtProjectMoney } from '@/pages/Projects/projectsData'
+import {
+  formatProjectInvoiceStatusLabel,
+  normalizeProjectInvoiceStatus,
+  projectInvoiceStatusBadgeVariant,
+  type Invoice,
+} from '../invoicesData'
 
 interface InvoiceViewModalProps {
   open: boolean
   onClose: () => void
   invoice: Invoice
-  onApprove?: (invoiceId: string, payload: { signatureDataUrl: string; approvedAt: string }) => void
+  onApprove?: (
+    invoiceId: string,
+    payload: { signatureDataUrl: string; approvedAt: string }
+  ) => void | Promise<void>
+  isSubmittingSignature?: boolean
 }
 
-function safeFormatDate(iso: string, fmt: string) {
+function formatPreviewDateRange(start?: string, end?: string): string {
+  const fmt = (iso?: string) => {
+    if (!iso) return '—'
+    try {
+      const parsed = iso.includes('T') ? new Date(iso) : parseISO(iso)
+      if (Number.isNaN(parsed.getTime())) return iso
+      return formatDateDayMonth(parsed)
+    } catch {
+      return iso
+    }
+  }
+  return `${fmt(start)} — ${fmt(end)}`
+}
+
+function safeFormatSignedDate(iso?: string): string {
+  if (!iso) return ''
   try {
-    return format(parseISO(iso), fmt)
+    return format(parseISO(iso), 'dd/MM/yyyy')
   } catch {
     return iso
   }
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-4 border-b border-gray-100 py-2.5 text-sm last:border-0">
-      <span className="text-gray-500">{label}</span>
-      <span className="text-right font-semibold text-gray-900">{value}</span>
-    </div>
-  )
-}
-
-function CollapsibleSection({
-  title,
-  defaultOpen = true,
-  children,
-}: {
-  title: string
-  defaultOpen?: boolean
-  children: React.ReactNode
-}) {
-  const [open, setOpen] = useState(defaultOpen)
-  return (
-    <div className="space-y-2">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 rounded-lg py-1 text-left transition-colors hover:bg-gray-100/80"
-        aria-expanded={open}
-      >
-        <span className="text-base font-semibold text-gray-900">{title}</span>
-        {open ? (
-          <ChevronUp className="h-5 w-5 shrink-0 text-gray-500" aria-hidden />
-        ) : (
-          <ChevronDown className="h-5 w-5 shrink-0 text-gray-500" aria-hidden />
-        )}
-      </button>
-      {open ? (
-        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">{children}</div>
-      ) : null}
-    </div>
-  )
-}
-
-function statusBadgeVariant(status: InvoiceStatus): 'warning' | 'success' | 'error' | 'secondary' {
-  switch (status) {
-    case 'paid':
-      return 'success'
-    case 'overdue':
-      return 'error'
-    case 'draft':
-      return 'secondary'
-    default:
-      return 'warning'
-  }
-}
-
-export function InvoiceViewModal({ open, onClose, invoice, onApprove }: InvoiceViewModalProps) {
+export function InvoiceViewModal({
+  open,
+  onClose,
+  invoice,
+  onApprove,
+  isSubmittingSignature = false,
+}: InvoiceViewModalProps) {
   const { t } = useTranslation()
 
-  const breakdown = getInvoiceBreakdown(invoice)
-  const issueStr = safeFormatDate(invoice.invoiceDate, 'dd/MM/yyyy')
-  const dueStr = invoice.dueDate ? safeFormatDate(invoice.dueDate, 'dd/MM/yyyy') : '—'
-  const status = invoice.status ?? 'pending'
+  const { data: estimateResponse, isLoading } = useGetSingleEstimateQuery(invoice.id, {
+    skip: !open || !invoice.id,
+  })
 
-  const statusLabel = t(`invoice.status.${status}`)
+  const preview = useMemo(() => {
+    const doc = estimateResponse?.data
+    const lineItems = doc ? buildLineItemsFromEstimate(doc) : []
+    const taxPercent = doc?.taxNumber ?? invoice.taxPercent ?? 0
+    const { balanceDue } = computeProjectTotals(
+      lineItems,
+      Number(taxPercent),
+      doc?.totalCost ?? invoice.amount
+    )
 
-  const isApproved = status === 'paid' && !!invoice.signatureDataUrl
-  const canApprove = (status === 'pending' || status === 'overdue') && !isApproved && !!onApprove
+    return {
+      projectName: doc?.projectName ?? invoice.materialSummary,
+      customerName: doc?.customerName ?? invoice.customerName,
+      customerEmail: doc?.customerEmail ?? invoice.customerEmail ?? '—',
+      customerAddress: doc?.customerAddress ?? invoice.customerAddress ?? '—',
+      startDate: doc?.estimateStartDate ?? invoice.invoiceDate,
+      endDate: doc?.estimateEndDate ?? invoice.dueDate,
+      lineItems,
+      totalCost: balanceDue,
+    }
+  }, [estimateResponse?.data, invoice])
 
-  const approvedAtStr = useMemo(() => {
-    if (!invoice.approvedAt) return ''
-    return safeFormatDate(invoice.approvedAt, 'dd/MM/yyyy')
-  }, [invoice.approvedAt])
+  const projectStatus = normalizeProjectInvoiceStatus(
+    estimateResponse?.data?.projectStatus ?? invoice.projectStatus
+  )
+  const statusLabel = formatProjectInvoiceStatusLabel(projectStatus)
+  const isInProgress = projectStatus === 'IN_PROGRESS'
+  const signatureUrl = invoice.signatureDataUrl
+  const isSigned = !!signatureUrl
+  const canSign = isInProgress && !isSigned && !!onApprove
+  const showSignatureSection = isInProgress || isSigned
 
-  // Signature pad
+  const approvedAtStr = useMemo(
+    () => safeFormatSignedDate(invoice.approvedAt),
+    [invoice.approvedAt]
+  )
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const drawingRef = useRef(false)
-  const [sigDataUrl, setSigDataUrl] = useState<string>('')
+  const [sigDataUrl, setSigDataUrl] = useState('')
 
   useEffect(() => {
-    // Reset signature draft when switching invoices
     setSigDataUrl('')
   }, [invoice.id])
 
-  const hasSignature = !!sigDataUrl || !!invoice.signatureDataUrl
+  const hasSignature = !!sigDataUrl || isSigned
 
   const resizeCanvas = () => {
     const canvas = canvasRef.current
@@ -119,7 +126,6 @@ export function InvoiceViewModal({ open, onClose, invoice, onApprove }: InvoiceV
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.setTransform(1, 0, 0, 1, 0, 0)
-    // Draw in device pixels; pointer points are mapped via scale factors.
     ctx.lineWidth = 2.2 * dpr
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
@@ -197,163 +203,199 @@ export function InvoiceViewModal({ open, onClose, invoice, onApprove }: InvoiceV
     <ModalWrapper
       open={open}
       onClose={onClose}
-      title={invoice.refCode}
-      size="xl"
-      className="max-w-2xl bg-white sm:rounded-xl"
-      headerClassName="pb-2"
+      title={t('invoice.previewTitle', { defaultValue: 'Estimate preview' })}
+      size="full"
+      className="max-w-4xl border-0 bg-white p-0 shadow-xl sm:rounded-2xl"
+      headerClassName="px-6 pt-6 pb-0"
+      footer={
+        <div className="flex justify-end px-6 pb-6 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10 min-w-[100px] rounded-lg border-gray-300 bg-white px-6 font-medium text-gray-800 shadow-sm hover:bg-gray-50"
+            onClick={onClose}
+          >
+            {t('common.close', { defaultValue: 'Close' })}
+          </Button>
+        </div>
+      }
     >
-      <div className="space-y-5 rounded-xl bg-gray-100/80 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Badge variant={statusBadgeVariant(status)} className="capitalize">
-            {statusLabel}
-          </Badge>
-          <div className="text-sm text-gray-600">
-            <span className="text-gray-500">{t('invoice.dueDate')}: </span>
-            <span className="font-medium text-gray-900">{dueStr}</span>
+      <div className="space-y-6 px-6 pb-2">
+        <div className="grid gap-8 sm:grid-cols-2">
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#22c55e] text-xs font-bold text-white">
+                MF
+              </div>
+              <div className="min-w-0">
+                <p className="text-base font-bold leading-tight text-gray-900">
+                  {COMPANY_INFO.name}
+                </p>
+                <p className="mt-0.5 text-sm text-gray-500">{COMPANY_INFO.tagline}</p>
+              </div>
+            </div>
+            <div className="space-y-0.5 pl-[52px] text-xs leading-relaxed text-gray-500">
+              <p>{COMPANY_INFO.address}</p>
+              <p>
+                {COMPANY_INFO.phone} · {COMPANY_INFO.email}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-1 sm:text-right">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">
+              {t('invoice.preparedFor', { defaultValue: 'Prepared for' })}
+            </p>
+            <p className="text-base font-bold text-gray-900">{preview.customerName}</p>
+            <p className="text-sm text-gray-500">{preview.customerEmail}</p>
+            <p className="text-sm text-gray-500">{preview.customerAddress}</p>
+            <p className="pt-2 text-sm text-gray-600">{preview.projectName}</p>
+            <p className="text-sm text-gray-500">
+              {formatPreviewDateRange(preview.startDate, preview.endDate)}
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <span className="text-xs font-medium text-gray-500">
+                {t('invoice.status', { defaultValue: 'Status' })}:
+              </span>
+              <Badge variant={projectInvoiceStatusBadgeVariant(projectStatus)}>
+                {statusLabel}
+              </Badge>
+            </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-            {t('invoice.customerInfo')}
+        {isLoading ? (
+          <p className="py-10 text-center text-sm text-gray-500">
+            {t('common.loading', { defaultValue: 'Loading...' })}
           </p>
-          <p className="mt-1 text-lg font-bold text-gray-900">{invoice.customerName}</p>
-          <div className="mt-3 space-y-2 text-sm">
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('invoice.email')}</span>
-              <span className="text-right font-medium text-gray-900">{invoice.customerEmail}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('invoice.phone')}</span>
-              <span className="text-right font-medium text-gray-900">{invoice.customerPhone}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('invoice.address')}</span>
-              <span className="max-w-[65%] text-right font-medium text-gray-900">
-                {invoice.customerAddress}
-              </span>
-            </div>
-            <div className="flex justify-between gap-4 border-t border-gray-100 pt-2">
-              <span className="text-gray-500">{t('invoice.issueDate')}</span>
-              <span className="font-medium text-gray-900">{issueStr}</span>
-            </div>
-            <div className="flex justify-between gap-4">
-              <span className="text-gray-500">{t('invoice.reference')}</span>
-              <span className="font-medium text-gray-900">{invoice.refCode}</span>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-gray-200">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="bg-[#ecfdf3] text-left text-xs font-semibold text-gray-700">
+                  <th className="px-5 py-3.5 font-semibold">
+                    {t('invoice.item', { defaultValue: 'Item' })}
+                  </th>
+                  <th className="px-5 py-3.5 text-center font-semibold">
+                    {t('invoice.quantity', { defaultValue: 'Quantity' })}
+                  </th>
+                  <th className="px-5 py-3.5 text-right font-semibold">
+                    {t('invoice.unitPrice', { defaultValue: 'Unit price' })}
+                  </th>
+                  <th className="px-5 py-3.5 text-right font-semibold">
+                    {t('invoice.totalPrice', { defaultValue: 'Total Price' })}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {preview.lineItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-8 text-center text-gray-500">
+                      {t('invoice.noLineItems', { defaultValue: 'No line items' })}
+                    </td>
+                  </tr>
+                ) : (
+                  preview.lineItems.map((row, index) => (
+                    <tr key={`${row.name}-${index}`} className="border-t border-gray-100">
+                      <td className="px-5 py-3.5 font-medium text-gray-900">{row.name}</td>
+                      <td className="px-5 py-3.5 text-center text-gray-700">{row.quantity}</td>
+                      <td className="px-5 py-3.5 text-right text-gray-700">
+                        {fmtProjectMoney(row.unitPrice)}
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-medium text-gray-900">
+                        {fmtProjectMoney(row.totalPrice)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+
+            <div className="grid grid-cols-4 border-t border-gray-200 bg-white">
+              <div className="col-span-2" />
+              <div className="flex items-center px-5 py-4">
+                <span className="text-sm font-bold text-gray-900">
+                  {t('invoice.totalCost', { defaultValue: 'Total cost' })}
+                </span>
+              </div>
+              <div className="flex items-center justify-end px-5 py-4">
+                <span className="text-base font-bold text-[#22c55e]">
+                  {fmtProjectMoney(preview.totalCost)}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <CollapsibleSection title={t('invoice.labor')}>
-          <Row label={t('invoice.quantity')} value={String(breakdown.labor.quantity)} />
-          <Row label={t('invoice.price')} value={fmtInvoiceUsd(breakdown.labor.price)} />
-        </CollapsibleSection>
-
-        <CollapsibleSection title={t('invoice.material')}>
-          <Row label={t('invoice.name')} value={breakdown.material.name} />
-          <Row label={t('invoice.quantity')} value={String(breakdown.material.quantity)} />
-          <Row
-            label={t('invoice.unitPricePerSqFt')}
-            value={fmtInvoiceUsd(breakdown.material.unitPricePerSqFt)}
-          />
-          <Row label={t('invoice.lineTotal')} value={fmtInvoiceUsd(breakdown.material.totalPrice)} />
-        </CollapsibleSection>
-
-        <CollapsibleSection title={t('invoice.equipment')}>
-          <Row label={t('invoice.name')} value={breakdown.equipment.name} />
-          <Row label={t('invoice.quantity')} value={String(breakdown.equipment.quantity)} />
-          <Row
-            label={t('invoice.unitPricePerSqFt')}
-            value={fmtInvoiceUsd(breakdown.equipment.unitPricePerSqFt)}
-          />
-          <Row label={t('invoice.lineTotal')} value={fmtInvoiceUsd(breakdown.equipment.totalPrice)} />
-        </CollapsibleSection>
-
-        <CollapsibleSection title={t('invoice.priceSection')}>
-          <Row label={t('invoice.subtotal')} value={fmtInvoiceUsd(breakdown.subtotal)} />
-          {breakdown.discountAmount > 0 ? (
-            <Row label={t('invoice.discount')} value={`−${fmtInvoiceUsd(breakdown.discountAmount)}`} />
-          ) : null}
-          <Row
-            label={t('invoice.taxWithPercent', { percent: breakdown.taxPercent })}
-            value={fmtInvoiceUsd(breakdown.taxAmount)}
-          />
-          <div className="flex justify-between gap-4 border-t border-gray-200 pt-3 text-base font-semibold">
-            <span className="text-gray-800">{t('invoice.grandTotal')}</span>
-            <span className="text-[#22c55e]">{fmtInvoiceUsd(breakdown.grandTotal)}</span>
-          </div>
-        </CollapsibleSection>
-
-        {invoice.description ? (
-          <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-            <p className="text-sm font-medium text-gray-500">{t('invoice.notes')}</p>
-            <p className="mt-1 text-sm leading-relaxed text-gray-900">{invoice.description}</p>
-          </div>
-        ) : null}
-
-        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-base font-semibold text-gray-900">{t('invoice.signature')}</p>
-            {isApproved ? (
-              <span className="text-xs font-semibold text-green-700">
-                {t('invoice.signedOn')} {approvedAtStr}
-              </span>
-            ) : null}
-          </div>
-
-          {isApproved && invoice.signatureDataUrl ? (
-            <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 p-3">
-              <img
-                src={invoice.signatureDataUrl}
-                alt={t('invoice.signature')}
-                className="h-24 w-full object-contain"
-              />
+        {showSignatureSection ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-gray-900">{t('invoice.signature')}</p>
+              {isSigned ? (
+                <span className="text-xs font-semibold text-green-700">
+                  {t('invoice.signedOn')} {approvedAtStr}
+                </span>
+              ) : null}
             </div>
-          ) : (
-            <>
-              <p className="mt-1 text-sm text-gray-500">{t('invoice.signatureHint')}</p>
-              <div className="mt-3 rounded-lg border border-gray-200 bg-white">
-                <canvas
-                  ref={canvasRef}
-                  className="block h-28 w-full touch-none rounded-lg"
-                  onPointerDown={beginDraw}
-                  onPointerMove={draw}
-                  onPointerUp={endDraw}
-                  onPointerCancel={endDraw}
-                  aria-label={t('invoice.signature')}
+
+            {isSigned && signatureUrl ? (
+              <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <img
+                  src={imageUrl(signatureUrl)}
+                  alt={t('invoice.signature')}
+                  className="mx-auto max-h-28 w-full object-contain"
                 />
               </div>
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-10 rounded-lg border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
-                  onClick={clearSignature}
-                >
-                  {t('invoice.clearSignature')}
-                </Button>
-                <Button
-                  type="button"
-                  className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"
-                  disabled={!sigDataUrl || !canApprove}
-                  onClick={() => {
-                    if (!sigDataUrl) return
-                    const approvedAt = new Date().toISOString()
-                    onApprove?.(invoice.id, { signatureDataUrl: sigDataUrl, approvedAt })
-                  }}
-                >
-                  {t('invoice.approveInvoice')}
-                </Button>
-              </div>
-              {!canApprove ? (
-                <p className="mt-2 text-xs text-gray-500">{t('invoice.approveLocked')}</p>
-              ) : null}
-              {canApprove && !hasSignature ? (
-                <p className="mt-2 text-xs text-gray-500">{t('invoice.signatureRequired')}</p>
-              ) : null}
-            </>
-          )}
-        </div>
+            ) : isInProgress ? (
+              <>
+                <p className="mt-1 text-sm text-gray-500">{t('invoice.signatureHint')}</p>
+                <div className="mt-3 rounded-lg border border-gray-200 bg-white">
+                  <canvas
+                    ref={canvasRef}
+                    className="block h-28 w-full touch-none rounded-lg"
+                    onPointerDown={beginDraw}
+                    onPointerMove={draw}
+                    onPointerUp={endDraw}
+                    onPointerCancel={endDraw}
+                    aria-label={t('invoice.signature')}
+                  />
+                </div>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-lg border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
+                    onClick={clearSignature}
+                    disabled={!canSign || isSubmittingSignature}
+                  >
+                    {t('invoice.clearSignature')}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"
+                    disabled={!sigDataUrl || !canSign || isSubmittingSignature}
+                    onClick={() => {
+                      if (!sigDataUrl) return
+                      const approvedAt = new Date().toISOString()
+                      void onApprove?.(invoice.id, {
+                        signatureDataUrl: sigDataUrl,
+                        approvedAt,
+                      })
+                    }}
+                  >
+                    {t('invoice.approveInvoice')}
+                  </Button>
+                </div>
+                {!canSign ? (
+                  <p className="mt-2 text-xs text-gray-500">{t('invoice.approveLocked')}</p>
+                ) : null}
+                {canSign && !hasSignature ? (
+                  <p className="mt-2 text-xs text-gray-500">{t('invoice.signatureRequired')}</p>
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </ModalWrapper>
   )

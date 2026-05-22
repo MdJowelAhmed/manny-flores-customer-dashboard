@@ -14,6 +14,7 @@ interface EstimateListCardProps {
   viewDetailsLabel: string
   onApprove?: (estimate: Estimate) => void
   approveLabel?: string
+  approveDisabled?: boolean
 }
 
 export function EstimateListCard({
@@ -22,6 +23,7 @@ export function EstimateListCard({
   viewDetailsLabel,
   onApprove,
   approveLabel = 'Approved',
+  approveDisabled = false,
 }: EstimateListCardProps) {
   const badge = ESTIMATE_LIST_BADGE[estimate.status]
   const material = estimate.materialSummary ?? estimate.project
@@ -70,6 +72,7 @@ export function EstimateListCard({
               type="button"
               className="h-11 w-full rounded-xl bg-[#22c55e] px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#16a34a] sm:w-auto"
               onClick={() => onApprove(estimate)}
+              disabled={approveDisabled}
             >
               {approveLabel}
             </Button>

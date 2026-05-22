@@ -2,6 +2,51 @@ import { addDays, format, parseISO } from 'date-fns'
 
 export type InvoiceStatus = 'pending' | 'paid' | 'overdue' | 'draft'
 
+export type ProjectInvoiceStatus =
+  | 'PENDING'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'SCHEDULED'
+  | 'CANCELLED'
+
+export function normalizeProjectInvoiceStatus(status?: string): ProjectInvoiceStatus {
+  const normalized = (status ?? 'PENDING').toUpperCase()
+  if (
+    normalized === 'IN_PROGRESS' ||
+    normalized === 'COMPLETED' ||
+    normalized === 'SCHEDULED' ||
+    normalized === 'CANCELLED'
+  ) {
+    return normalized
+  }
+  return 'PENDING'
+}
+
+export function formatProjectInvoiceStatusLabel(status?: string): string {
+  return normalizeProjectInvoiceStatus(status)
+    .split('_')
+    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
+export function projectInvoiceStatusBadgeVariant(
+  status?: string
+): 'success' | 'warning' | 'error' | 'secondary' | 'info' {
+  switch (normalizeProjectInvoiceStatus(status)) {
+    case 'COMPLETED':
+      return 'success'
+    case 'IN_PROGRESS':
+      return 'info'
+    case 'SCHEDULED':
+      return 'secondary'
+    case 'CANCELLED':
+      return 'error'
+    case 'PENDING':
+    default:
+      return 'warning'
+  }
+}
+
 export interface InvoiceLaborLine {
   quantity: number
   price: number
@@ -28,6 +73,7 @@ export interface Invoice {
   invoiceDate: string
   description?: string
   status?: InvoiceStatus
+  projectStatus?: ProjectInvoiceStatus
   /** ISO due date */
   dueDate?: string
   customerEmail?: string

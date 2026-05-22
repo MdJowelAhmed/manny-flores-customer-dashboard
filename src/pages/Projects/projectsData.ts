@@ -6,8 +6,24 @@ export type ProjectStatus =
   | 'In Progress'
   | 'Scheduled'
 
+export interface ProjectLineItem {
+  name: string
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+}
+
+export const COMPANY_INFO = {
+  name: 'Manny Flores Landscaping',
+  tagline: 'Professional landscape design & installation',
+  address: '1248 Oak Ridge Lane, Suite 400, Springfield, VA 22150',
+  phone: '(202) 555-0142',
+  email: 'hello@mannyfloreslandscaping.com',
+} as const
+
 export interface Project {
   id: string
+  estimateId?: string
   projectName: string
   category: string
   customerName: string
@@ -20,11 +36,28 @@ export interface Project {
   /** ISO yyyy-MM-dd */
   startDate?: string
   endDate?: string
+  customerEmail?: string
+  signatureUrl?: string
+  hasSignature?: boolean
+  lineItems?: ProjectLineItem[]
+  subtotal?: number
+  taxPercent?: number
+  taxAmount?: number
+  balanceDue?: number
   paymentMethod?: string
   amountDue?: string
   paymentAmount?: string
   paymentDate?: string
   paymentStatus?: string
+}
+
+export function fmtProjectMoney(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
 }
 
 export function formatProjectDisplayDate(iso?: string): string {

@@ -1,37 +1,52 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pagination } from '@/components/common'
-import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import {
-  projectsData as initialProjectsData,
-  formatProjectDisplayDate,
-  type Project,
-} from './projectsData'
+import { formatProjectDisplayDate, type Project } from './projectsData'
 import { ProjectDetailsModal } from './components/ProjectDetailsModal'
 import { AddProjectModal, type AddProjectFormData } from './components/AddProjectModal'
+import {
+  mapProjectApiDocToUi,
+  useGetProjectsQuery,
+} from '@/redux/api/projectApi'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/utils/cn'
 
-const ITEMS_PER_PAGE = 5
+const ITEMS_PER_PAGE = 10
 
-function nextProjectId(projects: Project[]): string {
-  const nums = projects.map((p) => parseInt(p.id, 10)).filter((n) => !Number.isNaN(n))
-  return String((nums.length ? Math.max(...nums) : 0) + 1)
+function statusBadgeClass(status: Project['status']): string {
+  switch (status) {
+    case 'Completed':
+      return 'bg-green-100 text-green-800'
+    case 'In Progress':
+      return 'bg-purple-100 text-purple-800'
+    case 'Scheduled':
+      return 'bg-amber-100 text-amber-900'
+    default:
+      return 'bg-orange-100 text-orange-800'
+  }
 }
 
 export default function Projects() {
   const { t } = useTranslation()
-  const [projects, setProjects] = useState<Project[]>(initialProjectsData)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE)
 
-  const totalItems = projects.length
-  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE))
-  const paginatedProjects = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE
-    return projects.slice(start, start + ITEMS_PER_PAGE)
-  }, [projects, currentPage])
+  const { data, isLoading, isError } = useGetProjectsQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+  })
+
+  const projects = useMemo(
+    () => (data?.data ?? []).map(mapProjectApiDocToUi),
+    [data?.data]
+  )
+
+  const totalItems = data?.pagination?.total ?? projects.length
+  const totalPages = Math.max(1, data?.pagination?.totalPage ?? 1)
 
   useEffect(() => {
     if (currentPage > totalPages && totalPages >= 1) setCurrentPage(1)
@@ -42,25 +57,12 @@ export default function Projects() {
     setShowDetailsModal(true)
   }
 
-  const handleAddRequest = (data: AddProjectFormData) => {
-    const id = nextProjectId(projects)
-    const newProject: Project = {
-      id,
-      projectName: data.projectName.trim(),
-      category: data.projectName.trim(),
-      customerName: '—',
-      status: 'Pending Approval',
-      progress: 0,
-      location: '—',
-      dateRange: `${formatProjectDisplayDate(data.startDate)} - ${formatProjectDisplayDate(data.endDate)}`,
-      projectValue: '—',
-      description: data.description?.trim() || '',
-      startDate: data.startDate,
-      endDate: data.endDate,
-    }
-    setProjects((prev) => [newProject, ...prev])
-    setCurrentPage(1)
-    toast.success(t('projects.projectRequested'))
+  const handleAddRequest = (_data: AddProjectFormData) => {
+    toast.message(
+      t('projects.requestNotAvailable', {
+        defaultValue: 'Project requests are not available yet. Contact your admin.',
+      })
+    )
   }
 
   return (
@@ -68,51 +70,81 @@ export default function Projects() {
       <div className="space-y-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">{t('projects.projectName')}</h1>
+            <h1 className="text-2xl font-bold text-gray-800">
+              {t('projects.title', { defaultValue: 'Projects' })}
+            </h1>
             <p className="mt-1 text-sm text-gray-500">
-              After admin creates invoice, projects will appear here and you can track progress.
+              {t('projects.subtitle', {
+                defaultValue:
+                  'View your approved projects and full estimate details after invoice signing.',
+              })}
             </p>
           </div>
-      
         </div>
 
-        {projects.length === 0 ? (
+        {isLoading ? (
+          <div className="rounded-xl bg-white p-6 text-center text-sm text-muted-foreground shadow-sm">
+            {t('common.loading', { defaultValue: 'Loading...' })}
+          </div>
+        ) : isError ? (
+          <div className="rounded-xl bg-white p-6 text-center text-sm text-red-600 shadow-sm">
+            {t('projects.loadError', { defaultValue: 'Failed to load projects' })}
+          </div>
+        ) : projects.length === 0 ? (
           <div className="rounded-xl bg-white p-6 text-center text-sm text-muted-foreground shadow-sm">
             {t('projects.noProjects')}
           </div>
         ) : (
           <div className="rounded-xl bg-white p-5 shadow-sm">
-            <div className="mt-4 overflow-x-auto">
+            <div className="mt-2 overflow-x-auto">
               <table className="min-w-full border-separate border-spacing-y-2">
                 <thead>
                   <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    <th className="px-3 py-2">Project</th>
-                    <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2">Progress</th>
-                    <th className="px-3 py-2 text-right">Action</th>
+                    <th className="px-3 py-2">{t('projects.projectName')}</th>
+                    <th className="px-3 py-2">{t('projects.customer', { defaultValue: 'Customer' })}</th>
+                    <th className="px-3 py-2">{t('projects.location', { defaultValue: 'Location' })}</th>
+                    <th className="px-3 py-2">{t('projects.dates', { defaultValue: 'Dates' })}</th>
+                    <th className="px-3 py-2">{t('projects.status', { defaultValue: 'Status' })}</th>
+                    <th className="px-3 py-2">{t('projects.value', { defaultValue: 'Value' })}</th>
+                    <th className="px-3 py-2 text-right">{t('common.action', { defaultValue: 'Action' })}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedProjects.map((p) => (
+                  {projects.map((p) => (
                     <tr key={p.id} className="rounded-lg bg-gray-50/70">
                       <td className="px-3 py-3">
                         <div className="text-sm font-semibold text-gray-900">{p.projectName}</div>
-                        <div className="text-xs text-gray-500">{p.customerName}</div>
-                        <div className="mt-1 text-[11px] text-gray-400">
-                          {formatProjectDisplayDate(p.startDate)} → {formatProjectDisplayDate(p.endDate)}
-                        </div>
+                        {p.hasSignature ? (
+                          <span className="mt-1 inline-flex text-[11px] font-medium text-green-700">
+                            {t('projects.signed', { defaultValue: 'Signed' })}
+                          </span>
+                        ) : null}
                       </td>
-                      <td className="px-3 py-3 text-sm text-gray-700">{p.status}</td>
                       <td className="px-3 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-2 w-40 overflow-hidden rounded-full bg-gray-200">
-                            <div
-                              className="h-full rounded-full bg-green-500"
-                              style={{ width: `${p.progress}%` }}
-                            />
-                          </div>
-                          <span className="text-sm font-medium text-gray-800">{p.progress}%</span>
-                        </div>
+                        <div className="text-sm text-gray-800">{p.customerName}</div>
+                        {p.customerEmail ? (
+                          <div className="text-xs text-gray-500">{p.customerEmail}</div>
+                        ) : null}
+                      </td>
+                      <td className="max-w-[180px] px-3 py-3 text-sm text-gray-600">
+                        <span className="line-clamp-2">{p.location}</span>
+                      </td>
+                      <td className="px-3 py-3 text-sm text-gray-600">
+                        {formatProjectDisplayDate(p.startDate)} →{' '}
+                        {formatProjectDisplayDate(p.endDate)}
+                      </td>
+                      <td className="px-3 py-3">
+                        <span
+                          className={cn(
+                            'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                            statusBadgeClass(p.status)
+                          )}
+                        >
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-sm font-semibold text-[#22c55e]">
+                        {p.projectValue}
                       </td>
                       <td className="px-3 py-3 text-right">
                         <Button
@@ -121,7 +153,7 @@ export default function Projects() {
                           className="h-9 rounded-lg border-gray-300 bg-white text-sm font-semibold text-gray-800 hover:bg-gray-50"
                           onClick={() => handleViewDetails(p)}
                         >
-                          View Details
+                          {t('projects.viewDetails', { defaultValue: 'View Details' })}
                         </Button>
                       </td>
                     </tr>
@@ -130,14 +162,18 @@ export default function Projects() {
               </table>
             </div>
 
-            {totalPages > 1 && (
+            {totalItems > 0 && (
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 totalItems={totalItems}
-                itemsPerPage={ITEMS_PER_PAGE}
+                itemsPerPage={itemsPerPage}
                 onPageChange={setCurrentPage}
-                showItemsPerPage={false}
+                onItemsPerPageChange={(limit) => {
+                  setItemsPerPage(limit)
+                  setCurrentPage(1)
+                }}
+                showItemsPerPage
                 className="mt-2 border-0 px-0"
               />
             )}
