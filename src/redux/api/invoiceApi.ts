@@ -1,6 +1,10 @@
 import { baseApi } from '../baseApi'
 import { format } from 'date-fns'
-import { type Invoice, type InvoiceStatus } from '@/pages/Invoice/invoicesData'
+import {
+    type Invoice,
+    type InvoiceStatus,
+    normalizeProjectInvoiceStatus,
+} from '@/pages/Invoice/invoicesData'
 
 export interface InvoicePagination {
     total: number
@@ -151,6 +155,7 @@ export function mapInvoiceApiDocToUi(doc: InvoiceApiDoc): Invoice {
         dueDate: toIsoDateOnly(doc.estimateEndDate),
         description: doc.description || undefined,
         status: mapInvoiceStatus(doc),
+        projectStatus: normalizeProjectInvoiceStatus(doc.projectStatus),
         customerEmail: doc.customerEmail,
         customerAddress: doc.customerAddress,
         taxPercent,

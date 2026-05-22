@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { ModalWrapper } from '@/components/common'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useGetSingleEstimateQuery } from '@/redux/api/estimateApi'
 import { imageUrl } from '@/components/common/getImageUrl'
@@ -11,7 +12,12 @@ import {
   computeProjectTotals,
 } from '@/pages/Projects/projectEstimateUtils'
 import { COMPANY_INFO, fmtProjectMoney } from '@/pages/Projects/projectsData'
-import { type Invoice } from '../invoicesData'
+import {
+  formatProjectInvoiceStatusLabel,
+  normalizeProjectInvoiceStatus,
+  projectInvoiceStatusBadgeVariant,
+  type Invoice,
+} from '../invoicesData'
 
 interface InvoiceViewModalProps {
   open: boolean
@@ -82,10 +88,15 @@ export function InvoiceViewModal({
     }
   }, [estimateResponse?.data, invoice])
 
-  const status = invoice.status ?? 'pending'
-  const isApproved = status === 'paid' && !!invoice.signatureDataUrl
-  const canApprove =
-    (status === 'pending' || status === 'overdue') && !isApproved && !!onApprove
+  const projectStatus = normalizeProjectInvoiceStatus(
+    estimateResponse?.data?.projectStatus ?? invoice.projectStatus
+  )
+  const statusLabel = formatProjectInvoiceStatusLabel(projectStatus)
+  const isInProgress = projectStatus === 'IN_PROGRESS'
+  const signatureUrl = invoice.signatureDataUrl
+  const isSigned = !!signatureUrl
+  const canSign = isInProgress && !isSigned && !!onApprove
+  const showSignatureSection = isInProgress || isSigned
 
   const approvedAtStr = useMemo(
     () => safeFormatSignedDate(invoice.approvedAt),
@@ -100,7 +111,7 @@ export function InvoiceViewModal({
     setSigDataUrl('')
   }, [invoice.id])
 
-  const hasSignature = !!sigDataUrl || !!invoice.signatureDataUrl
+  const hasSignature = !!sigDataUrl || isSigned
 
   const resizeCanvas = () => {
     const canvas = canvasRef.current
@@ -242,6 +253,14 @@ export function InvoiceViewModal({
             <p className="text-sm text-gray-500">
               {formatPreviewDateRange(preview.startDate, preview.endDate)}
             </p>
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <span className="text-xs font-medium text-gray-500">
+                {t('invoice.status', { defaultValue: 'Status' })}:
+              </span>
+              <Badge variant={projectInvoiceStatusBadgeVariant(projectStatus)}>
+                {statusLabel}
+              </Badge>
+            </div>
           </div>
         </div>
 
@@ -308,73 +327,75 @@ export function InvoiceViewModal({
           </div>
         )}
 
-        {/* Signature — same functionality as before */}
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-gray-900">{t('invoice.signature')}</p>
-            {isApproved ? (
-              <span className="text-xs font-semibold text-green-700">
-                {t('invoice.signedOn')} {approvedAtStr}
-              </span>
-            ) : null}
-          </div>
-
-          {isApproved && invoice.signatureDataUrl ? (
-            <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
-              <img
-                src={imageUrl(invoice.signatureDataUrl)}
-                alt={t('invoice.signature')}
-                className="mx-auto max-h-28 w-full object-contain"
-              />
+        {showSignatureSection ? (
+          <div className="rounded-xl border border-gray-200 bg-white p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-gray-900">{t('invoice.signature')}</p>
+              {isSigned ? (
+                <span className="text-xs font-semibold text-green-700">
+                  {t('invoice.signedOn')} {approvedAtStr}
+                </span>
+              ) : null}
             </div>
-          ) : (
-            <>
-              <p className="mt-1 text-sm text-gray-500">{t('invoice.signatureHint')}</p>
-              <div className="mt-3 rounded-lg border border-gray-200 bg-white">
-                <canvas
-                  ref={canvasRef}
-                  className="block h-28 w-full touch-none rounded-lg"
-                  onPointerDown={beginDraw}
-                  onPointerMove={draw}
-                  onPointerUp={endDraw}
-                  onPointerCancel={endDraw}
-                  aria-label={t('invoice.signature')}
+
+            {isSigned && signatureUrl ? (
+              <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <img
+                  src={imageUrl(signatureUrl)}
+                  alt={t('invoice.signature')}
+                  className="mx-auto max-h-28 w-full object-contain"
                 />
               </div>
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-10 rounded-lg border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
-                  onClick={clearSignature}
-                >
-                  {t('invoice.clearSignature')}
-                </Button>
-                <Button
-                  type="button"
-                  className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"
-                  disabled={!sigDataUrl || !canApprove || isSubmittingSignature}
-                  onClick={() => {
-                    if (!sigDataUrl) return
-                    const approvedAt = new Date().toISOString()
-                    void onApprove?.(invoice.id, {
-                      signatureDataUrl: sigDataUrl,
-                      approvedAt,
-                    })
-                  }}
-                >
-                  {t('invoice.approveInvoice')}
-                </Button>
-              </div>
-              {!canApprove ? (
-                <p className="mt-2 text-xs text-gray-500">{t('invoice.approveLocked')}</p>
-              ) : null}
-              {canApprove && !hasSignature ? (
-                <p className="mt-2 text-xs text-gray-500">{t('invoice.signatureRequired')}</p>
-              ) : null}
-            </>
-          )}
-        </div>
+            ) : isInProgress ? (
+              <>
+                <p className="mt-1 text-sm text-gray-500">{t('invoice.signatureHint')}</p>
+                <div className="mt-3 rounded-lg border border-gray-200 bg-white">
+                  <canvas
+                    ref={canvasRef}
+                    className="block h-28 w-full touch-none rounded-lg"
+                    onPointerDown={beginDraw}
+                    onPointerMove={draw}
+                    onPointerUp={endDraw}
+                    onPointerCancel={endDraw}
+                    aria-label={t('invoice.signature')}
+                  />
+                </div>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-lg border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
+                    onClick={clearSignature}
+                    disabled={!canSign || isSubmittingSignature}
+                  >
+                    {t('invoice.clearSignature')}
+                  </Button>
+                  <Button
+                    type="button"
+                    className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"
+                    disabled={!sigDataUrl || !canSign || isSubmittingSignature}
+                    onClick={() => {
+                      if (!sigDataUrl) return
+                      const approvedAt = new Date().toISOString()
+                      void onApprove?.(invoice.id, {
+                        signatureDataUrl: sigDataUrl,
+                        approvedAt,
+                      })
+                    }}
+                  >
+                    {t('invoice.approveInvoice')}
+                  </Button>
+                </div>
+                {!canSign ? (
+                  <p className="mt-2 text-xs text-gray-500">{t('invoice.approveLocked')}</p>
+                ) : null}
+                {canSign && !hasSignature ? (
+                  <p className="mt-2 text-xs text-gray-500">{t('invoice.signatureRequired')}</p>
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </ModalWrapper>
   )

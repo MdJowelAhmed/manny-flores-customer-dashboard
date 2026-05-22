@@ -97,7 +97,6 @@ export default function InvoicePage() {
         if (!prev || prev.id !== estimateId) return prev
         return {
           ...prev,
-          status: 'paid',
           signatureDataUrl: payload.signatureDataUrl,
           approvedAt: payload.approvedAt,
         }
