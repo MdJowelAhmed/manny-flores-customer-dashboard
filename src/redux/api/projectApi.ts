@@ -79,13 +79,13 @@ function toIsoDateOnly(date: string): string {
     return format(parsed, 'yyyy-MM-dd')
 }
 
-function mapProjectStatus(apiStatus: string, estimateStatus?: string): ProjectStatus {
-    const status = apiStatus.toUpperCase()
-    const estimate = estimateStatus?.toUpperCase() ?? ''
+function mapProjectStatus(projectStatus?: string): ProjectStatus {
+    const status = (projectStatus ?? '').toUpperCase()
 
-    if (status === 'COMPLETED' || estimate === 'COMPLETED') return 'Completed'
-    if (status === 'IN_PROGRESS' || estimate === 'IN_PROGRESS') return 'In Progress'
+    if (status === 'COMPLETED') return 'Completed'
+    if (status === 'IN_PROGRESS') return 'In Progress'
     if (status === 'SCHEDULED') return 'Scheduled'
+    if (status === 'CANCELLED') return 'Cancelled'
     return 'Pending Approval'
 }
 
@@ -104,7 +104,7 @@ export function mapProjectApiDocToUi(doc: ProjectApiDoc): Project {
     const estimate = doc.estimates
     const startDate = toIsoDateOnly(estimate.estimateStartDate)
     const endDate = toIsoDateOnly(estimate.estimateEndDate)
-    const status = mapProjectStatus(doc.status, estimate.projectStatus)
+    const status = mapProjectStatus(estimate.projectStatus)
 
     return {
         id: doc.id,

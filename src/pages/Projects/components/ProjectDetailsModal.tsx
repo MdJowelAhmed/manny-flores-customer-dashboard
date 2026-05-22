@@ -119,7 +119,7 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
           >
             {t('common.close', { defaultValue: 'Close' })}
           </Button>
-          {project.status !== 'Completed' ? (
+          {project.status !== 'Completed' && project.status !== 'Cancelled' ? (
             <Button
               type="button"
               className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"

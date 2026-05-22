@@ -5,6 +5,7 @@ export type ProjectStatus =
   | 'Pending Approval'
   | 'In Progress'
   | 'Scheduled'
+  | 'Cancelled'
 
 export interface ProjectLineItem {
   name: string
