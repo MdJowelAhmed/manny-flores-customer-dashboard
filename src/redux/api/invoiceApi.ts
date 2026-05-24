@@ -5,6 +5,7 @@ import {
     type InvoiceStatus,
     normalizeProjectInvoiceStatus,
 } from '@/pages/Invoice/invoicesData'
+import type { EstimateMutationResponse } from './estimateApi'
 
 export interface InvoicePagination {
     total: number
@@ -208,7 +209,57 @@ const invoiceApi = baseApi.injectEndpoints({
             },
             invalidatesTags: ['Invoice'],
         }),
+
+        getPublicEstimate: builder.query<EstimateMutationResponse, string>({
+            query: (id) => ({
+                url: `/estimate-v-two/${id}`,
+                method: 'GET',
+            }),
+            providesTags: ['Invoice'],
+        }),
+
+        submitPublicEstimateDecision: builder.mutation<
+            InvoiceSignatureResponse,
+            {
+                estimateId: string
+                estimateStatus: 'APPROVED' | 'REJECTED'
+                customerEmail: string
+                customerName: string
+                signatureDataUrl?: string
+            }
+        >({
+            query: ({
+                estimateId,
+                estimateStatus,
+                customerEmail,
+                customerName,
+                signatureDataUrl,
+            }) => {
+                const formData = new FormData()
+                formData.append('estimateId', estimateId)
+                formData.append('estimateStatus', estimateStatus)
+                formData.append('customerEmail', customerEmail)
+                formData.append('customerName', customerName)
+                if (estimateStatus === 'APPROVED' && signatureDataUrl) {
+                    formData.append(
+                        'signature',
+                        dataUrlToFile(signatureDataUrl, 'signature.png')
+                    )
+                }
+                return {
+                    url: '/estimate-approved/create',
+                    method: 'POST',
+                    body: formData,
+                }
+            },
+            invalidatesTags: ['Invoice'],
+        }),
     }),
 })
 
-export const { useGetInvoicesQuery, useAddInvoiceSignatureMutation } = invoiceApi
+export const {
+    useGetInvoicesQuery,
+    useAddInvoiceSignatureMutation,
+    useGetPublicEstimateQuery,
+    useSubmitPublicEstimateDecisionMutation,
+} = invoiceApi

@@ -29,6 +29,7 @@ import MyTask from './pages/MyTask'
 import Projects from './pages/Projects'
 import EstimatesApprovals from './pages/EstimatesApprovals'
 import InvoicePage from './pages/Invoice'
+import PublicEstimatePage from './pages/PublicEstimate'
 import ReviewList from './pages/Reviews/ReviewList'
 import Payment from './pages/Payment'
 import ChangeOrders from './pages/ChangeOrders/ChangeOrders'
@@ -56,6 +57,9 @@ function App() {
   return (
     <TooltipProvider>
       <Routes>
+        {/* Public Routes - No login required */}
+        <Route path="/public/estimate/:id" element={<PublicEstimatePage />} />
+
         {/* Auth Routes - No sidebar/header */}
         <Route path="/auth" element={<AuthLayout />}>
           <Route index element={<Navigate to="/auth/login" replace />} />
