@@ -28,13 +28,13 @@ export default function Documents() {
 
   // API CALLS
   const { data: response, isLoading, refetch } = useGetDocumentsQuery({ page, search })
-  const documentsApi = response?.data || []
-  const pagination = response?.pagination
-
+  const documentsApi = response?.data?.result || []
+  const pagination = response?.data?.meta
+  // console.log(response)
   const [submitDocument] = useSubmitDocumentMutation()
 
   const pendingCount = useMemo(
-    () => documentsApi.filter((r: any) => r.status === 'PENDING').length,
+    () => documentsApi?.filter((r: any) => r.status === 'PENDING')?.length,
     [documentsApi]
   )
 
@@ -100,15 +100,15 @@ export default function Documents() {
           <div className="divide-y divide-gray-100">
             {isLoading ? (
               <div className="py-12 text-center text-sm text-muted-foreground">Loading...</div>
-            ) : documentsApi.length === 0 ? (
+            ) : documentsApi?.length === 0 ? (
               <div className="py-12 text-center text-sm text-muted-foreground">
                 {t('documents.empty')}
               </div>
             ) : (
-              documentsApi.map((req: any) => {
+              documentsApi?.map((req: any) => {
                 const st = statusStyles[req.status] || { bg: 'bg-gray-100', text: 'text-gray-900', labelKey: req.status }
                 return (
-                  <div key={req.id} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div key={req?.id} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-2 min-w-0">

@@ -1,20 +1,8 @@
-
-export const imageUrl = (path: string): string => {
-    if (!path || typeof path !== 'string') {
-        return ''
-    }
-
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-        try {
-            const { pathname } = new URL(path)
-            if (pathname.startsWith('/uploads')) {
-                return pathname
-            }
-        } catch {
-            return path
-        }
-        return path
-    }
-
-    return path.startsWith('/') ? path : `/${path}`
+export function imageUrl(imageurl: string) {
+    // console.log(imageurl)
+    const imageUrl = import.meta.env.VITE_API_BASE_URL || 'http://10.10.7.28:5000';
+    if (imageurl?.startsWith("http") || imageurl?.startsWith("blob:"))
+        return imageurl;
+    // console.log(imageUrl + imageurl)
+    return imageUrl + imageurl;
 }
