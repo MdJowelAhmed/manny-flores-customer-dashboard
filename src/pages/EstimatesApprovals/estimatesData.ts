@@ -90,10 +90,14 @@ export interface Estimate {
   project: string
   amount: string
   status: EstimateStatus
+  /** Raw API project status e.g. PENDING, SCHEDULED */
+  projectStatus?: string
   startDate: string
   customerName: string
   email: string
   company: string
+  /** Project duration in days from API */
+  totalDate?: number
   startDateFormatted?: string
   amountDue?: string
   contactNumber?: string

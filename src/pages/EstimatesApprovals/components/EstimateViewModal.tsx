@@ -1,54 +1,47 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ModalWrapper } from '@/components/common'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useGetSingleEstimateQuery } from '@/redux/api/estimateApi'
-import { formatDateDayMonth } from '@/utils/formatters'
 import {
   buildLineItemsFromEstimate,
   computeProjectTotals,
 } from '@/pages/Projects/projectEstimateUtils'
 import { COMPANY_INFO, fmtProjectMoney } from '@/pages/Projects/projectsData'
+import {
+  formatProjectInvoiceStatusLabel,
+  normalizeProjectInvoiceStatus,
+  projectInvoiceStatusBadgeVariant,
+} from '@/pages/Invoice/invoicesData'
 import { type Estimate } from '../estimatesData'
+import { EstimateDecisionSection } from './EstimateDecisionSection'
 
 interface EstimateViewModalProps {
   open: boolean
   onClose: () => void
   estimate: Estimate | null
-  onApprove?: (estimate: Estimate) => void
-  onReject?: (estimate: Estimate) => void
-  actionsDisabled?: boolean
-}
-
-function formatPreviewDateRange(start?: string, end?: string): string {
-  const fmt = (iso?: string) => {
-    if (!iso) return '—'
-    const parsed = new Date(iso)
-    if (Number.isNaN(parsed.getTime())) return iso
-    return formatDateDayMonth(parsed)
-  }
-  return `${fmt(start)} — ${fmt(end)}`
+  onDecisionComplete?: () => void
 }
 
 export function EstimateViewModal({
   open,
   onClose,
   estimate,
-  onApprove,
-  onReject,
-  actionsDisabled = false,
+  onDecisionComplete,
 }: EstimateViewModalProps) {
   const { t } = useTranslation()
 
-  const { data: estimateResponse, isLoading } = useGetSingleEstimateQuery(
+  const { data: estimateResponse, isLoading, refetch } = useGetSingleEstimateQuery(
     estimate?.id ?? '',
     { skip: !open || !estimate?.id }
   )
 
+  const doc = estimateResponse?.data
+
   const preview = useMemo(() => {
     if (!estimate) return null
 
-    const doc = estimateResponse?.data
     const lineItems = doc ? buildLineItemsFromEstimate(doc) : []
     const taxPercent = doc?.taxNumber ?? estimate.taxRatePercent ?? 0
     const { balanceDue } = computeProjectTotals(
@@ -57,29 +50,36 @@ export function EstimateViewModal({
       doc?.totalCost
     )
 
+    const totalDateRaw = doc?.totalDate ?? estimate.totalDate
+    const totalDate =
+      totalDateRaw != null && !Number.isNaN(Number(totalDateRaw))
+        ? Number(totalDateRaw)
+        : null
+
+    const projectStatus = normalizeProjectInvoiceStatus(
+      doc?.projectStatus ?? estimate.projectStatus
+    )
+
     return {
       projectName: doc?.projectName ?? estimate.project,
       customerName: doc?.customerName ?? estimate.customerName,
-      customerEmail: doc?.customerEmail ?? estimate.email ?? '—',
+      customerEmail: doc?.customerEmail ?? estimate.email ?? '',
       customerAddress: doc?.customerAddress ?? estimate.company ?? '—',
-      startDate: doc?.estimateStartDate,
-      endDate: doc?.estimateEndDate,
       lineItems,
       totalCost: balanceDue,
+      totalDate: Number.isFinite(totalDate) ? totalDate : null,
+      projectStatus,
+      statusLabel: formatProjectInvoiceStatusLabel(projectStatus),
     }
   }, [estimate, estimateResponse?.data])
 
   if (!estimate || !preview) return null
 
-  const canRespond = estimate.status === 'Pending'
+  const showDecision = preview.projectStatus === 'PENDING' && !!preview.customerEmail
 
-  const handleApprove = () => {
-    onApprove?.(estimate)
-    onClose()
-  }
-
-  const handleReject = () => {
-    onReject?.(estimate)
+  const handleDecisionSuccess = () => {
+    void refetch()
+    onDecisionComplete?.()
     onClose()
   }
 
@@ -92,7 +92,7 @@ export function EstimateViewModal({
       className="max-w-4xl border-0 bg-white p-0 shadow-xl sm:rounded-2xl"
       headerClassName="px-6 pt-6 pb-0"
       footer={
-        <div className="flex flex-col-reverse justify-end gap-3 px-6 pb-6 pt-2 sm:flex-row">
+        <div className="flex justify-end px-6 pb-6 pt-2">
           <Button
             type="button"
             variant="outline"
@@ -101,27 +101,6 @@ export function EstimateViewModal({
           >
             {t('common.close', { defaultValue: 'Close' })}
           </Button>
-          {canRespond ? (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-10 rounded-lg border-gray-300 bg-white px-6 font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-                onClick={handleReject}
-                disabled={actionsDisabled}
-              >
-                {t('estimates.reject')}
-              </Button>
-              <Button
-                type="button"
-                className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"
-                onClick={handleApprove}
-                disabled={actionsDisabled}
-              >
-                {t('estimates.approved')}
-              </Button>
-            </>
-          ) : null}
         </div>
       }
     >
@@ -129,8 +108,12 @@ export function EstimateViewModal({
         <div className="grid gap-8 sm:grid-cols-2">
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#22c55e] text-xs font-bold text-white">
-                MF
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white">
+                <img
+                  src="/image3.svg"
+                  alt={COMPANY_INFO.name}
+                  className="h-10 w-10 object-contain"
+                />
               </div>
               <div className="min-w-0">
                 <p className="text-base font-bold leading-tight text-gray-900">
@@ -155,9 +138,29 @@ export function EstimateViewModal({
             <p className="text-sm text-gray-500">{preview.customerEmail}</p>
             <p className="text-sm text-gray-500">{preview.customerAddress}</p>
             <p className="pt-2 text-sm text-gray-600">{preview.projectName}</p>
-            <p className="text-sm text-gray-500">
-              {formatPreviewDateRange(preview.startDate, preview.endDate)}
-            </p>
+
+            {preview.totalDate != null ? (
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <span className="text-xs font-medium text-gray-500">
+                  {t('estimates.duration', { defaultValue: 'Duration' })}:
+                </span>
+                <span className="text-sm font-semibold text-gray-800">
+                  {preview.totalDate}{' '}
+                  {preview.totalDate === 1
+                    ? t('estimates.day', { defaultValue: 'day' })
+                    : t('estimates.days', { defaultValue: 'days' })}
+                </span>
+              </div>
+            ) : null}
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <span className="text-xs font-medium text-gray-500">
+                {t('estimates.status', { defaultValue: 'Status' })}:
+              </span>
+              <Badge variant={projectInvoiceStatusBadgeVariant(preview.projectStatus)}>
+                {preview.statusLabel}
+              </Badge>
+            </div>
           </div>
         </div>
 
@@ -223,6 +226,15 @@ export function EstimateViewModal({
             </div>
           </div>
         )}
+
+        {showDecision ? (
+          <EstimateDecisionSection
+            estimateId={estimate.id}
+            customerEmail={preview.customerEmail}
+            customerName={preview.customerName}
+            onSuccess={handleDecisionSuccess}
+          />
+        ) : null}
       </div>
     </ModalWrapper>
   )

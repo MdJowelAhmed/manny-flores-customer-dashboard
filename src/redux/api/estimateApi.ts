@@ -55,6 +55,7 @@ export interface EstimateMaterialApiDoc extends EstimateMaterialPayloadItem {
 export interface EstimateVehicleApiDoc extends EstimateVehiclePayloadItem {
     id: string
     estimateId: string
+    vehicleQuantity?: number
 }
 
 export interface EstimateEquipmentApiDoc {
@@ -72,8 +73,9 @@ export interface EstimateApiDoc {
     customerName: string
     customerEmail: string
     customerAddress: string
-    estimateStartDate: string
-    estimateEndDate: string
+    estimateStartDate?: string
+    estimateEndDate?: string
+    totalDate?: number
     description: string
     taxNumber: number
     userId: string
@@ -114,16 +116,23 @@ export interface UpdateEstimateStatusPayload {
     projectStatus: ProjectStatus
 }
 
-function formatEstimateStartDate(date: string): string {
+function formatEstimateDisplayDate(date?: string): string {
+    if (!date) return '—'
     const parsed = new Date(date)
     if (Number.isNaN(parsed.getTime())) return '—'
     return format(parsed, 'd/M/yyyy')
 }
 
+export function normalizeEstimateProjectStatus(status?: string): string {
+    return (status ?? 'PENDING').toUpperCase()
+}
+
 function mapApprovalStatus(projectStatus: string, isApproved: boolean): EstimateStatus {
-    const status = projectStatus.toUpperCase()
+    const status = normalizeEstimateProjectStatus(projectStatus)
     if (status === 'CANCELLED') return 'Rejected'
-    if (isApproved || status === 'IN_PROGRESS') return 'Approved'
+    if (status === 'SCHEDULED') return 'Project Created'
+    if (isApproved || status === 'IN_PROGRESS' || status === 'COMPLETED') return 'Approved'
+    if (status === 'PENDING') return 'Pending'
     return 'Pending'
 }
 
@@ -186,11 +195,19 @@ function buildDetailBreakdown(doc: EstimateApiDoc, total: number): EstimateDetai
 export function mapEstimateApiDocToApprovalEstimate(doc: EstimateApiDoc): Estimate {
     const total = computeEstimateTotal(doc)
     const materialQty = (doc.materials ?? []).reduce((sum, row) => sum + row.quantity, 0)
-    const vehicleQty = (doc.vehicles ?? []).reduce((sum, row) => sum + row.vehicleUnits, 0)
+    const vehicleQty = (doc.vehicles ?? []).reduce(
+        (sum, row) => sum + (row.vehicleQuantity ?? row.vehicleUnits ?? 0),
+        0
+    )
+    const equipmentQty = (doc.equipment ?? []).reduce(
+        (sum, row) => sum + row.equipmentUnits,
+        0
+    )
     const lineCount =
         (doc.materials?.length ?? 0) +
         (doc.vehicles?.length ?? 0) +
         (doc.equipment?.length ?? 0)
+    const projectStatus = normalizeEstimateProjectStatus(doc.projectStatus)
 
     return {
         id: doc.id,
@@ -198,21 +215,40 @@ export function mapEstimateApiDocToApprovalEstimate(doc: EstimateApiDoc): Estima
         project: doc.projectName,
         amount: fmtUsd(total),
         status: mapApprovalStatus(doc.projectStatus, doc.isApproved),
-        startDate: formatEstimateStartDate(doc.estimateStartDate),
+        projectStatus,
+        startDate: formatEstimateDisplayDate(doc.estimateStartDate ?? doc.createdAt),
         customerName: doc.customerName,
         email: doc.customerEmail,
         company: doc.customerAddress || '—',
         taxRatePercent: Number(doc.taxNumber ?? 0),
+        totalDate: doc.totalDate,
         materialSummary: doc.projectName,
-        summaryQty: materialQty + vehicleQty,
+        summaryQty: materialQty + vehicleQty + equipmentQty,
         summaryCostCount: lineCount,
         detailBreakdown: buildDetailBreakdown(doc, total),
-        lineItems: (doc.materials ?? []).map((item) => ({
-            description: 'Material',
-            unitCost: item.unitPrice,
-            qty: item.quantity,
-            taxable: true,
-        })),
+        lineItems: [
+            ...(doc.materials ?? []).map((item) => ({
+                description: 'Material',
+                unitCost: item.unitPrice,
+                qty: item.quantity,
+                taxable: true,
+            })),
+            ...(doc.equipment ?? []).map((item) => ({
+                description: 'Equipment',
+                unitCost: item.unitPrice,
+                qty: item.equipmentUnits,
+                taxable: true,
+            })),
+            ...(doc.vehicles ?? []).map((item) => ({
+                description: 'Vehicle',
+                unitCost:
+                    item.vehicleUnits > 0
+                        ? Number(item.totalPrice ?? 0) / item.vehicleUnits
+                        : 0,
+                qty: item.vehicleQuantity ?? item.vehicleUnits,
+                taxable: true,
+            })),
+        ],
     }
 }
 
@@ -220,7 +256,7 @@ const estimateApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getEstimates: builder.query<EstimateListResponse, GetEstimatesParams | void>({
             query: (params) => ({
-                url: '/estimate/my',
+                url: '/estimate-v-two/user',
                 method: 'GET',
                 params: {
                     page: params?.page ?? 1,
@@ -231,9 +267,8 @@ const estimateApi = baseApi.injectEndpoints({
         }),
 
         getSingleEstimate: builder.query<EstimateMutationResponse, string>({
-
             query: (id) => ({
-                url: `/estimate/${id}`,
+                url: `/estimate-v-two/${id}`,
                 method: 'GET',
             }),
             providesTags: ['Estimate'],

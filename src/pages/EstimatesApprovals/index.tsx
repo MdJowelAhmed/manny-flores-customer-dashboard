@@ -4,12 +4,10 @@ import { Pagination } from '@/components/common'
 import { type Estimate } from './estimatesData'
 import { EstimateViewModal } from './components/EstimateViewModal'
 import { EstimateListCard } from './components/EstimateListCard'
-import { toast } from 'sonner'
 import { ProjectDetailsModal } from '@/pages/Projects/components/ProjectDetailsModal'
 import {
   mapEstimateApiDocToApprovalEstimate,
   useGetEstimatesQuery,
-  useUpdateEstimateStatusMutation,
 } from '@/redux/api/estimateApi'
 
 export default function EstimatesApprovals() {
@@ -25,8 +23,6 @@ export default function EstimatesApprovals() {
     page: currentPage,
     limit: itemsPerPage,
   })
-  const [updateEstimateStatus, { isLoading: isUpdatingStatus }] =
-    useUpdateEstimateStatusMutation()
 
   const estimates = useMemo(
     () => (data?.data ?? []).map(mapEstimateApiDocToApprovalEstimate),
@@ -45,34 +41,9 @@ export default function EstimatesApprovals() {
     setShowViewModal(true)
   }
 
-  const handleApprove = async (e: Estimate) => {
-    try {
-      await updateEstimateStatus({
-        id: e.id,
-        isApproved: true,
-        projectStatus: 'IN_PROGRESS',
-      }).unwrap()
-      setSelectedEstimate(null)
-      toast.success(t('estimates.approvedToast'))
-      refetch()
-    } catch {
-      toast.error(t('estimates.updateError', { defaultValue: 'Failed to update estimate' }))
-    }
-  }
-
-  const handleReject = async (e: Estimate) => {
-    try {
-      await updateEstimateStatus({
-        id: e.id,
-        isApproved: false,
-        projectStatus: 'CANCELLED',
-      }).unwrap()
-      setSelectedEstimate(null)
-      toast.message(t('estimates.rejectedToast'))
-      refetch()
-    } catch {
-      toast.error(t('estimates.updateError', { defaultValue: 'Failed to update estimate' }))
-    }
+  const handleDecisionComplete = () => {
+    setSelectedEstimate(null)
+    refetch()
   }
 
   return (
@@ -106,14 +77,14 @@ export default function EstimatesApprovals() {
                 estimate={estimate}
                 onViewDetails={handleView}
                 viewDetailsLabel={t('estimates.viewDetails')}
-                onApprove={handleApprove}
-                approveLabel={t('estimates.approved')}
-                approveDisabled={isUpdatingStatus}
               />
 
-              {estimate.status === 'Approved' ? (
+              {estimate.projectStatus === 'SCHEDULED' ||
+              estimate.projectStatus === 'IN_PROGRESS' ? (
                 <p className="text-right text-sm text-gray-500">
-                  please waiting admin create Invoice ...
+                  {t('estimates.waitingInvoice', {
+                    defaultValue: 'Please wait — admin will create the invoice.',
+                  })}
                 </p>
               ) : null}
             </div>
@@ -143,9 +114,7 @@ export default function EstimatesApprovals() {
           setSelectedEstimate(null)
         }}
         estimate={selectedEstimate}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        actionsDisabled={isUpdatingStatus}
+        onDecisionComplete={handleDecisionComplete}
       />
 
       <ProjectDetailsModal
