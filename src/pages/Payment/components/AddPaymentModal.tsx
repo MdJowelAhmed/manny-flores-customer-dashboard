@@ -40,6 +40,11 @@ interface AddPaymentModalProps {
   /** Current invoices for the dropdown; payment is applied to the selected row */
   payments: Payment[]
   onSubmit: (data: AddPaymentSubmitPayload) => void
+  /** Hide wire transfer method (e.g. when opened from project details) */
+  hideWireTransfer?: boolean
+  /** Pre-select invoice and hide the invoice dropdown */
+  lockInvoice?: boolean
+  initialInvoice?: string
 }
 
 function MethodCard({
@@ -136,6 +141,9 @@ export function AddPaymentModal({
   onClose,
   payments,
   onSubmit,
+  hideWireTransfer = false,
+  lockInvoice = false,
+  initialInvoice,
 }: AddPaymentModalProps) {
   const { t } = useTranslation()
   const checkInputRef = useRef<HTMLInputElement>(null)
@@ -152,8 +160,11 @@ export function AddPaymentModal({
   const [cardZip, setCardZip] = useState('')
 
   const payables = useMemo(
-    () => payments.filter((p) => p.outstandingAmount > 0),
-    [payments]
+    () =>
+      lockInvoice
+        ? payments
+        : payments.filter((p) => p.outstandingAmount > 0),
+    [payments, lockInvoice]
   )
 
   const invoiceOptions = useMemo(
@@ -180,7 +191,11 @@ export function AddPaymentModal({
 
   useEffect(() => {
     if (!open || payables.length === 0) return
-    const first = payables[0]
+    const preferred =
+      initialInvoice && payables.some((p) => p.invoice === initialInvoice)
+        ? payables.find((p) => p.invoice === initialInvoice)!
+        : payables[0]
+    const first = preferred
     setInvoice(first.invoice)
     const suggested =
       first.outstandingAmount > 0
@@ -197,7 +212,7 @@ export function AddPaymentModal({
     setCardExpiry('')
     setCardZip('')
     if (checkInputRef.current) checkInputRef.current.value = ''
-  }, [open, payables])
+  }, [open, payables, initialInvoice])
 
   const handleClose = () => {
     onClose()
@@ -327,14 +342,25 @@ export function AddPaymentModal({
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-10 pt-6">
           {/* Left: invoice, amount, note, methods */}
           <div className="space-y-6">
-            <FormSelect
-              label={t('payment.invoiceNumber')}
-              value={invoice}
-              options={invoiceOptions}
-              onChange={setInvoice}
-              placeholder={t('payment.chooseInvoice')}
-              triggerClassName={cn(inputClass, 'h-11')}
-            />
+            {lockInvoice && selectedPayment ? (
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-gray-800">
+                  {t('payment.invoiceNumber')}
+                </Label>
+                <p className={cn(inputClass, 'flex h-11 items-center px-3 text-sm text-gray-800')}>
+                  {selectedPayment.invoice} ({selectedPayment.customer})
+                </p>
+              </div>
+            ) : (
+              <FormSelect
+                label={t('payment.invoiceNumber')}
+                value={invoice}
+                options={invoiceOptions}
+                onChange={setInvoice}
+                placeholder={t('payment.chooseInvoice')}
+                triggerClassName={cn(inputClass, 'h-11')}
+              />
+            )}
 
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-800">
@@ -400,13 +426,15 @@ export function AddPaymentModal({
                 subtitle={t('payment.methodCashSub')}
                 onClick={() => setMethodKey('cash')}
               />
-              <MethodCard
-                active={methodKey === 'wire'}
-                icon={ArrowLeftRight}
-                title={t('payment.methodWire')}
-                subtitle={t('payment.methodWireSub')}
-                onClick={() => setMethodKey('wire')}
-              />
+              {!hideWireTransfer ? (
+                <MethodCard
+                  active={methodKey === 'wire'}
+                  icon={ArrowLeftRight}
+                  title={t('payment.methodWire')}
+                  subtitle={t('payment.methodWireSub')}
+                  onClick={() => setMethodKey('wire')}
+                />
+              ) : null}
             </div>
 
             <Button

@@ -6,6 +6,7 @@ export type ProjectStatus =
   | 'In Progress'
   | 'Scheduled'
   | 'Cancelled'
+  | 'Payment Due'
 
 export interface ProjectLineItem {
   name: string

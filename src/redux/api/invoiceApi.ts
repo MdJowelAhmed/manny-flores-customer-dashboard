@@ -5,33 +5,13 @@ import {
     type InvoiceStatus,
     normalizeProjectInvoiceStatus,
 } from '@/pages/Invoice/invoicesData'
-import type { EstimateMutationResponse } from './estimateApi'
+import type { EstimateApiDoc, EstimateMutationResponse } from './estimateApi'
 
 export interface InvoicePagination {
     total: number
     page: number
     limit: number
     totalPage: number
-}
-
-export interface InvoiceMaterialApiDoc {
-    id: string
-    estimateId: string
-    materialId: string
-    quantity: number
-    unitPrice: number
-    totalPrice: number
-    createdAt?: string
-}
-
-export interface InvoiceVehicleApiDoc {
-    id: string
-    estimateId: string
-    vehicleId: string
-    vehicleUnits: number
-    vehicleQuantity?: number
-    totalPrice: number | null
-    createdAt?: string
 }
 
 export interface InvoiceApiDoc {
@@ -50,8 +30,6 @@ export interface InvoiceApiDoc {
     totalCost: number | null
     createdAt: string
     updatedAt: string
-    materials: InvoiceMaterialApiDoc[]
-    vehicles: InvoiceVehicleApiDoc[]
     customerSignature?: string | null
 }
 
@@ -60,7 +38,7 @@ export interface InvoiceListResponse {
     statusCode?: number
     message: string
     pagination: InvoicePagination
-    data: InvoiceApiDoc[]
+    data: InvoiceApprovalApiDoc[]
 }
 
 export interface InvoiceSignatureResponse {
@@ -85,17 +63,8 @@ function dataUrlToFile(dataUrl: string, filename = 'customer-signature.png'): Fi
 }
 
 function computeInvoiceTotal(doc: InvoiceApiDoc): number {
-    const materialsTotal = (doc.materials ?? []).reduce(
-        (sum, item) => sum + Number(item.totalPrice ?? item.quantity * item.unitPrice),
-        0
-    )
-    const vehiclesTotal = (doc.vehicles ?? []).reduce(
-        (sum, item) => sum + Number(item.totalPrice ?? 0),
-        0
-    )
-    const subtotal = materialsTotal + vehiclesTotal
     const fromApi = doc.totalCost != null ? Number(doc.totalCost) : 0
-    const base = fromApi > 0 ? fromApi : subtotal
+    const base = fromApi > 0 ? fromApi : 0
     const taxPct = Number(doc.taxNumber ?? 0)
     return Math.round(base * (1 + taxPct / 100))
 }
@@ -115,42 +84,17 @@ function toIsoDateOnly(date: string): string {
 }
 
 export function mapInvoiceApiDocToUi(doc: InvoiceApiDoc): Invoice {
-    const subtotalMaterials = (doc.materials ?? []).reduce(
-        (sum, item) => sum + Number(item.totalPrice ?? item.quantity * item.unitPrice),
-        0
-    )
-    const subtotalVehicles = (doc.vehicles ?? []).reduce(
-        (sum, item) => sum + Number(item.totalPrice ?? 0),
-        0
-    )
-    const subtotal = subtotalMaterials + subtotalVehicles
+    const subtotal = Number(doc.totalCost ?? 0)
     const taxPercent = Number(doc.taxNumber ?? 0)
     const grandTotal = computeInvoiceTotal(doc)
-
-    const firstMaterial = doc.materials?.[0]
-    const firstVehicle = doc.vehicles?.[0]
-    const materialQty = (doc.materials ?? []).reduce((sum, row) => sum + row.quantity, 0)
-    const vehicleQty = (doc.vehicles ?? []).reduce(
-        (sum, row) => sum + (row.vehicleQuantity ?? row.vehicleUnits ?? 0),
-        0
-    )
-    const lineCount = (doc.materials?.length ?? 0) + (doc.vehicles?.length ?? 0)
-
-    const materialTotal = firstMaterial
-        ? Number(firstMaterial.totalPrice ?? firstMaterial.quantity * firstMaterial.unitPrice)
-        : 0
-    const vehicleQtyLine = firstVehicle?.vehicleQuantity ?? firstVehicle?.vehicleUnits ?? 0
-    const vehicleTotal = firstVehicle ? Number(firstVehicle.totalPrice ?? 0) : 0
-    const vehicleUnitPrice =
-        vehicleQtyLine > 0 && vehicleTotal > 0 ? vehicleTotal / vehicleQtyLine : 0
 
     return {
         id: doc.id,
         refCode: `EST-${doc.id.slice(0, 8).toUpperCase()}`,
         customerName: doc.customerName,
         materialSummary: doc.projectName,
-        summaryQty: materialQty + vehicleQty,
-        summaryCostCount: lineCount,
+        summaryQty: 0,
+        summaryCostCount: 0,
         amount: grandTotal,
         invoiceDate: toIsoDateOnly(doc.estimateStartDate),
         dueDate: toIsoDateOnly(doc.estimateEndDate),
@@ -162,20 +106,68 @@ export function mapInvoiceApiDocToUi(doc: InvoiceApiDoc): Invoice {
         taxPercent,
         subtotal,
         labor: { quantity: 0, price: 0 },
-        material: {
-            name: firstMaterial ? 'Material' : doc.projectName,
-            quantity: firstMaterial?.quantity ?? 0,
-            unitPricePerSqFt: firstMaterial?.unitPrice ?? 0,
-            totalPrice: materialTotal,
-        },
-        equipment: {
-            name: firstVehicle ? 'Vehicle' : '—',
-            quantity: vehicleQtyLine,
-            unitPricePerSqFt: vehicleUnitPrice,
-            totalPrice: vehicleTotal,
-        },
         signatureDataUrl: doc.customerSignature ?? undefined,
         approvedAt: doc.customerSignature ? doc.updatedAt : undefined,
+    }
+}
+
+export interface InvoiceApprovalApiDoc {
+    id: string
+    estimateId: string
+    signature?: string | null
+    estimateStatus?: string
+    customerEmail: string
+    customerName: string
+    createdAt: string
+    updatedAt: string
+    estimate?: EstimateApiDoc
+}
+
+function mapApprovalToInvoiceStatus(approval: InvoiceApprovalApiDoc): InvoiceStatus {
+    if (approval.signature) return 'paid'
+    return 'pending'
+}
+
+export function mapInvoiceApprovalApiDocToUi(doc: InvoiceApprovalApiDoc): Invoice {
+    const est = doc.estimate
+    const taxPercent = Number(est?.taxNumber ?? 0)
+    const subtotal = Number(est?.totalCost ?? 0)
+    const amount = Math.round(subtotal * (1 + taxPercent / 100))
+    const projectStatus = normalizeProjectInvoiceStatus(est?.projectStatus)
+
+    const materials = est?.materials ?? []
+    const vehicles = est?.vehicles ?? []
+    const equipment = est?.equipment ?? []
+    const qtyMaterials = materials.reduce((sum, r) => sum + (r.quantity ?? 0), 0)
+    const qtyVehicles = vehicles.reduce(
+        (sum, r: any) => sum + Number(r.vehicleQuantity ?? r.vehicleUnits ?? 0),
+        0
+    )
+    const qtyEquipment = equipment.reduce((sum, r: any) => sum + (r.equipmentUnits ?? 0), 0)
+    const lineCount = materials.length + vehicles.length + equipment.length
+
+    return {
+        id: doc.estimateId,
+        approvalId: doc.id,
+        refCode: `EST-${doc.estimateId.slice(0, 8).toUpperCase()}`,
+        customerName: est?.customerName ?? doc.customerName,
+        materialSummary: est?.projectName ?? '—',
+        summaryQty: qtyMaterials + qtyVehicles + qtyEquipment,
+        summaryCostCount: lineCount,
+        amount,
+        invoiceDate: toIsoDateOnly(est?.createdAt ?? doc.createdAt),
+        dueDate: toIsoDateOnly(est?.updatedAt ?? doc.updatedAt),
+        description: est?.description || undefined,
+        status: mapApprovalToInvoiceStatus(doc),
+        projectStatus,
+        customerEmail: est?.customerEmail ?? doc.customerEmail,
+        customerAddress: est?.customerAddress ?? undefined,
+        taxPercent,
+        subtotal,
+        signatureDataUrl: doc.signature ?? undefined,
+        approvedAt: doc.signature ? doc.updatedAt : undefined,
+        totalDate: (est as any)?.totalDate,
+        estimate: est,
     }
 }
 
@@ -183,7 +175,7 @@ const invoiceApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getInvoices: builder.query<InvoiceListResponse, GetInvoicesParams | void>({
             query: (params) => ({
-                url: '/invoice',
+                url: '/estimate-invoices/user',
                 method: 'GET',
                 params: {
                     page: params?.page ?? 1,

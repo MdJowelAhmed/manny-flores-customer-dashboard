@@ -61,6 +61,7 @@ export const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   'Pending Approval': { bg: 'bg-orange-100', text: 'text-orange-800' },
   'In Progress': { bg: 'bg-purple-100', text: 'text-purple-800' },
   Scheduled: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+  'Payment Due': { bg: 'bg-blue-100', text: 'text-blue-800' },
   // Estimate statuses
   Approved: { bg: 'bg-green-100', text: 'text-green-800' },
   'Follow Up': { bg: 'bg-yellow-100', text: 'text-yellow-800' },
