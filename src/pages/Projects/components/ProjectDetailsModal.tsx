@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { ConfirmDialog, ModalWrapper } from '@/components/common'
 import { Button } from '@/components/ui/button'
+import { AddPaymentModal } from '@/pages/Payment/components/AddPaymentModal'
+import type { AddPaymentSubmitPayload } from '@/pages/Payment/components/AddPaymentModal'
 import { useGetSingleEstimateQuery } from '@/redux/api/estimateApi'
 import { useCompleteProjectMutation } from '@/redux/api/projectApi'
 import { formatDateDayMonth } from '@/utils/formatters'
@@ -10,6 +12,7 @@ import {
   buildLineItemsFromEstimate,
   computeProjectTotals,
 } from '../projectEstimateUtils'
+import { buildProjectPayablePayment } from '../projectPaymentUtils'
 import {
   COMPANY_INFO,
   fmtProjectMoney,
@@ -36,6 +39,7 @@ function formatPreviewDateRange(start?: string, end?: string): string {
 export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsModalProps) {
   const { t } = useTranslation()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [completeProject, { isLoading: isCompleting }] = useCompleteProjectMutation()
 
   const estimateId = project?.estimateId ?? ''
@@ -97,7 +101,28 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
     }
   }, [project, estimateResponse?.data])
 
+  const isPaymentDue = project?.status === 'Payment Due'
+
+  const payablePayments = useMemo(() => {
+    if (!project || !preview) return []
+    const estimateTotal = Number(estimateResponse?.data?.totalCost ?? 0)
+    const due =
+      preview.balanceDue > 0 ? preview.balanceDue : estimateTotal > 0 ? estimateTotal : 0
+    return [buildProjectPayablePayment(project, due)]
+  }, [project, preview, estimateResponse?.data?.totalCost])
+
+  const payableInvoice = payablePayments[0]?.invoice
+
+  const handleProjectPayment = (_payload: AddPaymentSubmitPayload) => {
+    setShowPaymentModal(false)
+  }
+
   if (!project || !preview) return null
+
+  const showCompleteButton =
+    !isPaymentDue &&
+    project.status !== 'Completed' &&
+    project.status !== 'Cancelled'
 
 
 
@@ -119,7 +144,15 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
           >
             {t('common.close', { defaultValue: 'Close' })}
           </Button>
-          {project.status !== 'Completed' && project.status !== 'Cancelled' ? (
+          {isPaymentDue ? (
+            <Button
+              type="button"
+              className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"
+              onClick={() => setShowPaymentModal(true)}
+            >
+              {t('projects.paymentNow', { defaultValue: 'Payment now' })}
+            </Button>
+          ) : showCompleteButton ? (
             <Button
               type="button"
               className="h-10 rounded-lg bg-[#22c55e] px-6 font-semibold text-white hover:bg-[#16a34a]"
@@ -240,16 +273,26 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
           </>
         )}
 
-        {preview.hasSignature && preview.signatureUrl ? (
+        {preview.signatureUrl ? (
           <div className="space-y-2 rounded-xl border border-gray-100 bg-gray-50/80 p-4">
             <p className="text-sm font-semibold text-gray-800">
               {t('projects.signature', { defaultValue: 'Customer signature' })}
             </p>
             <div className="rounded-lg border border-gray-200 bg-white p-4">
               <img
-                src={imageUrl(preview.signatureUrl)}
+                src={
+                  preview.signatureUrl.startsWith('/uploads')
+                    ? preview.signatureUrl
+                    : imageUrl(preview.signatureUrl)
+                }
                 alt={t('projects.signature', { defaultValue: 'Customer signature' })}
+                crossOrigin="anonymous"
                 className="mx-auto max-h-32 w-full object-contain"
+                onError={(e) => {
+                  // Fallback: if the transformed path fails, try the raw value.
+                  const raw = preview.signatureUrl
+                  if (raw && e.currentTarget.src !== raw) e.currentTarget.src = raw
+                }}
               />
             </div>
           </div>
@@ -271,6 +314,16 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
         cancelText={t('common.cancel', { defaultValue: 'Cancel' })}
         variant="info"
         isLoading={isCompleting}
+      />
+
+      <AddPaymentModal
+        open={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        payments={payablePayments}
+        onSubmit={handleProjectPayment}
+        hideWireTransfer
+        lockInvoice
+        initialInvoice={payableInvoice}
       />
     </ModalWrapper>
   )

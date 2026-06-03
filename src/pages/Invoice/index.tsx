@@ -15,12 +15,9 @@ import { type Invoice } from './invoicesData'
 import { InvoiceCard } from './components/InvoiceCard'
 import { InvoiceViewModal } from './components/InvoiceViewModal'
 import {
-  mapInvoiceApiDocToUi,
-  useAddInvoiceSignatureMutation,
+  mapInvoiceApprovalApiDocToUi,
   useGetInvoicesQuery,
 } from '@/redux/api/invoiceApi'
-import { toast } from 'sonner'
-import { useNavigate } from 'react-router-dom'
 
 const ITEMS_PER_PAGE = 10
 
@@ -33,15 +30,13 @@ export default function InvoicePage() {
   const [viewOpen, setViewOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE)
-  const navigate = useNavigate()
   const { data, isLoading, isError, refetch } = useGetInvoicesQuery({
     page: currentPage,
     limit: itemsPerPage,
   })
-  const [addInvoiceSignature, { isLoading: isSigning }] = useAddInvoiceSignatureMutation()
 
   const invoices = useMemo(
-    () => (data?.data ?? []).map(mapInvoiceApiDocToUi),
+    () => (data?.data ?? []).map(mapInvoiceApprovalApiDocToUi),
     [data?.data]
   )
 
@@ -82,39 +77,6 @@ export default function InvoicePage() {
   const openView = (inv: Invoice) => {
     setSelected(inv)
     setViewOpen(true)
-  }
-
-  const handleApproveInvoice = async (
-    estimateId: string,
-    payload: { signatureDataUrl: string; approvedAt: string }
-  ) => {
-    try {
-      await addInvoiceSignature({
-        estimateId,
-        signatureDataUrl: payload.signatureDataUrl,
-      }).unwrap()
-      await refetch()
-      setSelected((prev) => {
-        if (!prev || prev.id !== estimateId) return prev
-        return {
-          ...prev,
-          signatureDataUrl: payload.signatureDataUrl,
-          approvedAt: payload.approvedAt,
-        }
-      })
-      toast.success(
-        t('invoice.signatureSuccess', {
-          defaultValue: 'Invoice signed successfully',
-        })
-      )
-      navigate('/projects')
-    } catch {
-      toast.error(
-        t('invoice.signatureError', {
-          defaultValue: 'Failed to submit signature',
-        })
-      )
-    }
   }
 
   return (
@@ -226,8 +188,7 @@ export default function InvoicePage() {
             setSelected(null)
           }}
           invoice={selected}
-          onApprove={handleApproveInvoice}
-          isSubmittingSignature={isSigning}
+          onAfterAction={() => void refetch()}
         />
       ) : null}
     </div>

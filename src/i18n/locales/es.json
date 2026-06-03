@@ -658,7 +658,7 @@
     "colProject": "Proyecto",
     "colDescription": "Descripción",
     "colAction": "Acción",
-    "viewDetails": "Ver detalles del proyecto",
+    "viewDetails": "Ver detalles",
     "deleteProject": "Eliminar proyecto",
     "confirmDelete": "Eliminar",
     "projectRequested": "Solicitud de proyecto enviada",
@@ -667,7 +667,15 @@
     "allStatus": "Todos los Estados",
     "noProjects": "No se encontraron proyectos",
     "deleteTitle": "¿Eliminar Proyecto?",
-    "deleteDescription": "¿Está seguro de que desea eliminar este proyecto? Esta acción no se puede deshacer."
+    "deleteDescription": "¿Está seguro de que desea eliminar este proyecto? Esta acción no se puede deshacer.",
+    "paymentNow": "Pagar ahora",
+    "statusPaymentDue": "Pago pendiente",
+    "completeProject": "Completar proyecto",
+    "completeConfirmTitle": "¿Completar este proyecto?",
+    "completeConfirmDescription": "¿Está seguro de que su proyecto está completo? Esto marcará el proyecto como completado.",
+    "completeConfirm": "Sí, completar",
+    "completeSuccess": "Proyecto marcado como completado",
+    "completeError": "No se pudo completar el proyecto"
   },
   "common": {
     "showing": "Mostrando {{start}} a {{end}} de {{total}} entradas",

@@ -24,6 +24,8 @@ function statusBadgeClass(status: Project['status']): string {
       return 'bg-amber-100 text-amber-900'
     case 'Cancelled':
       return 'bg-red-100 text-red-800'
+    case 'Payment Due':
+      return 'bg-blue-100 text-blue-800'
     default:
       return 'bg-orange-100 text-orange-800'
   }
@@ -116,7 +118,7 @@ export default function Projects() {
                     <tr key={p.id} className="rounded-lg bg-gray-50/70">
                       <td className="px-3 py-3">
                         <div className="text-sm font-semibold text-gray-900">{p.projectName}</div>
-                        {p.hasSignature ? (
+                        {p.signatureUrl ? (
                           <span className="mt-1 inline-flex text-[11px] font-medium text-green-700">
                             {t('projects.signed', { defaultValue: 'Signed' })}
                           </span>

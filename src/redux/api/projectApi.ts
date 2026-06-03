@@ -19,8 +19,9 @@ export interface ProjectEstimateApiDoc {
     customerName: string
     customerEmail: string
     customerAddress: string
-    estimateStartDate: string
-    estimateEndDate: string
+    estimateStartDate?: string
+    estimateEndDate?: string
+    totalDate?: number
     description: string
     createdAt: string
     updatedAt: string
@@ -31,26 +32,18 @@ export interface ProjectEstimateApiDoc {
     projectStatus: string
 }
 
-export interface ProjectInvoiceSignatureApiDoc {
+export interface ProjectScheduleApiDoc {
     id: string
     estimateId: string
-    customerSignature: string
-    isProvideSignature: boolean
+    signature?: string | null
+    projectStatus: string
+    assignEmployee?: string[]
+    teamId?: string | null
+    projectStartDate?: string
+    projectEndDate?: string
     createdAt: string
     updatedAt: string
-    userId: string
-}
-
-export interface ProjectApiDoc {
-    id: string
-    estimateId: string
-    invoiceWithSignaturesId: string
-    status: string
-    clientId: string
-    createdAt: string
-    updatedAt: string
-    estimates: ProjectEstimateApiDoc
-    invoiceWithSignatures: ProjectInvoiceSignatureApiDoc
+    estimate: ProjectEstimateApiDoc
 }
 
 export interface ProjectListResponse {
@@ -58,7 +51,7 @@ export interface ProjectListResponse {
     statusCode?: number
     message: string
     pagination: ProjectPagination
-    data: ProjectApiDoc[]
+    data: ProjectScheduleApiDoc[]
 }
 
 export interface GetProjectsParams {
@@ -70,10 +63,11 @@ export interface CompleteProjectResponse {
     success: boolean
     statusCode?: number
     message: string
-    data?: ProjectApiDoc
+    data?: ProjectScheduleApiDoc
 }
 
-function toIsoDateOnly(date: string): string {
+function toIsoDateOnly(date?: string): string {
+    if (!date) return '—'
     const parsed = new Date(date)
     if (Number.isNaN(parsed.getTime())) return date
     return format(parsed, 'yyyy-MM-dd')
@@ -83,6 +77,7 @@ function mapProjectStatus(projectStatus?: string): ProjectStatus {
     const status = (projectStatus ?? '').toUpperCase()
 
     if (status === 'COMPLETED') return 'Completed'
+    if (status === 'COMPLETED_REQUESTED') return 'Payment Due'
     if (status === 'IN_PROGRESS') return 'In Progress'
     if (status === 'SCHEDULED') return 'Scheduled'
     if (status === 'CANCELLED') return 'Cancelled'
@@ -100,11 +95,11 @@ function formatProjectValue(totalCost: number | null | undefined): string {
     }).format(amount)
 }
 
-export function mapProjectApiDocToUi(doc: ProjectApiDoc): Project {
-    const estimate = doc.estimates
-    const startDate = toIsoDateOnly(estimate.estimateStartDate)
-    const endDate = toIsoDateOnly(estimate.estimateEndDate)
-    const status = mapProjectStatus(estimate.projectStatus)
+export function mapProjectApiDocToUi(doc: ProjectScheduleApiDoc): Project {
+    const estimate = doc.estimate
+    const startDate = toIsoDateOnly(doc.projectStartDate ?? estimate.estimateStartDate ?? estimate.createdAt)
+    const endDate = toIsoDateOnly(doc.projectEndDate ?? estimate.estimateEndDate ?? estimate.updatedAt)
+    const status = mapProjectStatus(doc.projectStatus ?? estimate.projectStatus)
 
     return {
         id: doc.id,
@@ -122,8 +117,8 @@ export function mapProjectApiDocToUi(doc: ProjectApiDoc): Project {
         startDate,
         endDate,
         customerEmail: estimate.customerEmail,
-        signatureUrl: doc.invoiceWithSignatures?.customerSignature || undefined,
-        hasSignature: doc.invoiceWithSignatures?.isProvideSignature ?? false,
+        signatureUrl: doc.signature || undefined,
+        hasSignature: !!doc.signature,
     }
 }
 
@@ -131,7 +126,7 @@ const projectApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getProjects: builder.query<ProjectListResponse, GetProjectsParams | void>({
             query: (params) => ({
-                url: '/project',
+                url: '/estimate-schedules/user',
                 method: 'GET',
                 params: {
                     page: params?.page ?? 1,
@@ -142,7 +137,7 @@ const projectApi = baseApi.injectEndpoints({
         }),
         completeProject: builder.mutation<CompleteProjectResponse, string>({
             query: (id) => ({
-                url: `/project/complete/${id}`,
+                url: `/estimate-schedules/mark-as-completed/${id}`,
                 method: 'PATCH',
                 body: { projectStatus: 'COMPLETED' },
             }),

@@ -61,6 +61,8 @@ export interface InvoiceItemLine {
 
 export interface Invoice {
   id: string
+  /** Approval/invoice row id from API (optional) */
+  approvalId?: string
   /** Display reference e.g. EST-501 */
   refCode: string
   customerName: string
@@ -79,6 +81,8 @@ export interface Invoice {
   customerEmail?: string
   customerPhone?: string
   customerAddress?: string
+  /** Duration in days (EstimateVtwo) */
+  totalDate?: number
   labor?: InvoiceLaborLine
   material?: InvoiceItemLine
   equipment?: InvoiceItemLine
@@ -91,6 +95,8 @@ export interface Invoice {
   signatureDataUrl?: string
   /** ISO timestamp when user approved/signed */
   approvedAt?: string
+  /** Nested estimate doc when available (EstimateVtwo) */
+  estimate?: unknown
 }
 
 export function fmtInvoiceUsd(n: number) {
