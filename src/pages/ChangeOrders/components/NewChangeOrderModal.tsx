@@ -38,7 +38,7 @@ export function NewChangeOrderModal({
       year: 'numeric',
     })
 
-    const baseStatus: ChangeOrderStatus = 'Pending'
+    const baseStatus: ChangeOrderStatus = 'PENDING'
 
     const newOrder: ChangeOrder = {
       id: `co-${Date.now()}`,

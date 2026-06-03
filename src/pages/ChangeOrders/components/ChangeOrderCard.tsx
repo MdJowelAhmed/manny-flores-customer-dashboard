@@ -2,7 +2,6 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/utils/cn'
 import { formatCurrency } from '@/utils/formatters'
-import type { ChangeOrder } from '../changeOrdersData'
 
 interface ChangeOrderCardProps {
   order: any

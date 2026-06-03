@@ -1,7 +1,7 @@
 import { ModalWrapper } from '@/components/common'
 import { Button } from '@/components/ui/button'
 import { Calendar, User, Info } from 'lucide-react'
-import type { ChangeOrder, ChangeOrderStatus } from '../changeOrdersData'
+import type { ChangeOrderStatus } from '../changeOrdersData'
 import { formatCurrency } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 

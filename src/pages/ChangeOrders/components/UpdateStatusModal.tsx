@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { ChangeOrder, ChangeOrderStatus } from '../changeOrdersData'
+import type {  ChangeOrderStatus } from '../changeOrdersData'
 import { statusUpdateOptions } from '../changeOrdersData'
 import { cn } from '@/utils/cn'
 
