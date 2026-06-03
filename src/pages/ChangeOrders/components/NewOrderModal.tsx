@@ -37,7 +37,7 @@ export function NewOrderModal({ open, onClose, onCreate }: NewOrderModalProps) {
       year: 'numeric',
     })
 
-    const status: ChangeOrderStatus = 'Pending'
+      const status: ChangeOrderStatus = 'PENDING'
 
     const newOrder: ChangeOrder = {
       id: `co-${Date.now()}`,

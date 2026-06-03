@@ -3,9 +3,9 @@ import jsPDF from 'jspdf'
 
 type PdfMode = 'print' | 'download'
 
-function pxToPt(px: number) {
-  return (px * 72) / 96
-}
+// function pxToPt(px: number) {
+//   return (px * 72) / 96
+// }
 
 /**
  * Generate a PDF from a DOM node (same design as the modal).
