@@ -1,6 +1,10 @@
 import type { Payment } from '@/pages/Payment/paymentsData'
 import type { Project } from './projectsData'
 
+export function isProjectPaymentDue(project: Project): boolean {
+  return (project.estimateProjectStatus ?? '').toUpperCase() === 'COMPLETED_REQUESTED'
+}
+
 export function buildProjectPayablePayment(
   project: Project,
   balanceDue: number

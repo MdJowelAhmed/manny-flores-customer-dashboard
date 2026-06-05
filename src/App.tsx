@@ -58,7 +58,7 @@ function App() {
     <TooltipProvider>
       <Routes>
         {/* Public Routes - No login required */}
-        <Route path="/public/estimate/:id" element={<PublicEstimatePage />} />
+        <Route path="/estimate/review/:id" element={<PublicEstimatePage />} />
 
         {/* Auth Routes - No sidebar/header */}
         <Route path="/auth" element={<AuthLayout />}>

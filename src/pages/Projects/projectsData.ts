@@ -30,6 +30,8 @@ export interface Project {
   category: string
   customerName: string
   status: ProjectStatus
+  /** Raw estimate.projectStatus from API (e.g. COMPLETED_REQUESTED) */
+  estimateProjectStatus?: string
   progress: number
   location: string
   dateRange: string
