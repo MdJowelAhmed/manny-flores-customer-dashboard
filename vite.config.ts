@@ -23,6 +23,14 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    preview: {
+      proxy: {
+        '/uploads': {
+          target: apiBase,
+          changeOrigin: true,
+        },
+      },
+    },
   }
   
 })

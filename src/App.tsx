@@ -35,6 +35,7 @@ import Payment from './pages/Payment'
 import ChangeOrders from './pages/ChangeOrders/ChangeOrders'
 import PermitsInspections from './pages/PermitsInspections/PermitsInspections'
 import Documents from './pages/Documents'
+import { UserProvider } from './provider/UserContext'
 
 function AppEntryRedirect() {
   const { user } = useAppSelector((state) => state.auth)
@@ -55,6 +56,7 @@ function App() {
   }, [dispatch])
 
   return (
+    <UserProvider>
     <TooltipProvider>
       <Routes>
         {/* Public Routes - No login required */}
@@ -275,6 +277,7 @@ function App() {
       </Routes>
       <Toaster position="top-right" richColors closeButton />
     </TooltipProvider>
+    </UserProvider>
   )
 }
 
