@@ -45,11 +45,15 @@ const chatSlice = baseApi.injectEndpoints({
         }),
 
         getMessageList: builder.query({
-            query: (id) => {
-                return {
-                    url: `/message/${id}`,
-
+            query: (arg: string | { chatId: string; page?: number; limit?: number }) => {
+                if (typeof arg === 'string') {
+                    return { url: `/message/${arg}` }
                 }
+                const { chatId, page = 1, limit = 100 } = arg
+                const params = new URLSearchParams()
+                params.set('page', String(page))
+                params.set('limit', String(limit))
+                return { url: `/message/${chatId}?${params.toString()}` }
             },
         }),
 

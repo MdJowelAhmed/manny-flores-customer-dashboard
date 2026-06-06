@@ -1,18 +1,27 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { format, isToday, isYesterday } from 'date-fns'
-import { MessageSquare, Paperclip, Send, CheckCheck, Users } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { format } from 'date-fns'
+import { Search, Send, Paperclip, ArrowLeft, FileText, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/utils/cn'
 import { imageUrl, imageUrlAbsolute } from '@/components/common/getImageUrl'
 import {
-  useGetChatsQuery,
+  useGetChatListQuery,
   useGetMessageListQuery,
   useSendMessageMutation,
 } from '@/redux/slices/customer/chatApi'
 import { UserContext } from '@/provider/UserContext'
+
+type TUserContext = {
+  socket: { on: (e: string, h: (d: TMessage) => void) => void; off: (e: string, h: (d: TMessage) => void) => void }
+  user: {
+    id?: string
+    _id?: string
+    name?: string
+    profile?: string | null
+  } | null
+}
 
 type TParticipant = {
   id: string
@@ -25,7 +34,8 @@ type TParticipant = {
 type TConversation = {
   id: string
   status: boolean
-  groupName: string | null
+  mode?: string
+  groupName?: string | null
   participants: TParticipant[]
   lastMessage: {
     text: string | null
@@ -42,7 +52,7 @@ type TMessage = {
   createdAt: string
   updatedAt: string
   resourceUrl: string | null
-  type: 'text' | 'image'
+  type: string
   sender: {
     id: string
     name: string
@@ -50,409 +60,544 @@ type TMessage = {
   }
 }
 
-function sortMessagesOldestFirst(messages: TMessage[]): TMessage[] {
+type AttachmentKind = 'image' | 'pdf'
+
+const ACCEPTED_FILE_TYPES = 'image/*,application/pdf,.pdf'
+
+function getCurrentUserId(user: TUserContext['user']) {
+  return user?.id ?? user?._id ?? ''
+}
+
+function getOtherParticipants(conversation: TConversation, currentUserId?: string) {
+  if (!currentUserId) return conversation.participants ?? []
+  return conversation.participants?.filter((p) => p.id !== currentUserId) ?? []
+}
+
+function getConversationTitle(conversation: TConversation, currentUserId?: string) {
+  const groupName = conversation.groupName?.trim()
+  if (groupName) return groupName
+
+  const others = getOtherParticipants(conversation, currentUserId)
+  if (others.length === 1) return others[0].name
+  if (others.length > 1) return others.map((p) => p.name).join(', ')
+  return conversation.participants?.[0]?.name || 'Conversation'
+}
+
+function getConversationAvatar(
+  conversation: TConversation,
+  currentUserId?: string
+): string | null {
+  const others = getOtherParticipants(conversation, currentUserId)
+  return others[0]?.profile ?? conversation.participants?.[0]?.profile ?? null
+}
+
+function resolveAvatarSrc(profile: string | null | undefined): string {
+  if (!profile) return ''
+  return imageUrl(profile)
+}
+
+function getLastMessagePreview(lastMessage: TConversation['lastMessage']) {
+  const text = lastMessage?.text?.trim()
+  return text || 'No messages yet'
+}
+
+function getFileKind(file: File): AttachmentKind | null {
+  if (file.type.startsWith('image/')) return 'image'
+  if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+    return 'pdf'
+  }
+  return null
+}
+
+function getAttachmentFileName(url: string) {
+  const name = url.split('/').pop() || 'attachment'
+  return decodeURIComponent(name)
+}
+
+function isDocMessage(message: TMessage) {
+  if (!message.resourceUrl) return false
+  const type = message.type?.toLowerCase()
+  return type === 'doc' || message.resourceUrl.toLowerCase().endsWith('.pdf')
+}
+
+function isImageMessage(message: TMessage) {
+  if (!message.resourceUrl || isDocMessage(message)) return false
+  const type = message.type?.toLowerCase()
+  return (
+    type === 'image' ||
+    /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(message.resourceUrl)
+  )
+}
+
+function sortMessagesAsc(messages: TMessage[]) {
   return [...messages].sort(
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   )
 }
 
-function formatChatTime(iso?: string): string {
-  if (!iso) return ''
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return ''
-  if (isToday(date)) return format(date, 'hh:mm a')
-  if (isYesterday(date)) return 'Yesterday'
-  return format(date, 'MMM d')
-}
+function AvatarCircle({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [failed, setFailed] = useState(false)
+  const showImg = src && !failed
 
-function getChatTitle(chat: TConversation, myId?: string): string {
-  if (chat.groupName?.trim()) return chat.groupName.trim()
-  const others = chat.participants.filter((p) => p.id !== myId)
-  if (others.length === 1) return others[0].name
-  if (others.length > 1) return others.map((p) => p.name).join(', ')
-  return chat.participants[0]?.name ?? 'Chat'
-}
-
-function getChatAvatarParticipant(
-  chat: TConversation,
-  myId?: string
-): TParticipant | null {
-  const others = chat.participants.filter((p) => p.id !== myId)
-  return others[0] ?? chat.participants[0] ?? null
-}
-
-function getLastMessagePreview(chat: TConversation): string {
-  const last = chat.lastMessage
-  if (!last) return 'No messages yet'
-  if (last.text?.trim()) return last.text.trim()
-  return 'Image'
+  return (
+    <div
+      className={cn(
+        'rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600',
+        className
+      )}
+    >
+      {showImg ? (
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <span>{alt.charAt(0).toUpperCase()}</span>
+      )}
+    </div>
+  )
 }
 
 export default function Communication() {
-  const { socket, user } = useContext(UserContext) as {
-    socket: any
-    user: { _id?: string; id?: string; name?: string; profile?: string | null } | null
-  }
-  const myId = user?._id ?? (user as { id?: string })?.id
+  const { socket, user } = useContext(UserContext) as TUserContext
+  const currentUserId = getCurrentUserId(user)
 
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
+  const [selectedConversation, setSelectedConversation] = useState<TConversation | null>(null)
   const [messageInput, setMessageInput] = useState('')
+  const [keyword, setKeyword] = useState('')
   const [messageList, setMessageList] = useState<TMessage[]>([])
-  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [showMobileChat, setShowMobileChat] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const { data: chatsData, isLoading: isChatsLoading } = useGetChatsQuery(undefined)
-  const chats: TConversation[] = chatsData?.data ?? []
-
-  const conversation = useMemo(
-    () => chats.find((c) => c.id === selectedChatId) ?? null,
-    [chats, selectedChatId]
-  )
+  const { data: chatList, isLoading: isChatsLoading } = useGetChatListQuery(keyword)
 
   useEffect(() => {
-    if (chats.length === 0) {
-      setSelectedChatId(null)
+    const list = (chatList?.data as TConversation[] | undefined) ?? []
+    if (list.length === 0) {
+      setSelectedConversation(null)
       return
     }
-    if (!selectedChatId || !chats.some((c) => c.id === selectedChatId)) {
-      setSelectedChatId(chats[0].id)
-    }
-  }, [chats, selectedChatId])
+    setSelectedConversation((prev) => {
+      if (prev && list.some((c) => c.id === prev.id)) return prev
+      return list[0]
+    })
+  }, [chatList?.data])
 
-  const { data: messageData, isFetching: isMessagesLoading } = useGetMessageListQuery(
-    selectedChatId ?? '',
-    { skip: !selectedChatId }
+  const { data: messageData, refetch: refetchMessages } = useGetMessageListQuery(
+    {
+      chatId: selectedConversation?.id ?? '',
+      page: 1,
+      limit: 100,
+    },
+    { skip: !selectedConversation?.id }
   )
 
   const [sendMessage, { isLoading }] = useSendMessageMutation()
 
   useEffect(() => {
-    if (messageData?.data) {
-      setMessageList(sortMessagesOldestFirst(messageData.data))
+    if (!selectedConversation?.id) {
+      setMessageList([])
+      return
     }
-  }, [messageData])
+    setMessageList(sortMessagesAsc((messageData?.data as TMessage[]) ?? []))
+  }, [messageData, selectedConversation?.id])
+
+  const sortedMessages = useMemo(() => sortMessagesAsc(messageList), [messageList])
 
   useEffect(() => {
-    setMessageList([])
     setMessageInput('')
-    setSelectedImage(null)
-  }, [selectedChatId])
+    setSelectedFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }, [selectedConversation?.id])
 
   useEffect(() => {
-    if (!socket || !selectedChatId) return
-    const event = `getMessage::${selectedChatId}`
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: 'smooth',
+    })
+  }, [sortedMessages])
+
+  useEffect(() => {
+    if (!socket || !selectedConversation?.id) return
+
+    const event = `getMessage::${selectedConversation.id}`
+
     const handleNewMessage = (data: TMessage) => {
       setMessageList((prev) => {
         if (prev.some((m) => m.id === data.id)) return prev
-        return sortMessagesOldestFirst([...prev, data])
+        return sortMessagesAsc([...prev, data])
       })
     }
+
     socket.on(event, handleNewMessage)
     return () => {
       socket.off(event, handleNewMessage)
     }
-  }, [socket, selectedChatId])
+  }, [socket, selectedConversation?.id])
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messageList])
+  const clearSelectedFile = () => {
+    setSelectedFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleFileSelect = (file: File | undefined) => {
+    if (!file) return
+    const kind = getFileKind(file)
+    if (!kind) return
+    setSelectedFile(file)
+  }
 
   const handleSendMessage = async () => {
-    if ((!messageInput.trim() && !selectedImage) || !conversation) return
+    if ((!messageInput.trim() && !selectedFile) || !selectedConversation) return
 
     const formData = new FormData()
-    formData.append('chatId', conversation.id)
-    if (selectedImage) {
-      formData.append('image', selectedImage)
-      formData.append('type', 'image')
+    formData.append('chatId', selectedConversation.id)
+    formData.append('text', messageInput)
+
+    if (selectedFile) {
+      const kind = getFileKind(selectedFile)
+      formData.append('image', selectedFile)
+      formData.append('resourceUrl', selectedFile)
+      formData.append('type', kind === 'pdf' ? 'doc' : 'image')
     } else {
       formData.append('type', 'text')
     }
-    formData.append('text', messageInput)
 
     const res = await sendMessage(formData)
     if ('data' in res && (res.data as { success?: boolean })?.success) {
       setMessageInput('')
-      setSelectedImage(null)
+      clearSelectedFile()
+      await refetchMessages()
     }
   }
 
-  const headerParticipant = conversation
-    ? getChatAvatarParticipant(conversation, myId)
-    : null
-  const isGroupChat = !!conversation?.groupName?.trim()
+  const selectConversation = (conversation: TConversation) => {
+    setSelectedConversation(conversation)
+    setShowMobileChat(true)
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="h-[calc(100vh-8rem)] flex bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm"
+      className="h-[calc(100vh-90px)] min-h-0 overflow-hidden rounded-2xl border bg-white"
     >
-      {/* Sidebar */}
-      <aside className="w-full max-w-[320px] shrink-0 flex flex-col border-r border-gray-100 bg-white">
-        <div className="px-4 py-4 border-b border-gray-100 shrink-0">
-          <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {chats.length} conversation{chats.length === 1 ? '' : 's'}
-          </p>
-        </div>
-
-        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
-          {isChatsLoading ? (
-            <p className="px-4 py-8 text-sm text-muted-foreground text-center">Loading...</p>
-          ) : chats.length === 0 ? (
-            <p className="px-4 py-8 text-sm text-muted-foreground text-center">
-              No conversations found
-            </p>
-          ) : (
-            chats.map((chat) => {
-              const isActive = chat.id === selectedChatId
-              const avatarParticipant = getChatAvatarParticipant(chat, myId)
-              const title = getChatTitle(chat, myId)
-              const isGroup = !!chat.groupName?.trim()
-
-              return (
-                <button
-                  key={chat.id}
-                  type="button"
-                  onClick={() => setSelectedChatId(chat.id)}
-                  className={cn(
-                    'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors border-b border-gray-50',
-                    isActive ? 'bg-primary/5' : 'hover:bg-gray-50'
-                  )}
-                >
-                  <Avatar className="h-11 w-11 shrink-0">
-                    {isGroup ? (
-                      <AvatarFallback className="bg-primary/15 text-primary">
-                        <Users className="h-5 w-5" />
-                      </AvatarFallback>
-                    ) : (
-                      <>
-                        <AvatarImage
-                          src={
-                            avatarParticipant?.profile
-                              ? imageUrl(avatarParticipant.profile)
-                              : undefined
-                          }
-                          alt={title}
-                        />
-                        <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
-                          {title.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </>
-                    )}
-                  </Avatar>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p
-                        className={cn(
-                          'truncate text-sm font-semibold',
-                          isActive ? 'text-primary' : 'text-gray-900'
-                        )}
-                      >
-                        {title}
-                      </p>
-                      {chat.lastMessage?.createdAt ? (
-                        <span className="shrink-0 text-[11px] text-muted-foreground">
-                          {formatChatTime(chat.lastMessage.createdAt)}
-                        </span>
-                      ) : null}
-                    </div>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {getLastMessagePreview(chat)}
-                    </p>
-                    {isGroup ? (
-                      <p className="mt-0.5 text-[10px] text-muted-foreground">
-                        {chat.participants.length} members
-                      </p>
-                    ) : null}
-                  </div>
-                </button>
-              )
-            })
+      <div className="grid grid-cols-12 h-full min-h-0">
+        {/* Left Sidebar */}
+        <div
+          className={cn(
+            'lg:col-span-4 col-span-12 border-r bg-[#F7F7F7] flex flex-col min-h-0 overflow-hidden',
+            showMobileChat && 'hidden lg:flex'
           )}
-        </div>
-      </aside>
+        >
+          <div className="h-[66px] bg-primary shrink-0" />
 
-      {/* Chat panel */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {conversation ? (
-          <>
-            <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100 bg-white shrink-0">
-              <Avatar className="h-10 w-10 shrink-0">
-                {isGroupChat ? (
-                  <AvatarFallback className="bg-primary/15 text-primary">
-                    <Users className="h-5 w-5" />
-                  </AvatarFallback>
-                ) : (
-                  <>
-                    <AvatarImage
-                      src={
-                        headerParticipant?.profile
-                          ? imageUrl(headerParticipant.profile)
-                          : undefined
-                      }
-                      alt={getChatTitle(conversation, myId)}
-                    />
-                    <AvatarFallback className="bg-primary/20 text-primary text-sm font-medium">
-                      {getChatTitle(conversation, myId).charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </>
-                )}
-              </Avatar>
-              <div className="min-w-0">
-                <p className="font-semibold text-accent truncate">
-                  {getChatTitle(conversation, myId)}
-                </p>
-                {isGroupChat ? (
-                  <p className="text-xs text-muted-foreground">
-                    {conversation.participants.length} members
-                  </p>
-                ) : headerParticipant ? (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {headerParticipant.email}
-                  </p>
-                ) : null}
-              </div>
+          <div className="p-3 border-b bg-white shrink-0">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search conversation"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                className="pl-10 h-11"
+              />
             </div>
+          </div>
 
-            <div
-              ref={scrollRef}
-              className="flex-1 min-h-0 overflow-y-auto scrollbar-thin px-6 py-4 space-y-4 bg-[#F7F7F7]"
-            >
-              {isMessagesLoading && messageList.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">Loading messages...</p>
-              ) : messageList.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">No messages yet</p>
-              ) : (
-                messageList.map((msg) => {
-                  const isMine = myId === msg.senderId
-                  return (
-                    <div
-                      key={msg.id}
-                      className={cn('flex gap-3', isMine ? 'flex-row-reverse' : 'flex-row')}
-                    >
-                      {!isMine && (
-                        <Avatar className="h-8 w-8 shrink-0">
-                          <AvatarImage
-                            src={
-                              msg?.sender?.profile ? imageUrl(msg.sender.profile) : undefined
-                            }
-                          />
-                          <AvatarFallback className="bg-gray-200 text-gray-600 text-xs">
-                            {msg?.sender?.name?.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
+          <div className="flex-1 overflow-y-auto p-2 space-y-2">
+            {isChatsLoading ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Loading...</p>
+            ) : chatList?.data?.length ? (
+              (chatList.data as TConversation[]).map((conversation) => {
+                const active = selectedConversation?.id === conversation.id
+                const title = getConversationTitle(conversation, currentUserId)
+                const avatarSrc = resolveAvatarSrc(
+                  getConversationAvatar(conversation, currentUserId)
+                )
+
+                return (
+                  <button
+                    key={conversation.id}
+                    type="button"
+                    onClick={() => selectConversation(conversation)}
+                    className={cn(
+                      'w-full flex items-start gap-3 p-3 rounded-xl transition-all text-left',
+                      active
+                        ? 'bg-primary/10 border border-primary/20'
+                        : 'bg-white hover:bg-gray-100'
+                    )}
+                  >
+                    <AvatarCircle
+                      src={avatarSrc}
+                      alt={title}
+                      className="h-12 w-12 shrink-0"
+                    />
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-semibold truncate">{title}</p>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {conversation.lastMessage?.createdAt
+                            ? format(
+                                new Date(conversation.lastMessage.createdAt),
+                                'hh:mm a'
+                              )
+                            : ''}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground truncate mt-1">
+                        {getLastMessagePreview(conversation.lastMessage)}
+                      </p>
+                    </div>
+                  </button>
+                )
+              })
+            ) : (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No conversations found
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Right Section */}
+        <div
+          className={cn(
+            'lg:col-span-8 col-span-12 flex flex-col bg-white h-full min-h-0 overflow-hidden',
+            !showMobileChat && 'hidden lg:flex'
+          )}
+        >
+          {selectedConversation ? (
+            <>
+              <div className="h-[66px] shrink-0 bg-primary px-5 flex items-center">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden text-white hover:bg-white/10 shrink-0"
+                    onClick={() => setShowMobileChat(false)}
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+
+                  <AvatarCircle
+                    src={resolveAvatarSrc(
+                      getConversationAvatar(selectedConversation, currentUserId)
+                    )}
+                    alt={getConversationTitle(selectedConversation, currentUserId)}
+                    className="h-11 w-11 shrink-0 bg-white/20 text-white"
+                  />
+
+                  <p className="text-white font-semibold text-base truncate">
+                    {getConversationTitle(selectedConversation, currentUserId)}
+                  </p>
+                </div>
+              </div>
+
+              <div
+                ref={scrollRef}
+                className="flex-1 min-h-0 overflow-y-auto px-5 py-6 bg-[#F7F7F7] space-y-4"
+              >
+                {sortedMessages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No messages yet
+                  </p>
+                ) : (
+                  sortedMessages.map((message) => {
+                    const isMine =
+                      currentUserId === message.senderId ||
+                      user?.id === message.senderId ||
+                      user?._id === message.senderId
+
+                    return (
                       <div
-                        className={cn(
-                          'flex flex-col max-w-[70%]',
-                          isMine ? 'items-end' : 'items-start'
-                        )}
+                        key={message.id}
+                        className={cn('flex w-full', isMine ? 'justify-end' : 'justify-start')}
                       >
-                        {!isMine && (
-                          <p className="text-xs font-medium text-muted-foreground mb-0.5">
-                            {msg?.sender?.name}
-                          </p>
-                        )}
                         <div
                           className={cn(
-                            'px-4 py-3',
+                            'max-w-[70%] px-4 py-3 shadow-sm',
                             isMine
-                              ? 'bg-primary text-white rounded-t-lg rounded-bl-lg'
-                              : 'bg-white text-gray-700 rounded-b-lg rounded-tr-lg'
+                              ? 'bg-primary text-white rounded-t-2xl rounded-bl-2xl'
+                              : 'bg-white rounded-t-2xl rounded-br-2xl'
                           )}
                         >
-                          {msg.type === 'image' && msg.resourceUrl && (
+                          {isImageMessage(message) && (
                             <img
-                              src={imageUrl(msg.resourceUrl)}
-                              alt=""
-                              className="w-full max-w-xs h-auto max-h-[240px] object-cover rounded-lg mb-2"
+                              src={imageUrl(message.resourceUrl!)}
+                              alt="chat attachment"
+                              className="max-w-full w-full max-h-[320px] min-h-[120px] object-contain rounded-xl bg-black/5 mb-2"
+                              loading="lazy"
                               onError={(e) => {
-                                const absolute = imageUrlAbsolute(msg.resourceUrl)
+                                const absolute = imageUrlAbsolute(message.resourceUrl)
                                 if (absolute && e.currentTarget.src !== absolute) {
                                   e.currentTarget.src = absolute
                                 }
                               }}
                             />
                           )}
-                          {msg.text && <p className="text-sm">{msg.text}</p>}
-                        </div>
-                        <div className="flex items-center gap-1.5 mt-0.5 text-muted-foreground">
-                          <span className="text-xs">
-                            {format(new Date(msg.createdAt), 'hh:mm a')}
-                          </span>
-                          {isMine && <CheckCheck className="h-3.5 w-3.5" strokeWidth={2.5} />}
+
+                          {isDocMessage(message) && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                window.open(
+                                  imageUrlAbsolute(message.resourceUrl!) ||
+                                    imageUrl(message.resourceUrl!),
+                                  '_blank',
+                                  'noopener,noreferrer'
+                                )
+                              }
+                              className={cn(
+                                'flex w-full items-center gap-3 rounded-xl border px-4 py-3 mb-2 text-left transition-opacity hover:opacity-90',
+                                isMine
+                                  ? 'border-white/30 bg-white/10'
+                                  : 'border-gray-200 bg-gray-50'
+                              )}
+                            >
+                              <FileText
+                                className={cn(
+                                  'h-8 w-8 shrink-0',
+                                  isMine ? 'text-white' : 'text-primary'
+                                )}
+                              />
+                              <div className="min-w-0 flex-1">
+                                <p
+                                  className={cn(
+                                    'text-sm font-medium truncate',
+                                    isMine ? 'text-white' : 'text-gray-900'
+                                  )}
+                                >
+                                  {getAttachmentFileName(message.resourceUrl!)}
+                                </p>
+                                <p
+                                  className={cn(
+                                    'text-xs',
+                                    isMine ? 'text-white/80' : 'text-muted-foreground'
+                                  )}
+                                >
+                                  PDF document
+                                </p>
+                              </div>
+                            </button>
+                          )}
+
+                          {message.text && (
+                            <p
+                              className={cn(
+                                'text-sm leading-relaxed',
+                                isMine ? 'text-white' : 'text-gray-700'
+                              )}
+                            >
+                              {message.text}
+                            </p>
+                          )}
+
+                          <div className="mt-2 flex justify-end">
+                            <span
+                              className={cn(
+                                'text-[11px]',
+                                isMine ? 'text-white/80' : 'text-muted-foreground'
+                              )}
+                            >
+                              {format(new Date(message.createdAt), 'hh:mm a')}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
+                    )
+                  })
+                )}
+              </div>
 
-            <div className="shrink-0 border-t border-gray-100 px-6 py-4 bg-white">
-              {selectedImage && (
-                <div className="mb-3">
-                  <img
-                    src={URL.createObjectURL(selectedImage)}
-                    alt=""
-                    className="h-16 w-16 object-cover rounded"
+              <div className="shrink-0 border-t px-4 sm:px-5 py-3 sm:py-4 bg-white">
+                {selectedFile && (
+                  <div className="mb-3 relative w-fit max-w-full">
+                    {getFileKind(selectedFile) === 'image' ? (
+                      <img
+                        src={URL.createObjectURL(selectedFile)}
+                        alt="preview"
+                        className="h-20 w-20 rounded-lg object-cover border"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-lg border bg-gray-50 px-3 py-2 pr-8 max-w-xs">
+                        <FileText className="h-5 w-5 shrink-0 text-primary" />
+                        <span className="text-sm truncate">{selectedFile.name}</span>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={clearSelectedFile}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                      aria-label="Remove attachment"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 sm:gap-3 w-full">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    hidden
+                    accept={ACCEPTED_FILE_TYPES}
+                    onChange={(e) => handleFileSelect(e.target.files?.[0])}
                   />
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 h-11 w-11"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Paperclip className="h-5 w-5" />
+                  </Button>
+
+                  <Input
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleSendMessage()
+                      }
+                    }}
+                    placeholder="Type your message"
+                    className="flex-1 min-w-0 h-11 sm:h-12 rounded-full bg-white px-4"
+                  />
+
+                  <Button
+                    type="button"
+                    onClick={handleSendMessage}
+                    disabled={isLoading}
+                    className="h-11 w-11 sm:h-12 sm:w-12 rounded-full shrink-0"
+                  >
+                    <Send className="h-5 w-5" />
+                  </Button>
                 </div>
-              )}
-              <div className="flex items-center gap-3">
-                <input
-                  type="file"
-                  hidden
-                  ref={fileInputRef}
-                  accept="image/*"
-                  onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-accent shrink-0"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Paperclip className="h-5 w-5" />
-                </Button>
-                <Input
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSendMessage()
-                    }
-                  }}
-                  placeholder="Type message..."
-                  className="flex-1 rounded-full border-gray-200 h-11"
-                />
-                <Button
-                  type="button"
-                  onClick={handleSendMessage}
-                  disabled={isLoading}
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-primary hover:bg-primary/10 shrink-0 rounded-full"
-                >
-                  <Send className="h-5 w-5" />
-                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-[#F7F7F7]">
+              <div className="text-center">
+                <p className="text-lg font-medium text-gray-700">Select a conversation</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Start messaging with your team
+                </p>
               </div>
             </div>
-          </>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground bg-[#F7F7F7] gap-2">
-            <MessageSquare className="h-10 w-10 opacity-40" />
-            <p className="text-sm">Select a conversation to start chatting</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </motion.div>
   )
