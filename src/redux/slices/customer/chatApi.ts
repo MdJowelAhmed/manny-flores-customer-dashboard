@@ -3,6 +3,14 @@ import { baseApi } from "@/redux/baseApi";
 
 const chatSlice = baseApi.injectEndpoints({
     endpoints: (builder) => ({
+        getChats: builder.query({
+            query: () => {
+                return {
+                    url: `/chat`,
+                }
+            },
+            providesTags: ["chats"]
+        }),
 
         createInitialChat: builder.mutation({
             query: (id) => {
@@ -50,5 +58,5 @@ const chatSlice = baseApi.injectEndpoints({
 
 })
 
-export const { useCreateInitialChatMutation, useGetChatListQuery, useSendMessageMutation, useGetMessageListQuery } = chatSlice
+export const { useCreateInitialChatMutation, useGetChatListQuery, useSendMessageMutation, useGetMessageListQuery, useGetChatsQuery } = chatSlice
  
