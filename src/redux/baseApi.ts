@@ -7,13 +7,13 @@ export const baseApi = createApi({
     reducerPath: 'baseApi',
     baseQuery: fetchBaseQuery({
         baseUrl: import.meta.env.VITE_API_BASE_URL + '/api/v1',
-        prepareHeaders: (headers, { getState }) => {
-            const token = (getState() as RootState).auth.token
-            if (token) {
-                headers.set('authorization', `Bearer ${token}`)
+        prepareHeaders: (headers, { getState, endpoint }) => {
+            if (endpoint !== 'resetPassword') {
+                const token = (getState() as RootState).auth.token
+                if (token) {
+                    headers.set('authorization', `Bearer ${token}`)
+                }
             }
-            // Don't set Content-Type for FormData - browser will set it with boundary
-            // RTK Query will handle this automatically
             return headers
         },
     }),

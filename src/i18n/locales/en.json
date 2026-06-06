@@ -164,6 +164,7 @@
     "fullNamePlaceholder": "Md Abdur Razzak",
     "otpResentSuccess": "A new verification code has been sent to your email.",
     "missingVerificationEmail": "Email is missing. Please sign up again.",
+    "missingResetToken": "Reset session expired. Please request a new code.",
     "passwordMin8Chars": "Password must be at least 8 characters",
     "passwordNeedUppercase": "Password must contain at least one uppercase letter",
     "passwordNeedLowercase": "Password must contain at least one lowercase letter",

@@ -187,6 +187,7 @@
     "fullNamePlaceholder": "Md Abdur Razzak",
     "otpResentSuccess": "Se ha enviado un nuevo código de verificación a su correo.",
     "missingVerificationEmail": "Falta el correo electrónico. Regístrese de nuevo.",
+    "missingResetToken": "La sesión de restablecimiento expiró. Solicite un nuevo código.",
     "passwordMin8Chars": "La contraseña debe tener al menos 8 caracteres",
     "passwordNeedUppercase": "La contraseña debe contener al menos una letra mayúscula",
     "passwordNeedLowercase": "La contraseña debe contener al menos una letra minúscula",
