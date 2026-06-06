@@ -18,16 +18,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAppDispatch } from '@/redux/hooks'
 import { setVerificationEmail } from '@/redux/slices/authSlice'
+import { useRegisterMutation } from '@/redux/api/authApi'
 import { cn } from '@/utils/cn'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query'
+import type { SerializedError } from '@reduxjs/toolkit'
 
 const signUpSchema = z
   .object({
-    firstName: z.string().min(2, 'auth.firstNameMinChars'),
-    lastName: z.string().min(2, 'auth.lastNameMinChars'),
+    name: z.string().min(2, 'auth.nameMinChars'),
     email: z.string().email('auth.pleaseEnterValidEmail'),
-    phone: z.string().optional(),
+    contact: z.string().min(10, 'auth.contactMinChars'),
     password: z
       .string()
       .min(8, 'auth.passwordMin8Chars')
@@ -46,13 +48,26 @@ const signUpSchema = z
 
 type SignUpFormData = z.infer<typeof signUpSchema>
 
+function getApiErrorMessage(
+  error: FetchBaseQueryError | SerializedError | undefined,
+  fallback: string
+): string {
+  if (!error) return fallback
+  if ('data' in error && error.data && typeof error.data === 'object') {
+    const data = error.data as { message?: string }
+    if (data.message) return data.message
+  }
+  if ('message' in error && error.message) return error.message
+  return fallback
+}
+
 export default function SignUp() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
+  const [registerUser, { isLoading: isRegisterLoading }] = useRegisterMutation()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
   const {
@@ -63,10 +78,9 @@ export default function SignUp() {
   } = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
+      name: '',
       email: '',
-      phone: '',
+      contact: '',
       password: '',
       confirmPassword: '',
       agreeTerms: undefined,
@@ -89,28 +103,27 @@ export default function SignUp() {
 
   const onSubmit = async (data: SignUpFormData) => {
     setSubmitError('')
-    setIsLoading(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const result = await registerUser({
+        name: data.name.trim(),
+        email: data.email.trim(),
+        contact: data.contact.trim(),
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+      }).unwrap()
 
-      if (data.email === 'customer@example.com') {
-        setSubmitError(t('auth.emailAlreadyRegistered'))
+      if (!result.success) {
+        setSubmitError(result.message || t('auth.anErrorOccurred'))
         return
       }
 
-      dispatch(setVerificationEmail(data.email))
-      navigate('/auth/verify-email', {
-        state: {
-          type: 'signup',
-          firstName: data.firstName,
-          lastName: data.lastName,
-        },
-      })
-    } catch {
-      setSubmitError(t('auth.anErrorOccurred'))
-    } finally {
-      setIsLoading(false)
+      dispatch(setVerificationEmail(data.email.trim()))
+      navigate('/auth/verify-email', { state: { type: 'signup' } })
+    } catch (error) {
+      setSubmitError(
+        getApiErrorMessage(error as FetchBaseQueryError, t('auth.anErrorOccurred'))
+      )
     }
   }
 
@@ -144,46 +157,20 @@ export default function SignUp() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="grid gap-4 sm:grid-cols-2"
-        >
-          <div className="space-y-2">
-            <Label htmlFor="firstName">{t('auth.firstName')}</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="firstName"
-                type="text"
-                placeholder={t('auth.firstNamePlaceholder')}
-                className={cn('pl-10', errors.firstName && 'border-destructive')}
-                {...register('firstName')}
-              />
-            </div>
-            {errors.firstName && (
-              <p className="text-xs text-destructive">{fieldError('firstName')}</p>
-            )}
+        <div className="space-y-2">
+          <Label htmlFor="name">{t('auth.fullName')}</Label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="name"
+              type="text"
+              placeholder={t('auth.fullNamePlaceholder', { defaultValue: 'Md Abdur Razzak' })}
+              className={cn('pl-10', errors.name && 'border-destructive')}
+              {...register('name')}
+            />
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="lastName">{t('auth.lastName')}</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="lastName"
-                type="text"
-                placeholder={t('auth.lastNamePlaceholder')}
-                className={cn('pl-10', errors.lastName && 'border-destructive')}
-                {...register('lastName')}
-              />
-            </div>
-            {errors.lastName && (
-              <p className="text-xs text-destructive">{fieldError('lastName')}</p>
-            )}
-          </div>
-        </motion.div>
+          {errors.name && <p className="text-xs text-destructive">{fieldError('name')}</p>}
+        </div>
 
         <div className="space-y-2">
           <Label htmlFor="email">{t('auth.email')}</Label>
@@ -202,26 +189,24 @@ export default function SignUp() {
               {...register('email')}
             />
           </motion.div>
-          {errors.email && (
-            <p className="text-xs text-destructive">{fieldError('email')}</p>
-          )}
+          {errors.email && <p className="text-xs text-destructive">{fieldError('email')}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">
-            {t('auth.phone')}{' '}
-            <span className="text-muted-foreground font-normal">({t('auth.optional')})</span>
-          </Label>
+          <Label htmlFor="contact">{t('auth.phone')}</Label>
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              id="phone"
+              id="contact"
               type="tel"
               placeholder={t('auth.phonePlaceholder')}
-              className="pl-10"
-              {...register('phone')}
+              className={cn('pl-10', errors.contact && 'border-destructive')}
+              {...register('contact')}
             />
           </div>
+          {errors.contact && (
+            <p className="text-xs text-destructive">{fieldError('contact')}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -284,18 +269,10 @@ export default function SignUp() {
           <p className="text-xs font-medium text-muted-foreground">
             {t('auth.passwordRequirements')}
           </p>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
-            className="grid grid-cols-2 gap-1"
-          >
+          <div className="grid grid-cols-2 gap-1">
             {passwordRequirements.map((req) => (
-              <motion.div
+              <div
                 key={req.label}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35 }}
                 className={cn(
                   'flex items-center gap-1.5 text-xs',
                   req.met ? 'text-green-600' : 'text-muted-foreground'
@@ -307,9 +284,9 @@ export default function SignUp() {
                   <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground shrink-0" />
                 )}
                 {req.label}
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
 
         <div className="flex items-start gap-2">
@@ -330,8 +307,8 @@ export default function SignUp() {
           <p className="text-xs text-destructive -mt-2">{fieldError('agreeTerms')}</p>
         )}
 
-        <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
-          {!isLoading && (
+        <Button type="submit" className="w-full" size="lg" isLoading={isRegisterLoading}>
+          {!isRegisterLoading && (
             <>
               {t('auth.createAccountBtn')}
               <ArrowRight className="ml-2 h-4 w-4" />

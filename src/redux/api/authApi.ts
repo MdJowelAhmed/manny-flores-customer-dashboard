@@ -16,6 +16,30 @@ interface LoginCredentials {
     password: string;
 }
 
+export interface RegisterPayload {
+    name: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    contact: string;
+}
+
+interface RegisterResponse {
+    success: boolean;
+    statusCode?: number;
+    message: string;
+}
+
+interface ResendOtpPayload {
+    email: string;
+}
+
+interface ResendOtpResponse {
+    success: boolean;
+    statusCode?: number;
+    message: string;
+}
+
 interface ChangePasswordPayload {
     currentPassword: string;
     newPassword: string;
@@ -117,9 +141,9 @@ const authApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['Auth'],
         }),
-        register: builder.mutation({
+        register: builder.mutation<RegisterResponse, RegisterPayload>({
             query: (credentials) => ({
-                url: '/auth/register',
+                url: '/user',
                 method: 'POST',
                 body: credentials,
             }),
@@ -155,7 +179,7 @@ const authApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['Auth'],
         }),
-        resentOtp: builder.mutation({
+        resendOtp: builder.mutation<ResendOtpResponse, ResendOtpPayload>({
             query: (credentials) => ({
                 url: '/auth/resend-otp',
                 method: 'POST',
@@ -165,7 +189,7 @@ const authApi = baseApi.injectEndpoints({
         }),
         verifyEmail: builder.mutation<VerifyEmailResponse, VerifyEmailPayload>({
             query: (credentials) => ({
-                url: '/auth/verify-email',
+                url: '/auth/verify',
                 method: 'POST',
                 body: credentials,
             }),
@@ -247,7 +271,7 @@ export const {
     useForgotPasswordMutation,
     useVerifyEmailMutation,
     useResetPasswordMutation,
-    useResentOtpMutation,
+    useResendOtpMutation,
     useGetMyProfileQuery,
     useUpdateMyProfileMutation,
 } =
