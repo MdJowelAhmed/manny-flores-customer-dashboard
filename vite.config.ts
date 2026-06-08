@@ -16,6 +16,10 @@ export default defineConfig(({ mode }) => {
     server: {
       host: true,
       open: true,
+      allowedHosts: [
+        '193.46.198.251',
+        "10.10.7.30",
+      ],
       proxy: {
         '/uploads': {
           target: apiBase,
@@ -23,6 +27,15 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    // preview: {
+    //   host: true,
+    //   port: 5175,
+    //   allowedHosts: [
+    //     '193.46.198.251',
+    //     "10.10.7.30",
+    //     'localhost',
+    //   ],
+    // },
     preview: {
       proxy: {
         '/uploads': {
@@ -30,6 +43,14 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
         },
       },
+      host: true,
+      port: 5176,
+      allowedHosts: [
+        '193.46.198.251',
+        "10.10.7.30",
+        'localhost',
+      ],
+
     },
   }
   
