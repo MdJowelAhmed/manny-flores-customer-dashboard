@@ -7,9 +7,9 @@ export default function AuthLayout() {
   const { t } = useTranslation()
   const { isAuthenticated } = useAppSelector((state) => state.auth)
 
-  // If already authenticated, redirect to dashboard
+  // If already authenticated, redirect to default app home
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/estimates-approvals" replace />
   }
 
   return (

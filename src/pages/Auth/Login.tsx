@@ -105,7 +105,7 @@ export default function Login() {
         })
       )
 
-      navigate('/dashboard', { replace: true })
+      navigate('/estimates-approvals', { replace: true })
     } catch (err) {
       dispatch(
         loginFailure(

@@ -17,7 +17,7 @@ export function RoleBasedRoute({ children, allowedRoles }: RoleBasedRouteProps) 
   }
 
   if (!allowedRoles.includes(user.role as UserRole)) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/estimates-approvals" replace />
   }
 
   return <>{children}</>

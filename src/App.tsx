@@ -44,7 +44,7 @@ function AppEntryRedirect() {
     return <Navigate to="/auth/login" replace />
   }
 
-  return <Navigate to="/dashboard" replace />
+  return <Navigate to="/estimates-approvals" replace />
 }
 
 function App() {
