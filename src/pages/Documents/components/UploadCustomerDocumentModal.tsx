@@ -83,7 +83,7 @@ export function UploadCustomerDocumentModal({
           <Label className="text-sm font-medium text-gray-800">
             {t('documents.projectName')}
           </Label>
-          <Input value={request.project?.estimates?.projectName || ''} readOnly className={cn(inputClass, 'bg-[#EEF2FF]')} />
+          <Input value={request?.project?.projectName || ''} readOnly className={cn(inputClass, 'bg-[#EEF2FF]')} />
         </div>
 
         <div className="space-y-1.5">

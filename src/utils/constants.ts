@@ -69,6 +69,12 @@ export const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   // Payment statuses
   Paid: { bg: 'bg-green-100', text: 'text-green-800' },
   Partial: { bg: 'bg-purple-100', text: 'text-purple-800' },
+  Completed: { bg: 'bg-green-100', text: 'text-green-800' },
+  Pending: { bg: 'bg-orange-100', text: 'text-orange-800' },
+  Rejected: { bg: 'bg-red-100', text: 'text-red-800' },
+  completed: { bg: 'bg-green-100', text: 'text-green-800' },
+  pending: { bg: 'bg-orange-100', text: 'text-orange-800' },
+  rejected: { bg: 'bg-red-100', text: 'text-red-800' },
 }
 
 export const ROLE_COLORS: Record<string, { bg: string; text: string }> = {

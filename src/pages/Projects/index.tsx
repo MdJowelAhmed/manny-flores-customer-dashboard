@@ -4,7 +4,9 @@ import { Pagination } from '@/components/common'
 import { toast } from 'sonner'
 import { formatProjectDisplayDate, type Project } from './projectsData'
 import { ProjectDetailsModal } from './components/ProjectDetailsModal'
+import { ProjectPaymentModal } from './components/ProjectPaymentModal'
 import { AddProjectModal, type AddProjectFormData } from './components/AddProjectModal'
+import { isProjectPaymentDue } from './projectPaymentUtils'
 import {
   mapProjectApiDocToUi,
   useGetProjectsQuery,
@@ -36,6 +38,8 @@ export default function Projects() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [paymentProject, setPaymentProject] = useState<Project | null>(null)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE)
 
@@ -59,6 +63,11 @@ export default function Projects() {
   const handleViewDetails = (project: Project) => {
     setSelectedProject(project)
     setShowDetailsModal(true)
+  }
+
+  const handlePaymentNow = (project: Project) => {
+    setPaymentProject(project)
+    setShowPaymentModal(true)
   }
 
   const handleAddRequest = (_data: AddProjectFormData) => {
@@ -151,14 +160,25 @@ export default function Projects() {
                         {p.projectValue}
                       </td>
                       <td className="px-3 py-3 text-right">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="h-9 rounded-lg border-gray-300 bg-white text-sm font-semibold text-gray-800 hover:bg-gray-50"
-                          onClick={() => handleViewDetails(p)}
-                        >
-                          {t('projects.viewDetails', { defaultValue: 'View Details' })}
-                        </Button>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-9 rounded-lg border-gray-300 bg-white text-sm font-semibold text-gray-800 hover:bg-gray-50"
+                            onClick={() => handleViewDetails(p)}
+                          >
+                            {t('projects.viewDetails', { defaultValue: 'View Details' })}
+                          </Button>
+                          {isProjectPaymentDue(p) ? (
+                            <Button
+                              type="button"
+                              className="h-9 rounded-lg bg-[#22c55e] text-sm font-semibold text-white hover:bg-[#16a34a]"
+                              onClick={() => handlePaymentNow(p)}
+                            >
+                              {t('projects.paymentNow', { defaultValue: 'Payment now' })}
+                            </Button>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -198,6 +218,19 @@ export default function Projects() {
           setSelectedProject(null)
         }}
         project={selectedProject}
+      />
+
+      <ProjectPaymentModal
+        open={showPaymentModal}
+        onClose={() => {
+          setShowPaymentModal(false)
+          setPaymentProject(null)
+        }}
+        project={paymentProject}
+        onPaymentSuccess={() => {
+          setShowPaymentModal(false)
+          setPaymentProject(null)
+        }}
       />
     </div>
   )

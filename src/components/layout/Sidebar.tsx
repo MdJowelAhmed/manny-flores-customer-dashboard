@@ -36,13 +36,13 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    titleKey: 'sidebar.dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-    feature: 'dashboard',
-  },
+  // {
+  //   title: 'Dashboard',
+  //   titleKey: 'sidebar.dashboard',
+  //   href: '/dashboard',
+  //   icon: LayoutDashboard,
+  //   feature: 'dashboard',
+  // },
   // {
   //   title: 'Recent Projects',
   //   titleKey: 'sidebar.recentProjects',

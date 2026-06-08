@@ -14,6 +14,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/utils/cn'
 import { toast } from 'sonner'
+import {
+  useCreateProjectPaymentMutation,
+  type ProjectPaymentMethod,
+} from '@/redux/api/projectApi'
+import { CashReceiverPicker } from './CashReceiverPicker'
 import type { Payment } from '../paymentsData'
 
 export type CashPaidTo = 'admin' | 'employee'
@@ -30,9 +35,14 @@ export interface AddPaymentSubmitPayload {
 }
 
 type MethodKey = 'card' | 'check' | 'cash' | 'wire'
+type SelectedMethodKey = MethodKey | null
 
 const primaryMethodGreen = '#00B050'
 const completeButtonGreen = '#66D87D'
+
+export interface ProjectPaymentContext {
+  estimateId: string
+}
 
 interface AddPaymentModalProps {
   open: boolean
@@ -45,6 +55,9 @@ interface AddPaymentModalProps {
   /** Pre-select invoice and hide the invoice dropdown */
   lockInvoice?: boolean
   initialInvoice?: string
+  /** POST /payment with estimateId (Projects flow) */
+  projectPayment?: ProjectPaymentContext
+  onPaymentSuccess?: () => void
 }
 
 function MethodCard({
@@ -100,28 +113,6 @@ function MethodCard({
 const inputClass =
   'h-11 rounded-lg border-0 bg-[#F3F4F6] shadow-none ring-1 ring-inset ring-gray-100 placeholder:text-gray-400 focus-visible:ring-2 focus-visible:ring-[#00B050]/30'
 
-function formatCardNumberInput(raw: string): string {
-  const digits = raw.replace(/\D/g, '').slice(0, 19)
-  return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trimEnd()
-}
-
-function formatExpiryInput(raw: string): string {
-  const digits = raw.replace(/\D/g, '').slice(0, 4)
-  if (digits.length <= 2) return digits
-  return `${digits.slice(0, 2)}/${digits.slice(2)}`
-}
-
-function cardDigitsOnly(formatted: string): string {
-  return formatted.replace(/\D/g, '')
-}
-
-function isValidExpiryMmYy(value: string): boolean {
-  const d = cardDigitsOnly(value)
-  if (d.length !== 4) return false
-  const month = Number.parseInt(d.slice(0, 2), 10)
-  return month >= 1 && month <= 12
-}
-
 function mergeNote(
   base: string,
   extras: { checkName?: string | null; employeeName?: string; employeePhone?: string }
@@ -144,20 +135,22 @@ export function AddPaymentModal({
   hideWireTransfer = false,
   lockInvoice = false,
   initialInvoice,
+  projectPayment,
+  onPaymentSuccess,
 }: AddPaymentModalProps) {
   const { t } = useTranslation()
   const checkInputRef = useRef<HTMLInputElement>(null)
+  const [createProjectPayment, { isLoading: isSubmittingPayment }] =
+    useCreateProjectPaymentMutation()
   const [invoice, setInvoice] = useState('')
   const [amountToPay, setAmountToPay] = useState('')
   const [note, setNote] = useState('')
-  const [methodKey, setMethodKey] = useState<MethodKey>('card')
+  const [methodKey, setMethodKey] = useState<SelectedMethodKey>(null)
   const [checkFile, setCheckFile] = useState<File | null>(null)
   const [cashPaidTo, setCashPaidTo] = useState<CashPaidTo>('admin')
   const [employeeName, setEmployeeName] = useState('')
   const [employeePhone, setEmployeePhone] = useState('')
-  const [cardNumber, setCardNumber] = useState('')
-  const [cardExpiry, setCardExpiry] = useState('')
-  const [cardZip, setCardZip] = useState('')
+  const [cashReceiverId, setCashReceiverId] = useState('')
 
   const payables = useMemo(
     () =>
@@ -189,6 +182,9 @@ export function AddPaymentModal({
     [payables, invoice]
   )
 
+  const estimateIdForPayment = projectPayment?.estimateId ?? selectedPayment?.estimateId
+  const isApiPayment = !!estimateIdForPayment
+
   useEffect(() => {
     if (!open || payables.length === 0) return
     const preferred =
@@ -203,23 +199,118 @@ export function AddPaymentModal({
         : '0'
     setAmountToPay(suggested)
     setNote('')
-    setMethodKey('card')
+    setMethodKey(null)
     setCheckFile(null)
     setCashPaidTo('admin')
     setEmployeeName('')
     setEmployeePhone('')
-    setCardNumber('')
-    setCardExpiry('')
-    setCardZip('')
+    setCashReceiverId('')
     if (checkInputRef.current) checkInputRef.current.value = ''
-  }, [open, payables, initialInvoice])
+  }, [open, payables, initialInvoice, isApiPayment])
 
   const handleClose = () => {
     onClose()
   }
 
-  const handleComplete = () => {
-    const pay = Number.parseFloat(amountToPay.replace(/,/g, '')) || 0
+  const parsedAmount = Number.parseFloat(amountToPay.replace(/,/g, '')) || 0
+
+  const canCompletePayment = useMemo(() => {
+    if (!methodKey) return false
+    if (isApiPayment) {
+      if (methodKey === 'card') return true
+      if (methodKey === 'check') return !!checkFile && parsedAmount > 0
+      if (methodKey === 'cash') return parsedAmount > 0 && !!cashReceiverId
+      return false
+    }
+    if (!invoice || !selectedPayment) return false
+    if (parsedAmount <= 0) return false
+    if (methodKey === 'check' && !checkFile) return false
+    if (methodKey === 'cash' && cashPaidTo === 'employee') {
+      return !!employeeName.trim() && !!employeePhone.trim()
+    }
+    return true
+  }, [
+    isApiPayment,
+    methodKey,
+    checkFile,
+    parsedAmount,
+    invoice,
+    selectedPayment,
+    cashPaidTo,
+    employeeName,
+    employeePhone,
+    cashReceiverId,
+  ])
+
+  const submitApiPayment = async () => {
+    if (!estimateIdForPayment || !methodKey) return
+
+    const apiMethod: ProjectPaymentMethod =
+      methodKey === 'card'
+        ? 'CARD'
+        : methodKey === 'check'
+          ? 'CHEQUE'
+          : 'CASH'
+
+    if (apiMethod === 'CHEQUE' && !checkFile) {
+      toast.error(t('payment.checkImageRequired'))
+      return
+    }
+    if (apiMethod !== 'CARD' && parsedAmount <= 0) {
+      toast.error(t('payment.enterValidAmount'))
+      return
+    }
+    if (apiMethod === 'CASH' && !cashReceiverId) {
+      toast.error(
+        t('payment.selectCashReceiver', {
+          defaultValue: 'Select who received the cash',
+        })
+      )
+      return
+    }
+
+    try {
+      const result = await createProjectPayment({
+        estimateId: estimateIdForPayment,
+        method: apiMethod,
+        amount: apiMethod === 'CARD' ? undefined : parsedAmount,
+        receiverId: apiMethod === 'CASH' ? cashReceiverId : undefined,
+        checkImage: apiMethod === 'CHEQUE' ? checkFile ?? undefined : undefined,
+      }).unwrap()
+
+      if (apiMethod === 'CARD') {
+        const checkoutUrl = (result.data as { checkoutUrl?: string })?.checkoutUrl
+        if (checkoutUrl) {
+          window.location.href = checkoutUrl
+          return
+        }
+        toast.error(
+          t('payment.checkoutUrlMissing', {
+            defaultValue: 'Checkout URL was not returned. Please try again.',
+          })
+        )
+        return
+      }
+
+      toast.success(result.message || t('payment.paymentRecorded'))
+      onPaymentSuccess?.()
+      handleClose()
+    } catch {
+      toast.error(
+        t('payment.paymentFailed', {
+          defaultValue: 'Payment could not be processed. Please try again.',
+        })
+      )
+    }
+  }
+
+  const handleComplete = async () => {
+    const pay = parsedAmount
+    if (isApiPayment) {
+      await submitApiPayment()
+      return
+    }
+
     if (!invoice) {
       toast.error(t('payment.selectInvoice'))
       return
@@ -249,23 +340,6 @@ export function AddPaymentModal({
       }
       if (!employeePhone.trim()) {
         toast.error(t('payment.employeePhoneRequired'))
-        return
-      }
-    }
-
-    if (methodKey === 'card') {
-      const pan = cardDigitsOnly(cardNumber)
-      const zip = cardZip.trim()
-      if (pan.length < 13) {
-        toast.error(t('payment.cardNumberInvalid'))
-        return
-      }
-      if (!isValidExpiryMmYy(cardExpiry)) {
-        toast.error(t('payment.cardExpiryInvalid'))
-        return
-      }
-      if (zip.length < 3) {
-        toast.error(t('payment.zipCodeInvalid'))
         return
       }
     }
@@ -312,14 +386,21 @@ export function AddPaymentModal({
     handleClose()
   }
 
+  const showAmountField =
+    methodKey != null && !(isApiPayment && methodKey === 'card')
+
   const rightTitle =
-    methodKey === 'card'
-      ? t('payment.cardStripeTitle')
-      : methodKey === 'check'
-        ? t('payment.checkPaymentTitle')
-        : methodKey === 'cash'
-          ? t('payment.cashPaymentTitle')
-          : t('payment.wireTransferInfo')
+    methodKey === null
+      ? t('payment.selectPaymentMethodTitle', {
+          defaultValue: 'Select payment method',
+        })
+      : methodKey === 'card'
+        ? t('payment.cardStripeTitle')
+        : methodKey === 'check'
+          ? t('payment.checkPaymentTitle')
+          : methodKey === 'cash'
+            ? t('payment.cashPaymentTitle')
+            : t('payment.wireTransferInfo')
 
   return (
     <ModalWrapper
@@ -362,33 +443,35 @@ export function AddPaymentModal({
               />
             )}
 
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-gray-800">
-                {t('payment.amountToPay')}
-              </Label>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">
-                  $
-                </span>
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  value={amountToPay}
-                  onChange={(e) =>
-                    setAmountToPay(e.target.value.replace(/[^\d.]/g, ''))
-                  }
-                  className={cn(inputClass, 'pl-8')}
-                  placeholder="0"
-                />
+            {showAmountField ? (
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-gray-800">
+                  {t('payment.amountToPay')}
+                </Label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500">
+                    $
+                  </span>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={amountToPay}
+                    onChange={(e) =>
+                      setAmountToPay(e.target.value.replace(/[^\d.]/g, ''))
+                    }
+                    className={cn(inputClass, 'pl-8')}
+                    placeholder="0"
+                  />
+                </div>
+                {selectedPayment ? (
+                  <p className="text-xs text-gray-500">
+                    {t('payment.outstandingHint', {
+                      amount: selectedPayment.outstandingAmount.toLocaleString(),
+                    })}
+                  </p>
+                ) : null}
               </div>
-              {selectedPayment ? (
-                <p className="text-xs text-gray-500">
-                  {t('payment.outstandingHint', {
-                    amount: selectedPayment.outstandingAmount.toLocaleString(),
-                  })}
-                </p>
-              ) : null}
-            </div>
+            ) : null}
 
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-gray-800">
@@ -453,77 +536,20 @@ export function AddPaymentModal({
               {rightTitle}
             </h3>
 
-            {methodKey === 'card' ? (
-              <div className="mt-6 flex-1 space-y-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
-                  {t('payment.enterCardDetails')}
-                </p>
-                <div className="rounded-2xl border border-gray-100 bg-gradient-to-b from-[#F9FAFB] to-white p-5 shadow-sm ring-1 ring-inset ring-gray-50">
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label
-                        htmlFor="add-pay-card-number"
-                        className="text-sm font-medium text-gray-800"
-                      >
-                        {t('payment.cardNumber')}
-                      </Label>
-                      <Input
-                        id="add-pay-card-number"
-                        value={cardNumber}
-                        onChange={(e) =>
-                          setCardNumber(formatCardNumberInput(e.target.value))
-                        }
-                        placeholder={t('payment.cardNumberPlaceholder')}
-                        className={cn(inputClass, 'font-mono text-base tracking-wide')}
-                        inputMode="numeric"
-                        autoComplete="cc-number"
-                      />
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="add-pay-card-expiry"
-                          className="text-sm font-medium text-gray-800"
-                        >
-                          {t('payment.validDate')}
-                        </Label>
-                        <Input
-                          id="add-pay-card-expiry"
-                          value={cardExpiry}
-                          onChange={(e) =>
-                            setCardExpiry(formatExpiryInput(e.target.value))
-                          }
-                          placeholder={t('payment.expiry')}
-                          className={cn(inputClass, 'font-mono')}
-                          inputMode="numeric"
-                          autoComplete="cc-exp"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label
-                          htmlFor="add-pay-card-zip"
-                          className="text-sm font-medium text-gray-800"
-                        >
-                          {t('payment.zipCode')}
-                        </Label>
-                        <Input
-                          id="add-pay-card-zip"
-                          value={cardZip}
-                          onChange={(e) =>
-                            setCardZip(
-                              e.target.value.replace(/[^\dA-Za-z\-\s]/g, '').slice(0, 10)
-                            )
-                          }
-                          placeholder={t('payment.zipCodePlaceholder')}
-                          className={inputClass}
-                          autoComplete="postal-code"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs leading-relaxed text-gray-500">
-                  {t('payment.stripePlaceholderBody')}
+            {methodKey === null ? (
+              <p className="mt-6 flex-1 text-sm leading-relaxed text-gray-500">
+                {t('payment.selectPaymentMethodHint', {
+                  defaultValue:
+                    'Choose Card, Check, or Cash on the left to continue with your payment.',
+                })}
+              </p>
+            ) : methodKey === 'card' ? (
+              <div className="mt-6 flex-1 space-y-4">
+                <p className="text-sm leading-relaxed text-gray-600">
+                  {t('payment.stripeCheckoutHint', {
+                    defaultValue:
+                      'You will be redirected to Stripe to enter your card details securely. Payment is recorded after a successful card payment.',
+                  })}
                 </p>
               </div>
             ) : methodKey === 'check' ? (
@@ -567,49 +593,59 @@ export function AddPaymentModal({
                 <p className="text-sm text-gray-600">
                   {t('payment.cashIntro')}
                 </p>
-                <FormSelect
-                  label={t('payment.cashPaidToLabel')}
-                  value={cashPaidTo}
-                  options={cashRecipientOptions}
-                  onChange={(v) => {
-                    setCashPaidTo(v as CashPaidTo)
-                    if (v === 'admin') {
-                      setEmployeeName('')
-                      setEmployeePhone('')
-                    }
-                  }}
-                  placeholder={t('common.select')}
-                  triggerClassName={cn(inputClass, 'h-11')}
-                />
-                {cashPaidTo === 'employee' ? (
-                  <div className="space-y-3 pt-1">
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-medium text-gray-800">
-                        {t('payment.employeeName')}
-                      </Label>
-                      <Input
-                        value={employeeName}
-                        onChange={(e) => setEmployeeName(e.target.value)}
-                        placeholder={t('payment.employeeNamePlaceholder')}
-                        className={inputClass}
-                        autoComplete="name"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-medium text-gray-800">
-                        {t('payment.employeePhone')}
-                      </Label>
-                      <Input
-                        value={employeePhone}
-                        onChange={(e) => setEmployeePhone(e.target.value)}
-                        placeholder={t('payment.employeePhonePlaceholder')}
-                        className={inputClass}
-                        type="tel"
-                        autoComplete="tel"
-                      />
-                    </div>
-                  </div>
-                ) : null}
+                {isApiPayment ? (
+                  <CashReceiverPicker
+                    value={cashReceiverId}
+                    onChange={setCashReceiverId}
+                    enabled={open && methodKey === 'cash'}
+                  />
+                ) : (
+                  <>
+                    <FormSelect
+                      label={t('payment.cashPaidToLabel')}
+                      value={cashPaidTo}
+                      options={cashRecipientOptions}
+                      onChange={(v) => {
+                        setCashPaidTo(v as CashPaidTo)
+                        if (v === 'admin') {
+                          setEmployeeName('')
+                          setEmployeePhone('')
+                        }
+                      }}
+                      placeholder={t('common.select')}
+                      triggerClassName={cn(inputClass, 'h-11')}
+                    />
+                    {cashPaidTo === 'employee' ? (
+                      <div className="space-y-3 pt-1">
+                        <div className="space-y-1.5">
+                          <Label className="text-sm font-medium text-gray-800">
+                            {t('payment.employeeName')}
+                          </Label>
+                          <Input
+                            value={employeeName}
+                            onChange={(e) => setEmployeeName(e.target.value)}
+                            placeholder={t('payment.employeeNamePlaceholder')}
+                            className={inputClass}
+                            autoComplete="name"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-sm font-medium text-gray-800">
+                            {t('payment.employeePhone')}
+                          </Label>
+                          <Input
+                            value={employeePhone}
+                            onChange={(e) => setEmployeePhone(e.target.value)}
+                            placeholder={t('payment.employeePhonePlaceholder')}
+                            className={inputClass}
+                            type="tel"
+                            autoComplete="tel"
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+                  </>
+                )}
               </div>
             ) : (
               <p className="mt-6 flex-1 text-sm leading-relaxed text-gray-600">
@@ -620,11 +656,14 @@ export function AddPaymentModal({
             <div className="mt-auto pt-8">
               <Button
                 type="button"
-                className="h-12 w-full rounded-xl text-base font-semibold text-white shadow-none hover:opacity-95"
-                style={{ backgroundColor: completeButtonGreen }}
+                className="h-12 w-full rounded-xl bg-[#00B050] text-base font-semibold text-white shadow-none hover:opacity-95 disabled:opacity-50"
+                // style={{ backgroundColor: completeButtonGreen }}
                 onClick={handleComplete}
+                disabled={!canCompletePayment || isSubmittingPayment}
               >
-                {t('payment.completePayment')}
+                {isSubmittingPayment
+                  ? t('common.processing', { defaultValue: 'Processing...' })
+                  : t('payment.completePayment')}
               </Button>
               <p className="mt-4 text-center text-xs text-gray-500">
                 {t('payment.paymentDisclaimer')}

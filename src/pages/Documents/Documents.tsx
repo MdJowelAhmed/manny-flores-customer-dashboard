@@ -81,12 +81,12 @@ export default function Documents() {
           <p className="text-sm text-muted-foreground mt-1">{t('documents.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3 ">
-          <Input
+          {/* <Input
             placeholder={t('documents.search')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className='h-9'
-          />
+          /> */}
 
           <div className="rounded-xl border border-gray-100 bg-white px-4 py-2 text-sm w-fit text-nowrap">
             <span className="text-muted-foreground ">{t('documents.pendingLabel')}</span>{' '}
@@ -113,7 +113,7 @@ export default function Documents() {
                       <div className="flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-2 min-w-0">
                           <FileText className="h-5 w-5 text-gray-500 shrink-0" />
-                          <h3 className="font-semibold text-gray-900 truncate">{req.project?.estimates?.projectName || 'Project'}</h3>
+                          <h3 className="font-semibold text-gray-900 truncate">{req?.project?.projectName || 'Project'}</h3>
                         </div>
                         <span className={cn('rounded-full px-3 py-1 text-xs font-medium', st.bg, st.text)}>
                           {st.labelKey.includes('.') ? t(st.labelKey) : st.labelKey}

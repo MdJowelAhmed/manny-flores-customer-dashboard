@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { ConfirmDialog, ModalWrapper } from '@/components/common'
 import { Button } from '@/components/ui/button'
-import { AddPaymentModal } from '@/pages/Payment/components/AddPaymentModal'
-import type { AddPaymentSubmitPayload } from '@/pages/Payment/components/AddPaymentModal'
+import { ProjectPaymentModal } from './ProjectPaymentModal'
 import { useGetSingleEstimateQuery } from '@/redux/api/estimateApi'
 import { useCompleteProjectMutation } from '@/redux/api/projectApi'
 import { formatDateDayMonth } from '@/utils/formatters'
@@ -12,7 +11,7 @@ import {
   buildLineItemsFromEstimate,
   computeProjectTotals,
 } from '../projectEstimateUtils'
-import { buildProjectPayablePayment } from '../projectPaymentUtils'
+import { isProjectPaymentDue } from '../projectPaymentUtils'
 import {
   COMPANY_INFO,
   fmtProjectMoney,
@@ -101,21 +100,7 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
     }
   }, [project, estimateResponse?.data])
 
-  const isPaymentDue = project?.status === 'Payment Due'
-
-  const payablePayments = useMemo(() => {
-    if (!project || !preview) return []
-    const estimateTotal = Number(estimateResponse?.data?.totalCost ?? 0)
-    const due =
-      preview.balanceDue > 0 ? preview.balanceDue : estimateTotal > 0 ? estimateTotal : 0
-    return [buildProjectPayablePayment(project, due)]
-  }, [project, preview, estimateResponse?.data?.totalCost])
-
-  const payableInvoice = payablePayments[0]?.invoice
-
-  const handleProjectPayment = (_payload: AddPaymentSubmitPayload) => {
-    setShowPaymentModal(false)
-  }
+  const isPaymentDue = project ? isProjectPaymentDue(project) : false
 
   if (!project || !preview) return null
 
@@ -316,14 +301,14 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
         isLoading={isCompleting}
       />
 
-      <AddPaymentModal
+      <ProjectPaymentModal
         open={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
-        payments={payablePayments}
-        onSubmit={handleProjectPayment}
-        hideWireTransfer
-        lockInvoice
-        initialInvoice={payableInvoice}
+        project={project}
+        onPaymentSuccess={() => {
+          setShowPaymentModal(false)
+          onClose()
+        }}
       />
     </ModalWrapper>
   )

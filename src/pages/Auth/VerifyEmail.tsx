@@ -4,26 +4,45 @@ import { ArrowLeft, ArrowRight, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAppSelector } from '@/redux/hooks'
+import { useResendOtpMutation, useVerifyEmailMutation } from '@/redux/api/authApi'
 import { cn } from '@/utils/cn'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query'
+import type { SerializedError } from '@reduxjs/toolkit'
 
 const OTP_LENGTH = 6
+
+function getApiErrorMessage(
+  error: FetchBaseQueryError | SerializedError | undefined,
+  fallback: string
+): string {
+  if (!error) return fallback
+  if ('data' in error && error.data && typeof error.data === 'object') {
+    const data = error.data as { message?: string }
+    if (data.message) return data.message
+  }
+  if ('message' in error && error.message) return error.message
+  return fallback
+}
 
 export default function VerifyEmail() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { passwordResetEmail, verificationEmail } = useAppSelector((state) => state.auth)
-  
+
   const isPasswordReset = location.state?.type === 'reset'
   const email = isPasswordReset ? passwordResetEmail : verificationEmail
 
+  const [verifyEmail, { isLoading: isVerifying }] = useVerifyEmailMutation()
+  const [resendOtp, { isLoading: isResending }] = useResendOtpMutation()
+
   const [otp, setOtp] = useState<string[]>(new Array(OTP_LENGTH).fill(''))
-  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [resendTimer, setResendTimer] = useState(30)
-  
+
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
@@ -45,7 +64,6 @@ export default function VerifyEmail() {
     setOtp(newOtp)
     setError('')
 
-    // Move to next input
     if (value && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus()
     }
@@ -76,46 +94,65 @@ export default function VerifyEmail() {
     e.preventDefault()
     const code = otp.join('')
 
+    if (!email) {
+      setError(t('auth.missingVerificationEmail', { defaultValue: 'Email is missing. Please sign up again.' }))
+      return
+    }
+
     if (code.length !== OTP_LENGTH) {
       setError(t('auth.pleaseCompleteCode'))
       return
     }
 
-    setIsLoading(true)
+    setError('')
+    setSuccessMessage('')
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const result = await verifyEmail({
+        email,
+        oneTimeCode: Number.parseInt(code, 10),
+      }).unwrap()
 
-      // Mock verification - accept any 6-digit code
-      if (code === '123456' || code.length === 6) {
-        if (isPasswordReset) {
-          navigate('/auth/reset-password')
-        } else {
-          navigate('/auth/login', { state: { verified: true } })
-        }
-      } else {
-        setError(t('auth.invalidVerificationCode'))
+      if (!result.success) {
+        setError(result.message || t('auth.invalidVerificationCode'))
+        return
       }
-    } catch {
-      setError(t('auth.anErrorOccurred'))
-    } finally {
-      setIsLoading(false)
+
+      if (isPasswordReset) {
+        navigate('/auth/reset-password')
+      } else {
+        navigate('/auth/login', {
+          state: { verified: true, message: result.message },
+        })
+      }
+    } catch (err) {
+      setError(getApiErrorMessage(err as FetchBaseQueryError, t('auth.invalidVerificationCode')))
     }
   }
 
   const handleResend = async () => {
-    setResendTimer(30)
-    // Simulate resending code
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    if (!email) {
+      setError(t('auth.missingVerificationEmail', { defaultValue: 'Email is missing. Please sign up again.' }))
+      return
+    }
+
+    setError('')
+    setSuccessMessage('')
+
+    try {
+      const result = await resendOtp({ email }).unwrap()
+      setResendTimer(30)
+      setSuccessMessage(result.message || t('auth.otpResentSuccess', { defaultValue: 'A new code has been sent to your email.' }))
+    } catch (err) {
+      setError(getApiErrorMessage(err as FetchBaseQueryError, t('auth.anErrorOccurred')))
+    }
   }
 
   return (
     <div className="space-y-6">
-      {/* Mobile Logo */}
       <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
         <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-xl">D</span>
+          <span className="text-primary-foreground font-bold text-xl">M</span>
         </div>
         <span className="font-display font-bold text-2xl">{t('auth.dashboard')}</span>
       </div>
@@ -139,9 +176,7 @@ export default function VerifyEmail() {
           <Mail className="h-6 w-6 text-primary" />
         </div>
         <h1 className="text-2xl font-bold tracking-tight">{t('auth.verifyYourEmail')}</h1>
-        <p className="text-muted-foreground">
-          {t('auth.sentSixDigitCode')}
-        </p>
+        <p className="text-muted-foreground">{t('auth.sentSixDigitCode')}</p>
         <p className="font-medium">{email || t('auth.yourEmail')}</p>
       </div>
 
@@ -155,12 +190,24 @@ export default function VerifyEmail() {
         </motion.div>
       )}
 
+      {successMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-lg bg-green-50 border border-green-200 text-green-800 text-sm text-center"
+        >
+          {successMessage}
+        </motion.div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex justify-center gap-2">
           {otp.map((digit, index) => (
             <Input
               key={index}
-              ref={(el) => { inputRefs.current[index] = el }}
+              ref={(el) => {
+                inputRefs.current[index] = el
+              }}
               type="text"
               inputMode="numeric"
               maxLength={1}
@@ -176,8 +223,8 @@ export default function VerifyEmail() {
           ))}
         </div>
 
-        <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
-          {!isLoading && (
+        <Button type="submit" className="w-full" size="lg" isLoading={isVerifying}>
+          {!isVerifying && (
             <>
               {t('auth.verify')}
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -195,20 +242,16 @@ export default function VerifyEmail() {
             </span>
           ) : (
             <button
+              type="button"
               onClick={handleResend}
-              className="text-primary font-medium hover:underline"
+              disabled={isResending}
+              className="text-primary font-medium hover:underline disabled:opacity-50"
             >
-              {t('auth.clickToResend')}
+              {isResending ? t('common.processing', { defaultValue: 'Processing...' }) : t('auth.clickToResend')}
             </button>
           )}
         </p>
       </div>
-
-      <div className="p-4 rounded-lg bg-muted/50 border text-sm text-center">
-        <p className="text-muted-foreground">{t('auth.demoEnterCode')}</p>
-        <p className="font-mono font-medium">123456</p>
-      </div>
     </div>
   )
 }
-

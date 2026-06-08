@@ -9,23 +9,40 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAppDispatch } from '@/redux/hooks'
 import { setPasswordResetEmail } from '@/redux/slices/authSlice'
+import { useForgotPasswordMutation } from '@/redux/api/authApi'
 import { cn } from '@/utils/cn'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query'
+import type { SerializedError } from '@reduxjs/toolkit'
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Please enter a valid email'),
+  email: z.string().email('auth.pleaseEnterValidEmail'),
 })
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
+
+function getApiErrorMessage(
+  error: FetchBaseQueryError | SerializedError | undefined,
+  fallback: string
+): string {
+  if (!error) return fallback
+  if ('data' in error && error.data && typeof error.data === 'object') {
+    const data = error.data as { message?: string }
+    if (data.message) return data.message
+  }
+  if ('message' in error && error.message) return error.message
+  return fallback
+}
 
 export default function ForgotPassword() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const [isLoading, setIsLoading] = useState(false)
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation()
   const [isSuccess, setIsSuccess] = useState(false)
   const [submittedEmail, setSubmittedEmail] = useState('')
+  const [submitError, setSubmitError] = useState('')
 
   const {
     register,
@@ -35,20 +52,29 @@ export default function ForgotPassword() {
     resolver: zodResolver(forgotPasswordSchema),
   })
 
+  const fieldError = (key: keyof ForgotPasswordFormData) => {
+    const err = errors[key]
+    return err?.message ? t(err.message) : undefined
+  }
+
   const onSubmit = async (data: ForgotPasswordFormData) => {
-    setIsLoading(true)
+    setSubmitError('')
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const result = await forgotPassword({ email: data.email.trim() }).unwrap()
 
-      dispatch(setPasswordResetEmail(data.email))
-      setSubmittedEmail(data.email)
+      if (!result.success) {
+        setSubmitError(result.message || t('auth.anErrorOccurred'))
+        return
+      }
+
+      dispatch(setPasswordResetEmail(data.email.trim()))
+      setSubmittedEmail(data.email.trim())
       setIsSuccess(true)
-    } catch {
-      // Handle error
-    } finally {
-      setIsLoading(false)
+    } catch (error) {
+      setSubmitError(
+        getApiErrorMessage(error as FetchBaseQueryError, t('auth.anErrorOccurred'))
+      )
     }
   }
 
@@ -58,10 +84,9 @@ export default function ForgotPassword() {
 
   return (
     <div className="space-y-6">
-      {/* Mobile Logo */}
       <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
         <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-xl">D</span>
+          <span className="text-primary-foreground font-bold text-xl">M</span>
         </div>
         <span className="font-display font-bold text-2xl">{t('auth.dashboard')}</span>
       </div>
@@ -85,10 +110,18 @@ export default function ForgotPassword() {
 
             <div className="space-y-2">
               <h1 className="text-2xl font-bold tracking-tight">{t('auth.forgotPasswordTitle')}</h1>
-              <p className="text-muted-foreground">
-                {t('auth.noWorries')}
-              </p>
+              <p className="text-muted-foreground">{t('auth.noWorries')}</p>
             </div>
+
+            {submitError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm"
+              >
+                {submitError}
+              </motion.div>
+            )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
@@ -104,7 +137,7 @@ export default function ForgotPassword() {
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-xs text-destructive">{errors.email.message}</p>
+                  <p className="text-xs text-destructive">{fieldError('email')}</p>
                 )}
               </div>
 
@@ -131,9 +164,7 @@ export default function ForgotPassword() {
 
             <div className="space-y-2">
               <h1 className="text-2xl font-bold tracking-tight">{t('auth.checkYourEmail')}</h1>
-              <p className="text-muted-foreground">
-                {t('auth.sentVerificationCode')}
-              </p>
+              <p className="text-muted-foreground">{t('auth.sentVerificationCode')}</p>
               <p className="font-medium">{submittedEmail}</p>
             </div>
 
@@ -145,6 +176,7 @@ export default function ForgotPassword() {
             <p className="text-sm text-muted-foreground">
               {t('auth.didntReceiveEmail')}{' '}
               <button
+                type="button"
                 onClick={() => setIsSuccess(false)}
                 className="text-primary font-medium hover:underline"
               >
@@ -165,4 +197,3 @@ export default function ForgotPassword() {
     </div>
   )
 }
-

@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { FolderKanban } from 'lucide-react'
 import { ModalWrapper } from '@/components/common'
+import { imageUrl } from '@/components/common/getImageUrl'
 import { STATUS_COLORS } from '@/utils/constants'
 import { formatCurrency } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
-import type { Payment } from '../paymentsData'
+import { formatPaymentStatusLabel, type Payment } from '../paymentsData'
 
 interface RecordPaymentModalProps {
   open: boolean
@@ -24,23 +25,18 @@ function DetailRow({
   return (
     <div className="flex justify-between items-center py-2 gap-4">
       <span className="text-sm text-muted-foreground flex-shrink-0">{label}</span>
-      <span className={cn('text-sm font-medium text-right', valueClassName)}>
-        {value}
-      </span>
+      <span className={cn('text-sm font-medium text-right', valueClassName)}>{value}</span>
     </div>
   )
 }
 
-export function RecordPaymentModal({
-  open,
-  onClose,
-  payment,
-}: RecordPaymentModalProps) {
+export function RecordPaymentModal({ open, onClose, payment }: RecordPaymentModalProps) {
   const { t } = useTranslation()
 
   if (!payment) return null
 
-  const statusConfig = STATUS_COLORS[payment.status] || {
+  const statusLabel = formatPaymentStatusLabel(payment.status)
+  const statusConfig = STATUS_COLORS[statusLabel] || {
     bg: 'bg-gray-100',
     text: 'text-gray-800',
   }
@@ -64,42 +60,50 @@ export function RecordPaymentModal({
             <div className="p-1.5 rounded-full bg-green-100">
               <FolderKanban className="h-4 w-4 text-green-600" />
             </div>
-            <h3 className="text-sm font-semibold text-foreground">
-              {t('payment.projectInfo')}
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('payment.projectInfo')}</h3>
           </div>
           <div className="space-y-0 pl-8">
             <DetailRow label={t('payment.projectName')} value={payment.project} />
             <DetailRow label={t('payment.paymentMethod')} value={payment.method} />
-            <DetailRow
-              label={t('payment.totalAmount')}
-              value={formatCurrency(payment.totalAmount, 'USD')}
-              valueClassName="text-green-600"
-            />
-            <DetailRow
-              label={t('payment.amountDue')}
-              value={formatCurrency(payment.outstandingAmount, 'USD')}
-              valueClassName="text-red-600"
-            />
+            {payment.totalCost != null && payment.totalCost > 0 && (
+              <DetailRow
+                label={t('payment.totalAmount')}
+                value={formatCurrency(payment.totalCost, 'USD')}
+              />
+            )}
             <DetailRow
               label={t('payment.paymentAmount')}
-              value={formatCurrency(payment.paidAmount, 'USD')}
+              value={
+                payment.amount != null
+                  ? formatCurrency(payment.amount, 'USD')
+                  : '—'
+              }
               valueClassName="text-green-600"
             />
             {payment.paymentDate && (
-              <DetailRow
-                label={t('payment.paymentDate')}
-                value={payment.paymentDate}
-              />
+              <DetailRow label={t('payment.paymentDate')} value={payment.paymentDate} />
             )}
-            {payment.note ? (
-              <DetailRow label={t('payment.note')} value={payment.note} />
+            {payment.trxId ? (
+              <DetailRow label={t('payment.transactionId', { defaultValue: 'Transaction ID' })} value={payment.trxId} />
             ) : null}
+            {payment.note ? <DetailRow label={t('payment.note')} value={payment.note} /> : null}
             <DetailRow
               label={t('payment.status')}
-              value={payment.status}
+              value={statusLabel}
               valueClassName={cn(statusConfig.text, 'font-medium')}
             />
+            {payment.checkImage ? (
+              <div className="pt-3">
+                <p className="text-sm text-muted-foreground mb-2">
+                  {t('payment.checkImage', { defaultValue: 'Check image' })}
+                </p>
+                <img
+                  src={imageUrl(payment.checkImage)}
+                  alt="Check"
+                  className="max-h-40 rounded-lg border object-contain"
+                />
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

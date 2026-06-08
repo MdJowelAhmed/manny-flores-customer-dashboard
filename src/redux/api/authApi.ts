@@ -16,6 +16,30 @@ interface LoginCredentials {
     password: string;
 }
 
+export interface RegisterPayload {
+    name: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    contact: string;
+}
+
+interface RegisterResponse {
+    success: boolean;
+    statusCode?: number;
+    message: string;
+}
+
+interface ResendOtpPayload {
+    email: string;
+}
+
+interface ResendOtpResponse {
+    success: boolean;
+    statusCode?: number;
+    message: string;
+}
+
 interface ChangePasswordPayload {
     currentPassword: string;
     newPassword: string;
@@ -32,22 +56,51 @@ interface VerifyEmailPayload {
     oneTimeCode: number;
 }
 
+interface VerifyEmailNestedData {
+    message?: string;
+    data?: string;
+}
+
 interface VerifyEmailResponse {
     success: boolean;
+    statusCode?: number;
     message: string;
-    // Backend returns the reset token in the "data" field
-    data: string;
+    data?: string | VerifyEmailNestedData;
+}
+
+interface ForgotPasswordPayload {
+    email: string;
+}
+
+interface ForgotPasswordResponse {
+    success: boolean;
+    statusCode?: number;
+    message: string;
 }
 
 interface ResetPasswordPayload {
-    currentPassword:string
     newPassword: string;
-    confirmNewPassword: string;
+    confirmPassword: string;
 }
 
 interface ResetPasswordResponse {
     success: boolean;
+    statusCode?: number;
     message: string;
+    data?: { message?: string };
+}
+
+export const RESET_PASSWORD_TOKEN_KEY = 'resetPasswordToken';
+
+export function extractResetPasswordToken(
+    payload: VerifyEmailResponse['data']
+): string | null {
+    if (!payload) return null;
+    if (typeof payload === 'string') return payload;
+    if (typeof payload === 'object' && typeof payload.data === 'string') {
+        return payload.data;
+    }
+    return null;
 }
 
 interface GetMyProfileResponse {
@@ -117,9 +170,9 @@ const authApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['Auth'],
         }),
-        register: builder.mutation({
+        register: builder.mutation<RegisterResponse, RegisterPayload>({
             query: (credentials) => ({
-                url: '/auth/register',
+                url: '/user',
                 method: 'POST',
                 body: credentials,
             }),
@@ -147,15 +200,15 @@ const authApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['Auth'],
         }),
-        forgotPassword: builder.mutation({
+        forgotPassword: builder.mutation<ForgotPasswordResponse, ForgotPasswordPayload>({
             query: (credentials) => ({
-                url: '/auth/forget-password',
+                url: '/auth/forgot-password',
                 method: 'POST',
                 body: credentials,
             }),
             invalidatesTags: ['Auth'],
         }),
-        resentOtp: builder.mutation({
+        resendOtp: builder.mutation<ResendOtpResponse, ResendOtpPayload>({
             query: (credentials) => ({
                 url: '/auth/resend-otp',
                 method: 'POST',
@@ -165,22 +218,16 @@ const authApi = baseApi.injectEndpoints({
         }),
         verifyEmail: builder.mutation<VerifyEmailResponse, VerifyEmailPayload>({
             query: (credentials) => ({
-                url: '/auth/verify-email',
+                url: '/auth/verify',
                 method: 'POST',
                 body: credentials,
             }),
             async onQueryStarted(_arg, { queryFulfilled }) {
                 try {
                     const { data } = await queryFulfilled;
-                    // Safely store the reset token from response.data into localStorage
-                    if (data?.data) {
-                        try {
-                            if (typeof localStorage !== 'undefined') {
-                                localStorage.setItem('resetPasswordToken', data.data);
-                            }
-                        } catch {
-                            // ignore storage errors
-                        }
+                    const resetToken = extractResetPasswordToken(data?.data);
+                    if (resetToken && typeof localStorage !== 'undefined') {
+                        localStorage.setItem(RESET_PASSWORD_TOKEN_KEY, resetToken);
                     }
                 } catch {
                     // ignore errors; normal RTK Query error handling will apply
@@ -190,28 +237,37 @@ const authApi = baseApi.injectEndpoints({
         }),
         resetPassword: builder.mutation<ResetPasswordResponse, ResetPasswordPayload>({
             query: (credentials) => {
-                // Read the reset token that was returned from verify-email
                 let resetToken: string | null = null;
                 try {
-                    resetToken = typeof localStorage !== 'undefined'
-                        ? localStorage.getItem('resetPasswordToken')
-                        : null;
+                    resetToken =
+                        typeof localStorage !== 'undefined'
+                            ? localStorage.getItem(RESET_PASSWORD_TOKEN_KEY)
+                            : null;
                 } catch {
                     resetToken = null;
                 }
 
                 const headers: Record<string, string> = {};
                 if (resetToken) {
-                    // Backend expects this token in the Authorization header
                     headers.Authorization = resetToken;
                 }
 
                 return {
-                    url: '/auth/reset-password',
+                    url: '/auth/resetpassword',
                     method: 'POST',
                     body: credentials,
                     headers,
                 };
+            },
+            async onQueryStarted(_arg, { queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    if (typeof localStorage !== 'undefined') {
+                        localStorage.removeItem(RESET_PASSWORD_TOKEN_KEY);
+                    }
+                } catch {
+                    // keep token so user can retry
+                }
             },
             invalidatesTags: ['Auth'],
         }),
@@ -247,7 +303,7 @@ export const {
     useForgotPasswordMutation,
     useVerifyEmailMutation,
     useResetPasswordMutation,
-    useResentOtpMutation,
+    useResendOtpMutation,
     useGetMyProfileQuery,
     useUpdateMyProfileMutation,
 } =

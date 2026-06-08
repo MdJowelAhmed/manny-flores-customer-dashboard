@@ -1,28 +1,38 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query'
+import type { SerializedError } from '@reduxjs/toolkit'
 import { CustomerDetailsCard } from './CustomerDetailsCard'
 import { FeedbackRatingCard } from './FeedbackRatingCard'
+import { useCreateReviewMutation } from '@/redux/api/reviewApi'
 import { toast } from '@/utils/toast'
 
+function getApiErrorMessage(
+  error: FetchBaseQueryError | SerializedError | undefined,
+  fallback: string
+): string {
+  if (!error) return fallback
+  if ('data' in error && error.data && typeof error.data === 'object') {
+    const data = error.data as { message?: string }
+    if (data.message) return data.message
+  }
+  if ('message' in error && error.message) return error.message
+  return fallback
+}
+
 export function ReviewSubmissionForm() {
-  const [customerName, setCustomerName] = useState('')
   const [projectName, setProjectName] = useState('')
   const [rating, setRating] = useState(0)
   const [feedback, setFeedback] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [createReview, { isLoading: isSubmitting }] = useCreateReviewMutation()
 
   const handleCancel = () => {
-    setCustomerName('')
     setProjectName('')
     setRating(0)
     setFeedback('')
   }
 
   const handleSend = async () => {
-    if (!customerName.trim()) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Please enter customer name.' })
-      return
-    }
     if (!projectName.trim()) {
       toast({ variant: 'destructive', title: 'Error', description: 'Please enter project name.' })
       return
@@ -36,24 +46,37 @@ export function ReviewSubmissionForm() {
       return
     }
 
-    setIsSubmitting(true)
     try {
-      // TODO: Replace with actual API call when backend is ready
-      await new Promise((r) => setTimeout(r, 500))
+      const result = await createReview({
+        rating,
+        feedback: feedback.trim(),
+        projectName: projectName.trim(),
+      }).unwrap()
+
+      if (!result.success) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: result.message || 'Failed to submit review. Please try again.',
+        })
+        return
+      }
+
       toast({
         variant: 'success',
         title: 'Review Submitted',
-        description: 'Your review has been sent successfully.',
+        description: result.message || 'Your review has been sent successfully.',
       })
       handleCancel()
-    } catch {
+    } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to submit review. Please try again.',
+        description: getApiErrorMessage(
+          error as FetchBaseQueryError,
+          'Failed to submit review. Please try again.'
+        ),
       })
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -65,9 +88,7 @@ export function ReviewSubmissionForm() {
       className="grid grid-cols-1 lg:grid-cols-2 gap-6"
     >
       <CustomerDetailsCard
-        customerName={customerName}
         projectName={projectName}
-        onCustomerNameChange={setCustomerName}
         onProjectNameChange={setProjectName}
       />
       <FeedbackRatingCard

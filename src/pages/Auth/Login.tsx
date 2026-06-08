@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -47,10 +47,15 @@ function getLoginErrorMessage(
 export default function Login() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const dispatch = useAppDispatch()
   const { error } = useAppSelector((state) => state.auth)
   const [login, { isLoading: isLoginLoading }] = useLoginMutation()
   const [showPassword, setShowPassword] = useState(false)
+
+  const successMessage =
+    (location.state as { message?: string; verified?: boolean; passwordReset?: boolean } | null)
+      ?.message ?? ''
 
   const {
     register,
@@ -100,7 +105,7 @@ export default function Login() {
         })
       )
 
-      navigate('/dashboard', { replace: true })
+      navigate('/estimates-approvals', { replace: true })
     } catch (err) {
       dispatch(
         loginFailure(
@@ -126,6 +131,16 @@ export default function Login() {
         <h1 className="text-2xl font-bold tracking-tight">{t('auth.welcomeBack')}</h1>
         <p className="text-muted-foreground">{t('auth.enterCredentials')}</p>
       </div>
+
+      {successMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-lg bg-green-50 border border-green-200 text-green-800 text-sm"
+        >
+          {successMessage}
+        </motion.div>
+      )}
 
       {error && (
         <motion.div

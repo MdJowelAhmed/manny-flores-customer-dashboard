@@ -1,18 +1,26 @@
-export type PaymentStatus = 'Paid' | 'Partial' | 'Pending'
+export type PaymentRecordStatus = 'completed' | 'pending' | 'rejected'
+export type PaymentLegacyStatus = 'Paid' | 'Partial' | 'Pending'
+export type PaymentStatus = PaymentRecordStatus | PaymentLegacyStatus
 
 export interface Payment {
   id: string
+  estimateId?: string
   invoice: string
   customer: string
   project: string
+  /** Payment transaction amount from API */
+  amount?: number | null
+  /** Estimate total from API */
+  totalCost?: number
   totalAmount: number
   paidAmount: number
   outstandingAmount: number
   method: string
   status: PaymentStatus
   paymentDate?: string
-  /** Merged note from add-payment flow (check filename, employee contact, user note) */
-  note?: string
+  note?: string | null
+  checkImage?: string | null
+  trxId?: string | null
 }
 
 export const PAYMENT_METHODS = [
@@ -22,67 +30,11 @@ export const PAYMENT_METHODS = [
   { value: 'Card', label: 'Card' },
 ] as const
 
-export const paymentsData: Payment[] = [
-  {
-    id: '1',
-    invoice: 'INV-2026-001',
-    customer: 'Emily Davis',
-    project: 'Garden Design & Installation',
-    totalAmount: 12560,
-    paidAmount: 12560,
-    outstandingAmount: 0,
-    method: 'Finance',
-    status: 'Paid',
-    paymentDate: '15/01/2026',
-  },
-  {
-    id: '2',
-    invoice: 'INV-2026-002',
-    customer: 'Emily Davis',
-    project: 'Front Yard Landscaping',
-    totalAmount: 22099,
-    paidAmount: 22099,
-    outstandingAmount: 0,
-    method: 'Cash',
-    status: 'Paid',
-    paymentDate: '18/01/2026',
-  },
-  {
-    id: '3',
-    invoice: 'INV-2026-003',
-    customer: 'Emily Davis',
-    project: 'Patio & Deck Construction',
-    totalAmount: 22099,
-    paidAmount: 9099,
-    outstandingAmount: 13000,
-    method: 'Finance',
-    status: 'Partial',
-    paymentDate: '22/01/2026',
-  },
-  {
-    id: '4',
-    invoice: 'INV-2026-004',
-    customer: 'Emily Davis',
-    project: 'Backyard Renovation',
-    totalAmount: 14949,
-    paidAmount: 9000,
-    outstandingAmount: 5949,
-    method: 'Cash',
-    status: 'Pending',
-  },
-]
 export interface PaymentSummary {
   totalPaid: number
   totalCollected: number
   outstanding: number
   paidInvoicesCount: number
-}
-
-export const paymentSummaryData: PaymentSummary = {
-  totalPaid: 63000,
-  totalCollected: 40650,
-  outstanding: 22350,
-  paidInvoicesCount: 4,
 }
 
 export const years = ['2026', '2025', '2024', '2023']
@@ -107,3 +59,11 @@ export const paymentChartYearlyData: Record<string, ReturnType<typeof generatePa
   '2023': generatePaymentChartData('2023'),
 }
 
+export function formatPaymentStatusLabel(status: PaymentStatus): string {
+  const normalized = String(status).toLowerCase()
+  if (normalized === 'completed' || normalized === 'paid') return 'Completed'
+  if (normalized === 'pending') return 'Pending'
+  if (normalized === 'rejected') return 'Rejected'
+  if (normalized === 'partial') return 'Partial'
+  return status
+}
