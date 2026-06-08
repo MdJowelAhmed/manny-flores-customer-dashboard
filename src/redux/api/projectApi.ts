@@ -210,7 +210,7 @@ const projectApi = baseApi.injectEndpoints({
                 method: 'POST',
                 body: buildProjectPaymentFormData(payload),
             }),
-            invalidatesTags: ['Project'],
+            invalidatesTags: ['Project', 'Payment'],
         }),
 
         getAllAdminAndEmployee: builder.query<PaymentReceiversResponse, void>({

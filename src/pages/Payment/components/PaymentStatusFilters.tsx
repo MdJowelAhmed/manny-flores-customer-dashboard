@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/utils/cn'
 
-const FILTER_OPTIONS = ['all', 'Paid', 'Partial', 'Pending'] as const
+const FILTER_OPTIONS = ['all', 'completed', 'pending', 'rejected'] as const
 
 interface PaymentStatusFiltersProps {
   activeFilter: string
@@ -16,6 +16,9 @@ export function PaymentStatusFilters({
 
   const getLabel = (value: string) => {
     if (value === 'all') return t('payment.all')
+    if (value === 'completed') return t('payment.completed', { defaultValue: 'Completed' })
+    if (value === 'pending') return t('payment.pending')
+    if (value === 'rejected') return t('payment.rejected', { defaultValue: 'Rejected' })
     return value
   }
 

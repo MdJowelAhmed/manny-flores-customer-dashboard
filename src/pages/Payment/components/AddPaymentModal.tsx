@@ -142,7 +142,6 @@ export function AddPaymentModal({
   const checkInputRef = useRef<HTMLInputElement>(null)
   const [createProjectPayment, { isLoading: isSubmittingPayment }] =
     useCreateProjectPaymentMutation()
-  const isApiPayment = !!projectPayment?.estimateId
   const [invoice, setInvoice] = useState('')
   const [amountToPay, setAmountToPay] = useState('')
   const [note, setNote] = useState('')
@@ -182,6 +181,9 @@ export function AddPaymentModal({
     () => payables.find((p) => p.invoice === invoice),
     [payables, invoice]
   )
+
+  const estimateIdForPayment = projectPayment?.estimateId ?? selectedPayment?.estimateId
+  const isApiPayment = !!estimateIdForPayment
 
   useEffect(() => {
     if (!open || payables.length === 0) return
@@ -241,7 +243,7 @@ export function AddPaymentModal({
   ])
 
   const submitApiPayment = async () => {
-    if (!projectPayment?.estimateId || !methodKey) return
+    if (!estimateIdForPayment || !methodKey) return
 
     const apiMethod: ProjectPaymentMethod =
       methodKey === 'card'
@@ -269,7 +271,7 @@ export function AddPaymentModal({
 
     try {
       const result = await createProjectPayment({
-        estimateId: projectPayment.estimateId,
+        estimateId: estimateIdForPayment,
         method: apiMethod,
         amount: apiMethod === 'CARD' ? undefined : parsedAmount,
         receiverId: apiMethod === 'CASH' ? cashReceiverId : undefined,
@@ -654,8 +656,8 @@ export function AddPaymentModal({
             <div className="mt-auto pt-8">
               <Button
                 type="button"
-                className="h-12 w-full rounded-xl text-base font-semibold text-white shadow-none hover:opacity-95 disabled:opacity-50"
-                style={{ backgroundColor: completeButtonGreen }}
+                className="h-12 w-full rounded-xl bg-[#00B050] text-base font-semibold text-white shadow-none hover:opacity-95 disabled:opacity-50"
+                // style={{ backgroundColor: completeButtonGreen }}
                 onClick={handleComplete}
                 disabled={!canCompletePayment || isSubmittingPayment}
               >

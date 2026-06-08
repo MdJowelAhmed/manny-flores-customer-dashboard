@@ -16,6 +16,7 @@ export function buildProjectPayablePayment(
 
   return {
     id: project.id,
+    estimateId: project.estimateId,
     invoice,
     customer: project.customerName,
     project: project.projectName,
