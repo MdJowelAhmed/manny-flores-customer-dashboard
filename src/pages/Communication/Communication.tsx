@@ -1,9 +1,16 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { format } from 'date-fns'
-import { Search, Send, Paperclip, ArrowLeft, FileText, X } from 'lucide-react'
+import { Search, Send, Paperclip, ArrowLeft, FileText, X, Users } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { cn } from '@/utils/cn'
 import { imageUrl, imageUrlAbsolute } from '@/components/common/getImageUrl'
 import {
@@ -91,6 +98,18 @@ function getConversationAvatar(
   return others[0]?.profile ?? conversation.participants?.[0]?.profile ?? null
 }
 
+function isGroupChat(conversation: TConversation) {
+  if (conversation.groupName?.trim()) return true
+  return (conversation.participants?.length ?? 0) > 1
+}
+
+function getMemberCount(conversation: TConversation, currentUserId?: string) {
+  const count = conversation.participants?.length ?? 0
+  const includesCurrent =
+    !!currentUserId && conversation.participants?.some((p) => p.id === currentUserId)
+  return includesCurrent ? count : count + 1
+}
+
 function resolveAvatarSrc(profile: string | null | undefined): string {
   if (!profile) return ''
   return imageUrl(profile)
@@ -160,9 +179,24 @@ function AvatarCircle({ src, alt, className }: { src: string; alt: string; class
   )
 }
 
+function GroupAvatarCircle({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        'rounded-full bg-primary/15 flex items-center justify-center text-primary',
+        className
+      )}
+    >
+      <Users className="h-1/2 w-1/2 min-h-[18px] min-w-[18px]" />
+    </div>
+  )
+}
+
 export default function Communication() {
   const { socket, user } = useContext(UserContext) as TUserContext
   const currentUserId = getCurrentUserId(user)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const chatIdFromUrl = searchParams.get('chat')
 
   const [selectedConversation, setSelectedConversation] = useState<TConversation | null>(null)
   const [messageInput, setMessageInput] = useState('')
@@ -170,23 +204,44 @@ export default function Communication() {
   const [messageList, setMessageList] = useState<TMessage[]>([])
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [showMobileChat, setShowMobileChat] = useState(false)
+  const [showMembers, setShowMembers] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const messageInputRef = useRef<HTMLInputElement | null>(null)
+  const stickToBottomRef = useRef(true)
 
   const { data: chatList, isLoading: isChatsLoading } = useGetChatListQuery(keyword)
 
+  const conversations = useMemo(
+    () => (chatList?.data as TConversation[] | undefined) ?? [],
+    [chatList?.data]
+  )
+
   useEffect(() => {
-    const list = (chatList?.data as TConversation[] | undefined) ?? []
-    if (list.length === 0) {
+    if (conversations.length === 0) {
       setSelectedConversation(null)
       return
     }
-    setSelectedConversation((prev) => {
-      if (prev && list.some((c) => c.id === prev.id)) return prev
-      return list[0]
-    })
-  }, [chatList?.data])
+
+    const fromUrl = chatIdFromUrl
+      ? conversations.find((c) => c.id === chatIdFromUrl)
+      : undefined
+
+    const nextConversation =
+      fromUrl ??
+      conversations.find((c) => c.id === selectedConversation?.id) ??
+      conversations[0]
+
+    setSelectedConversation(nextConversation)
+    if (fromUrl) setShowMobileChat(true)
+
+    if (nextConversation && chatIdFromUrl !== nextConversation.id) {
+      const next = new URLSearchParams(searchParams)
+      next.set('chat', nextConversation.id)
+      setSearchParams(next, { replace: true })
+    }
+  }, [conversations, chatIdFromUrl])
 
   const { data: messageData, refetch: refetchMessages } = useGetMessageListQuery(
     {
@@ -215,11 +270,32 @@ export default function Communication() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }, [selectedConversation?.id])
 
+  const scrollToBottom = (behavior: ScrollBehavior = 'auto') => {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollTo({ top: el.scrollHeight, behavior })
+  }
+
+  const isNearBottom = () => {
+    const el = scrollRef.current
+    if (!el) return true
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 80
+  }
+
+  const handleMessagesScroll = () => {
+    stickToBottomRef.current = isNearBottom()
+  }
+
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: 'smooth',
-    })
+    if (!selectedConversation?.id) return
+    stickToBottomRef.current = true
+    requestAnimationFrame(() => scrollToBottom('auto'))
+    messageInputRef.current?.focus()
+  }, [selectedConversation?.id])
+
+  useEffect(() => {
+    if (!stickToBottomRef.current) return
+    requestAnimationFrame(() => scrollToBottom('auto'))
   }, [sortedMessages])
 
   useEffect(() => {
@@ -228,10 +304,14 @@ export default function Communication() {
     const event = `getMessage::${selectedConversation.id}`
 
     const handleNewMessage = (data: TMessage) => {
+      const shouldStick = stickToBottomRef.current
       setMessageList((prev) => {
         if (prev.some((m) => m.id === data.id)) return prev
         return sortMessagesAsc([...prev, data])
       })
+      if (shouldStick) {
+        requestAnimationFrame(() => scrollToBottom('smooth'))
+      }
     }
 
     socket.on(event, handleNewMessage)
@@ -276,14 +356,25 @@ export default function Communication() {
     if ('data' in res && (res.data as { success?: boolean })?.success) {
       setMessageInput('')
       clearSelectedFile()
+      stickToBottomRef.current = true
       await refetchMessages()
+      requestAnimationFrame(() => scrollToBottom('smooth'))
+      messageInputRef.current?.focus()
     }
   }
 
   const selectConversation = (conversation: TConversation) => {
     setSelectedConversation(conversation)
     setShowMobileChat(true)
+    const next = new URLSearchParams(searchParams)
+    next.set('chat', conversation.id)
+    setSearchParams(next, { replace: true })
   }
+
+  const selectedIsGroup = selectedConversation ? isGroupChat(selectedConversation) : false
+  const selectedMemberCount = selectedConversation
+    ? getMemberCount(selectedConversation, currentUserId)
+    : 0
 
   return (
     <motion.div
@@ -317,13 +408,15 @@ export default function Communication() {
           <div className="flex-1 overflow-y-auto p-2 space-y-2">
             {isChatsLoading ? (
               <p className="py-8 text-center text-sm text-muted-foreground">Loading...</p>
-            ) : chatList?.data?.length ? (
-              (chatList.data as TConversation[]).map((conversation) => {
+            ) : conversations.length ? (
+              conversations.map((conversation) => {
                 const active = selectedConversation?.id === conversation.id
                 const title = getConversationTitle(conversation, currentUserId)
                 const avatarSrc = resolveAvatarSrc(
                   getConversationAvatar(conversation, currentUserId)
                 )
+                const group = isGroupChat(conversation)
+                const memberCount = getMemberCount(conversation, currentUserId)
 
                 return (
                   <button
@@ -337,11 +430,15 @@ export default function Communication() {
                         : 'bg-white hover:bg-gray-100'
                     )}
                   >
-                    <AvatarCircle
-                      src={avatarSrc}
-                      alt={title}
-                      className="h-12 w-12 shrink-0"
-                    />
+                    {group ? (
+                      <GroupAvatarCircle className="h-12 w-12 shrink-0" />
+                    ) : (
+                      <AvatarCircle
+                        src={avatarSrc}
+                        alt={title}
+                        className="h-12 w-12 shrink-0"
+                      />
+                    )}
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
@@ -355,6 +452,11 @@ export default function Communication() {
                             : ''}
                         </span>
                       </div>
+                      {group && (
+                        <p className="text-xs text-primary/80 mt-0.5">
+                          {memberCount} members
+                        </p>
+                      )}
                       <p className="text-sm text-muted-foreground truncate mt-1">
                         {getLastMessagePreview(conversation.lastMessage)}
                       </p>
@@ -379,7 +481,7 @@ export default function Communication() {
         >
           {selectedConversation ? (
             <>
-              <div className="h-[66px] shrink-0 bg-primary px-5 flex items-center">
+              <div className="h-[66px] shrink-0 bg-primary px-5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <Button
                     type="button"
@@ -391,23 +493,47 @@ export default function Communication() {
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
 
-                  <AvatarCircle
-                    src={resolveAvatarSrc(
-                      getConversationAvatar(selectedConversation, currentUserId)
-                    )}
-                    alt={getConversationTitle(selectedConversation, currentUserId)}
-                    className="h-11 w-11 shrink-0 bg-white/20 text-white"
-                  />
+                  {selectedIsGroup ? (
+                    <GroupAvatarCircle className="h-11 w-11 shrink-0 bg-white/20 text-white" />
+                  ) : (
+                    <AvatarCircle
+                      src={resolveAvatarSrc(
+                        getConversationAvatar(selectedConversation, currentUserId)
+                      )}
+                      alt={getConversationTitle(selectedConversation, currentUserId)}
+                      className="h-11 w-11 shrink-0 bg-white/20 text-white"
+                    />
+                  )}
 
-                  <p className="text-white font-semibold text-base truncate">
-                    {getConversationTitle(selectedConversation, currentUserId)}
-                  </p>
+                  <div className="min-w-0">
+                    <p className="text-white font-semibold text-base truncate">
+                      {getConversationTitle(selectedConversation, currentUserId)}
+                    </p>
+                    {selectedIsGroup && (
+                      <p className="text-xs text-white/80 truncate">
+                        {selectedMemberCount} members
+                      </p>
+                    )}
+                  </div>
                 </div>
+
+                {/* {selectedIsGroup && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 text-white hover:bg-white/10 hover:text-white"
+                    onClick={() => setShowMembers(true)}
+                  >
+                    View Members
+                  </Button>
+                )} */}
               </div>
 
               <div
                 ref={scrollRef}
-                className="flex-1 min-h-0 overflow-y-auto px-5 py-6 bg-[#F7F7F7] space-y-4"
+                onScroll={handleMessagesScroll}
+                className="flex-1 min-h-0 overflow-y-auto px-5 py-6 bg-[#F7F7F7] space-y-4 flex flex-col"
               >
                 {sortedMessages.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">
@@ -568,6 +694,7 @@ export default function Communication() {
                   </Button>
 
                   <Input
+                    ref={messageInputRef}
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -590,6 +717,35 @@ export default function Communication() {
                   </Button>
                 </div>
               </div>
+
+              <Dialog open={showMembers} onOpenChange={setShowMembers}>
+                <DialogContent className="max-w-md max-h-[70vh] overflow-hidden flex flex-col">
+                  <DialogHeader>
+                    <DialogTitle>Group Members ({selectedMemberCount})</DialogTitle>
+                  </DialogHeader>
+                  <div className="overflow-y-auto -mx-1 px-1 space-y-2">
+                    {selectedConversation.participants.map((member) => (
+                      <div
+                        key={member.id}
+                        className="flex items-center gap-3 rounded-lg border bg-gray-50 px-3 py-2.5"
+                      >
+                        <AvatarCircle
+                          src={resolveAvatarSrc(member.profile)}
+                          alt={member.name}
+                          className="h-10 w-10 shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm truncate">{member.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+                        </div>
+                        <span className="text-[11px] font-medium uppercase text-muted-foreground shrink-0">
+                          {member.role.replace('_', ' ')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-[#F7F7F7]">
