@@ -261,9 +261,13 @@ export default function Communication() {
 
     if (selectedFile) {
       const kind = getFileKind(selectedFile)
-      formData.append('image', selectedFile)
-      formData.append('resourceUrl', selectedFile)
-      formData.append('type', kind === 'pdf' ? 'doc' : 'image')
+      if (kind === 'pdf') {
+        formData.append('resourceUrl', selectedFile)
+        formData.append('type', 'doc')
+      } else if (kind === 'image') {
+        formData.append('image', selectedFile)
+        formData.append('type', 'image')
+      }
     } else {
       formData.append('type', 'text')
     }

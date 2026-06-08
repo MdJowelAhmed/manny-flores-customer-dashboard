@@ -113,7 +113,7 @@ export default function Documents() {
                       <div className="flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-2 min-w-0">
                           <FileText className="h-5 w-5 text-gray-500 shrink-0" />
-                          <h3 className="font-semibold text-gray-900 truncate">{req.project?.estimates?.projectName || 'Project'}</h3>
+                          <h3 className="font-semibold text-gray-900 truncate">{req?.project?.projectName || 'Project'}</h3>
                         </div>
                         <span className={cn('rounded-full px-3 py-1 text-xs font-medium', st.bg, st.text)}>
                           {st.labelKey.includes('.') ? t(st.labelKey) : st.labelKey}
