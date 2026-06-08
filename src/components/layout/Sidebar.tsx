@@ -2,7 +2,6 @@ import React from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { UserRole, hasFeatureAccess, type FeatureKey } from '@/types/roles'
 import {
-  LayoutDashboard,
   Settings,
   ChevronDown,
   User,
