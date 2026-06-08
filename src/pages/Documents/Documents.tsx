@@ -8,7 +8,6 @@ import { cn } from '@/utils/cn'
 import { toast } from 'sonner'
 import { UploadCustomerDocumentModal } from './components/UploadCustomerDocumentModal'
 import { useGetDocumentsQuery, useSubmitDocumentMutation } from '@/redux/slices/customer/documentsApi'
-import { Input } from '@/components/ui/input'
 import { sonnerToast } from '@/utils/toast'
 const statusStyles: Record<
   string,
@@ -24,7 +23,7 @@ export default function Documents() {
   const [selected, setSelected] = useState<any | null>(null)
   const [openUpload, setOpenUpload] = useState(false)
   const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
+  const search = ''
 
   // API CALLS
   const { data: response, isLoading, refetch } = useGetDocumentsQuery({ page, search })

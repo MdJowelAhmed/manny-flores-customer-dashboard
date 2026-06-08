@@ -38,7 +38,6 @@ type MethodKey = 'card' | 'check' | 'cash' | 'wire'
 type SelectedMethodKey = MethodKey | null
 
 const primaryMethodGreen = '#00B050'
-const completeButtonGreen = '#66D87D'
 
 export interface ProjectPaymentContext {
   estimateId: string
