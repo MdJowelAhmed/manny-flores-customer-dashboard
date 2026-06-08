@@ -81,12 +81,12 @@ export default function Documents() {
           <p className="text-sm text-muted-foreground mt-1">{t('documents.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3 ">
-          <Input
+          {/* <Input
             placeholder={t('documents.search')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className='h-9'
-          />
+          /> */}
 
           <div className="rounded-xl border border-gray-100 bg-white px-4 py-2 text-sm w-fit text-nowrap">
             <span className="text-muted-foreground ">{t('documents.pendingLabel')}</span>{' '}
