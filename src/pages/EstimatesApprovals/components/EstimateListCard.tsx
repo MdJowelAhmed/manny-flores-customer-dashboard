@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  formatEstimateCardDate,
   fmtUsd,
   parseAmountToNumber,
   type Estimate,
@@ -23,12 +22,11 @@ export function EstimateListCard({
   onViewDetails,
   viewDetailsLabel,
 }: EstimateListCardProps) {
-  const material = estimate.materialSummary ?? estimate.project
-  const qty = estimate.summaryQty ?? 0
-  const costN = estimate.summaryCostCount ?? 0
   const totalNum = parseAmountToNumber(estimate.amount)
   const projectStatus = normalizeProjectInvoiceStatus(estimate.projectStatus)
   const statusLabel = formatProjectInvoiceStatusLabel(projectStatus)
+  const projectName = estimate.project?.trim() || '—'
+  const customerName = estimate.customerName?.trim() || '—'
 
   return (
     <div className="flex flex-col gap-4 rounded-xl bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
@@ -39,21 +37,29 @@ export function EstimateListCard({
             {statusLabel}
           </Badge>
         </div>
-        <p className="text-lg font-bold text-gray-900">{estimate.customerName}</p>
-        <p className="text-sm text-gray-500">
-          <span className="text-gray-500">• {material}</span>
-          <span className="text-gray-500"> • Qty: {qty}</span>
-          <span className="text-gray-500"> • Cost: {costN}</span>
-        </p>
-        <p className="text-sm text-gray-500">
-          <span>Total: </span>
-          <span className="font-bold text-[#22c55e]">{fmtUsd(totalNum)}</span>
-          {estimate.totalDate != null ? (
-            <span className="text-gray-500"> • {estimate.totalDate} days</span>
-          ) : null}
-          <span className="text-gray-500"> • {formatEstimateCardDate(estimate.startDate)}</span>
-        </p>
+
+        <div className="space-y-1">
+          <p className="text-base font-semibold text-gray-900 truncate">{projectName}</p>
+          <p className="text-sm text-gray-600 truncate">
+            <span className="text-gray-500">Customer: </span>
+            {customerName}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <p className="text-gray-600">
+            <span className="text-gray-500">Total Days: </span>
+            <span className="font-medium text-gray-900">
+              {estimate.totalDate != null ? estimate.totalDate : '—'}
+            </span>
+          </p>
+          <p className="text-gray-600">
+            <span className="text-gray-500">Total Amount: </span>
+            <span className="font-bold text-[#22c55e]">{fmtUsd(totalNum)}</span>
+          </p>
+        </div>
       </div>
+
       <div className="flex shrink-0 sm:items-center">
         <Button
           type="button"

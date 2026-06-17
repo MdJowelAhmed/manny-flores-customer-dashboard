@@ -253,7 +253,7 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-full bg-card shadow-sm transition-all duration-300',
+          'fixed top-0 left-0 z-50 h-full bg-white shadow-sm transition-all duration-300',
           'flex flex-col',
           sidebarCollapsed ? 'w-[80px]' : 'w-[280px]',
           'lg:translate-x-0',
@@ -264,7 +264,7 @@ export function Sidebar() {
         <div className="flex items-center justify-between h-28 px-4 border-b">
           <div className="flex items-center gap-3">
             <div className="">
-              <div className="text-primary text-white font-bold text-lg flex items-center justify-center w-72  mx-auto">
+              <div className="text-primary text-white font-bold text-lg flex items-center justify-center w-72  mx-auto hidden md:block">
                 <img src="/assets/image3.svg" alt="manny Flores" className="" />
               </div>
             </div>

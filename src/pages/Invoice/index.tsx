@@ -156,7 +156,7 @@ export default function InvoicePage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {paginated.map((inv) => (
             <InvoiceCard
-              key={inv.id}
+              key={inv.approvalId ?? inv.id}
               invoice={inv}
               viewLabel={t('invoice.viewInvoice')}
               onView={openView}

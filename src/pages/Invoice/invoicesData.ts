@@ -65,6 +65,8 @@ export interface Invoice {
   approvalId?: string
   /** Display reference e.g. EST-501 */
   refCode: string
+  /** Project name from nested estimate */
+  projectName?: string
   customerName: string
   materialSummary: string
   summaryQty: number

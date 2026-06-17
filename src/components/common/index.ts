@@ -8,5 +8,6 @@ export { ImageUploader } from './ImageUploader'
 export { StatusBadge } from './StatusBadge'
 export { StarRating } from './StarRating'
 export { TiptapEditor } from './TiptapEditor'
+export { ErrorBoundary } from './ErrorBoundary'
 export * from './Form'
 

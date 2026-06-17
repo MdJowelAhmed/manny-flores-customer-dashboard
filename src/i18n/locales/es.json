@@ -700,5 +700,17 @@
     "cancel": "Cancelar",
     "processing": "Procesando...",
     "select": "Seleccionar..."
+  },
+  "errors": {
+    "sessionExpired": "Sesión expirada",
+    "pleaseLoginAgain": "Por favor, inicie sesión de nuevo para continuar.",
+    "networkError": "Error de red",
+    "checkConnection": "Por favor, verifique su conexión a internet e inténtelo de nuevo.",
+    "unexpectedError": "Error inesperado",
+    "anErrorOccurred": "Algo salió mal. Por favor, inténtelo de nuevo.",
+    "somethingWentWrong": "Algo salió mal",
+    "tryAgainOrGoHome": "Ocurrió un error inesperado. Inténtelo de nuevo o regrese al inicio.",
+    "tryAgain": "Intentar de nuevo",
+    "goHome": "Ir al inicio"
   }
 }

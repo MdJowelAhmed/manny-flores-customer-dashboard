@@ -700,5 +700,17 @@
     "cancel": "Cancel",
     "processing": "Processing...",
     "select": "Select..."
+  },
+  "errors": {
+    "sessionExpired": "Session expired",
+    "pleaseLoginAgain": "Please log in again to continue.",
+    "networkError": "Network error",
+    "checkConnection": "Please check your internet connection and try again.",
+    "unexpectedError": "Unexpected error",
+    "anErrorOccurred": "Something went wrong. Please try again.",
+    "somethingWentWrong": "Something went wrong",
+    "tryAgainOrGoHome": "An unexpected error occurred. Please try again or return home.",
+    "tryAgain": "Try again",
+    "goHome": "Go home"
   }
 }
