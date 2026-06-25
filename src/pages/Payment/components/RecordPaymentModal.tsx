@@ -23,9 +23,9 @@ function DetailRow({
   valueClassName?: string
 }) {
   return (
-    <div className="flex justify-between items-center py-2 gap-4">
-      <span className="text-sm text-muted-foreground flex-shrink-0">{label}</span>
-      <span className={cn('text-sm font-medium text-right', valueClassName)}>{value}</span>
+    <div className="flex justify-between items-center px-3.5 py-2.5 border-b border-gray-100 last:border-0 gap-4">
+      <span className="text-[13px] text-muted-foreground flex-shrink-0">{label}</span>
+      <span className={cn('text-[13px] font-medium text-right', valueClassName)}>{value}</span>
     </div>
   )
 }
@@ -47,22 +47,42 @@ export function RecordPaymentModal({ open, onClose, payment }: RecordPaymentModa
       onClose={onClose}
       title={t('payment.recordPaymentTitle')}
       size="md"
-      className="max-w-lg bg-white"
+      className="max-w-2xl bg-white sm:rounded-2xl"
+      headerClassName="border-b border-gray-100 pb-4"
     >
-      <div className="space-y-6">
-        <div>
-          <DetailRow label={t('payment.invoiceNumber')} value={payment.invoice} />
-          <DetailRow label={t('payment.customerName')} value={payment.customer} />
+      <div className="flex flex-col gap-4">
+
+        {/* Invoice + Customer summary bar */}
+        <div className="flex justify-between items-center px-3.5 py-2.5 bg-gray-50 rounded-xl">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-0.5">
+              {t('payment.invoiceNumber')}
+            </p>
+            <p className="text-sm font-medium text-gray-900">{payment.invoice}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-0.5">
+              {t('payment.customerName')}
+            </p>
+            <p className="text-sm font-medium text-gray-900">{payment.customer}</p>
+          </div>
         </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="p-1.5 rounded-full bg-green-100">
-              <FolderKanban className="h-4 w-4 text-green-600" />
+        {/* Project info card */}
+        <div className="border border-gray-100 rounded-xl overflow-hidden">
+
+          {/* Card header */}
+          <div className="flex items-center gap-2 px-3.5 py-2.5 bg-gray-50 border-b border-gray-100">
+            <div className="flex items-center justify-center w-[26px] h-[26px] rounded-full bg-green-100 flex-shrink-0">
+              <FolderKanban className="h-3.5 w-3.5 text-green-600" />
             </div>
-            <h3 className="text-sm font-semibold text-foreground">{t('payment.projectInfo')}</h3>
+            <span className="text-[13px] font-medium text-gray-900">
+              {t('payment.projectInfo')}
+            </span>
           </div>
-          <div className="space-y-0 pl-8">
+
+          {/* Rows */}
+          <div>
             <DetailRow label={t('payment.projectName')} value={payment.project} />
             <DetailRow label={t('payment.paymentMethod')} value={payment.method} />
             {payment.totalCost != null && payment.totalCost > 0 && (
@@ -73,39 +93,55 @@ export function RecordPaymentModal({ open, onClose, payment }: RecordPaymentModa
             )}
             <DetailRow
               label={t('payment.paymentAmount')}
-              value={
-                payment.amount != null
-                  ? formatCurrency(payment.amount, 'USD')
-                  : '—'
-              }
+              value={payment.amount != null ? formatCurrency(payment.amount, 'USD') : '—'}
               valueClassName="text-green-600"
             />
             {payment.paymentDate && (
               <DetailRow label={t('payment.paymentDate')} value={payment.paymentDate} />
             )}
-            {payment.trxId ? (
-              <DetailRow label={t('payment.transactionId', { defaultValue: 'Transaction ID' })} value={payment.trxId} />
-            ) : null}
-            {payment.note ? <DetailRow label={t('payment.note')} value={payment.note} /> : null}
-            <DetailRow
-              label={t('payment.status')}
-              value={statusLabel}
-              valueClassName={cn(statusConfig.text, 'font-medium')}
-            />
-            {payment.checkImage ? (
-              <div className="pt-3">
-                <p className="text-sm text-muted-foreground mb-2">
+            {payment.trxId && (
+              <DetailRow
+                label={t('payment.transactionId', { defaultValue: 'Transaction ID' })}
+                value={payment.trxId}
+                valueClassName="font-mono"
+              />
+            )}
+            {payment.note && (
+              <DetailRow label={t('payment.note')} value={payment.note} />
+            )}
+
+            {/* Status row — pill badge instead of plain text */}
+            <div className="flex justify-between items-center px-3.5 py-2.5 gap-4">
+              <span className="text-[13px] text-muted-foreground flex-shrink-0">
+                {t('payment.status')}
+              </span>
+              <span
+                className={cn(
+                  'text-[11px] font-medium px-2.5 py-0.5 rounded-full',
+                  statusConfig.bg,
+                  statusConfig.text,
+                )}
+              >
+                {statusLabel}
+              </span>
+            </div>
+
+            {/* Check image */}
+            {payment.checkImage && (
+              <div className="px-3.5 py-3 border-t border-gray-100">
+                <p className="text-[12px] text-muted-foreground mb-2">
                   {t('payment.checkImage', { defaultValue: 'Check image' })}
                 </p>
                 <img
                   src={imageUrl(payment.checkImage)}
                   alt="Check"
-                  className="max-h-40 rounded-lg border object-contain"
+                  className="max-h-40 w-full rounded-lg border border-gray-100 object-contain"
                 />
               </div>
-            ) : null}
+            )}
           </div>
         </div>
+
       </div>
     </ModalWrapper>
   )

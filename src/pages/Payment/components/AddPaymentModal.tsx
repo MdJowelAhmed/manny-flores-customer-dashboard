@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  ArrowLeftRight,
   Banknote,
+  Building2,
   CreditCard,
   FileImage,
 } from 'lucide-react'
@@ -32,9 +32,11 @@ export interface AddPaymentSubmitPayload {
   employeeName?: string
   employeePhone?: string
   checkImageName?: string | null
+  loanId?: string
+  financeCompanyName?: string
 }
 
-type MethodKey = 'card' | 'check' | 'cash' | 'wire'
+type MethodKey = 'card' | 'check' | 'cash' | 'finance'
 type SelectedMethodKey = MethodKey | null
 
 const primaryMethodGreen = '#00B050'
@@ -49,8 +51,6 @@ interface AddPaymentModalProps {
   /** Current invoices for the dropdown; payment is applied to the selected row */
   payments: Payment[]
   onSubmit: (data: AddPaymentSubmitPayload) => void
-  /** Hide wire transfer method (e.g. when opened from project details) */
-  hideWireTransfer?: boolean
   /** Pre-select invoice and hide the invoice dropdown */
   lockInvoice?: boolean
   initialInvoice?: string
@@ -131,7 +131,6 @@ export function AddPaymentModal({
   onClose,
   payments,
   onSubmit,
-  hideWireTransfer = false,
   lockInvoice = false,
   initialInvoice,
   projectPayment,
@@ -150,6 +149,8 @@ export function AddPaymentModal({
   const [employeeName, setEmployeeName] = useState('')
   const [employeePhone, setEmployeePhone] = useState('')
   const [cashReceiverId, setCashReceiverId] = useState('')
+  const [loanId, setLoanId] = useState('')
+  const [financeCompanyName, setFinanceCompanyName] = useState('')
 
   const payables = useMemo(
     () =>
@@ -204,6 +205,8 @@ export function AddPaymentModal({
     setEmployeeName('')
     setEmployeePhone('')
     setCashReceiverId('')
+    setLoanId('')
+    setFinanceCompanyName('')
     if (checkInputRef.current) checkInputRef.current.value = ''
   }, [open, payables, initialInvoice, isApiPayment])
 
@@ -219,6 +222,9 @@ export function AddPaymentModal({
       if (methodKey === 'card') return true
       if (methodKey === 'check') return !!checkFile && parsedAmount > 0
       if (methodKey === 'cash') return parsedAmount > 0 && !!cashReceiverId
+      if (methodKey === 'finance') {
+        return parsedAmount > 0 && !!loanId.trim() && !!financeCompanyName.trim()
+      }
       return false
     }
     if (!invoice || !selectedPayment) return false
@@ -226,6 +232,9 @@ export function AddPaymentModal({
     if (methodKey === 'check' && !checkFile) return false
     if (methodKey === 'cash' && cashPaidTo === 'employee') {
       return !!employeeName.trim() && !!employeePhone.trim()
+    }
+    if (methodKey === 'finance') {
+      return !!loanId.trim() && !!financeCompanyName.trim()
     }
     return true
   }, [
@@ -239,6 +248,8 @@ export function AddPaymentModal({
     employeeName,
     employeePhone,
     cashReceiverId,
+    loanId,
+    financeCompanyName,
   ])
 
   const submitApiPayment = async () => {
@@ -249,7 +260,9 @@ export function AddPaymentModal({
         ? 'CARD'
         : methodKey === 'check'
           ? 'CHEQUE'
-          : 'CASH'
+          : methodKey === 'cash'
+            ? 'CASH'
+            : 'FINANCE'
 
     if (apiMethod === 'CHEQUE' && !checkFile) {
       toast.error(t('payment.checkImageRequired'))
@@ -267,6 +280,16 @@ export function AddPaymentModal({
       )
       return
     }
+    if (apiMethod === 'FINANCE') {
+      if (!financeCompanyName.trim()) {
+        toast.error(t('payment.financeCompanyNameRequired'))
+        return
+      }
+      if (!loanId.trim()) {
+        toast.error(t('payment.loanIdRequired'))
+        return
+      }
+    }
 
     try {
       const result = await createProjectPayment({
@@ -275,6 +298,9 @@ export function AddPaymentModal({
         amount: apiMethod === 'CARD' ? undefined : parsedAmount,
         receiverId: apiMethod === 'CASH' ? cashReceiverId : undefined,
         checkImage: apiMethod === 'CHEQUE' ? checkFile ?? undefined : undefined,
+        loanId: apiMethod === 'FINANCE' ? loanId.trim() : undefined,
+        financeCompanyName:
+          apiMethod === 'FINANCE' ? financeCompanyName.trim() : undefined,
       }).unwrap()
 
       if (apiMethod === 'CARD') {
@@ -342,6 +368,16 @@ export function AddPaymentModal({
         return
       }
     }
+    if (methodKey === 'finance') {
+      if (!financeCompanyName.trim()) {
+        toast.error(t('payment.financeCompanyNameRequired'))
+        return
+      }
+      if (!loanId.trim()) {
+        toast.error(t('payment.loanIdRequired'))
+        return
+      }
+    }
 
     const method =
       methodKey === 'cash'
@@ -352,7 +388,7 @@ export function AddPaymentModal({
           ? t('payment.methodDisplayCard')
           : methodKey === 'check'
             ? t('payment.methodDisplayCheck')
-            : t('payment.methodDisplayWire')
+            : t('payment.methodDisplayFinance')
     const mergedNote = mergeNote(note, {
       checkName: methodKey === 'check' ? checkFile?.name ?? null : null,
       employeeName:
@@ -380,6 +416,9 @@ export function AddPaymentModal({
           ? employeePhone.trim()
           : undefined,
       checkImageName: methodKey === 'check' ? checkFile?.name ?? null : null,
+      loanId: methodKey === 'finance' ? loanId.trim() : undefined,
+      financeCompanyName:
+        methodKey === 'finance' ? financeCompanyName.trim() : undefined,
     })
     toast.success(t('payment.paymentRecorded'))
     handleClose()
@@ -399,7 +438,7 @@ export function AddPaymentModal({
           ? t('payment.checkPaymentTitle')
           : methodKey === 'cash'
             ? t('payment.cashPaymentTitle')
-            : t('payment.wireTransferInfo')
+          : t('payment.financePaymentTitle')
 
   return (
     <ModalWrapper
@@ -508,15 +547,13 @@ export function AddPaymentModal({
                 subtitle={t('payment.methodCashSub')}
                 onClick={() => setMethodKey('cash')}
               />
-              {!hideWireTransfer ? (
-                <MethodCard
-                  active={methodKey === 'wire'}
-                  icon={ArrowLeftRight}
-                  title={t('payment.methodWire')}
-                  subtitle={t('payment.methodWireSub')}
-                  onClick={() => setMethodKey('wire')}
-                />
-              ) : null}
+              <MethodCard
+                active={methodKey === 'finance'}
+                icon={Building2}
+                title={t('payment.methodFinance')}
+                subtitle={t('payment.methodFinanceSub')}
+                onClick={() => setMethodKey('finance')}
+              />
             </div>
 
             <Button
@@ -539,7 +576,7 @@ export function AddPaymentModal({
               <p className="mt-6 flex-1 text-sm leading-relaxed text-gray-500">
                 {t('payment.selectPaymentMethodHint', {
                   defaultValue:
-                    'Choose Card, Check, or Cash on the left to continue with your payment.',
+                    'Choose Card, Check, Cash, or Finance Company on the left to continue with your payment.',
                 })}
               </p>
             ) : methodKey === 'card' ? (
@@ -645,6 +682,34 @@ export function AddPaymentModal({
                     ) : null}
                   </>
                 )}
+              </div>
+            ) : methodKey === 'finance' ? (
+              <div className="mt-6 flex-1 space-y-4">
+                <p className="text-sm text-gray-600">
+                  {t('payment.financeIntro')}
+                </p>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium text-gray-800">
+                    {t('payment.financeCompanyName')}
+                  </Label>
+                  <Input
+                    value={financeCompanyName}
+                    onChange={(e) => setFinanceCompanyName(e.target.value)}
+                    placeholder={t('payment.financeCompanyNamePlaceholder')}
+                    className={inputClass}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium text-gray-800">
+                    {t('payment.loanId')}
+                  </Label>
+                  <Input
+                    value={loanId}
+                    onChange={(e) => setLoanId(e.target.value)}
+                    placeholder={t('payment.loanIdPlaceholder')}
+                    className={inputClass}
+                  />
+                </div>
               </div>
             ) : (
               <p className="mt-6 flex-1 text-sm leading-relaxed text-gray-600">

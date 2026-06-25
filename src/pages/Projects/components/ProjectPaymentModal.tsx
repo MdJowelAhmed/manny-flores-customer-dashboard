@@ -67,7 +67,6 @@ export function ProjectPaymentModal({
       onClose={onClose}
       payments={payablePayments}
       onSubmit={() => {}}
-      hideWireTransfer
       lockInvoice
       initialInvoice={payableInvoice}
       projectPayment={projectPaymentContext}

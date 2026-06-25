@@ -66,7 +66,7 @@ export interface CompleteProjectResponse {
     data?: ProjectScheduleApiDoc
 }
 
-export type ProjectPaymentMethod = 'CARD' | 'CASH' | 'CHEQUE'
+export type ProjectPaymentMethod = 'CARD' | 'CASH' | 'CHEQUE' | 'FINANCE'
 
 export interface CreateProjectPaymentPayload {
     estimateId: string
@@ -74,6 +74,8 @@ export interface CreateProjectPaymentPayload {
     amount?: number
     receiverId?: string
     checkImage?: File
+    loanId?: string
+    financeCompanyName?: string
 }
 
 export interface CardCheckoutPaymentData {
@@ -118,6 +120,12 @@ function buildProjectPaymentFormData(payload: CreateProjectPaymentPayload): Form
     }
     if (payload.checkImage) {
         formData.append('checkImage', payload.checkImage, payload.checkImage.name)
+    }
+    if (payload.loanId) {
+        formData.append('loanId', payload.loanId)
+    }
+    if (payload.financeCompanyName) {
+        formData.append('financeCompanyName', payload.financeCompanyName)
     }
     return formData
 }

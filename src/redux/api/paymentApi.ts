@@ -42,7 +42,7 @@ export interface PaymentApiDoc {
   amount: number | null
   receiverId: string | null
   note: string | null
-  method: 'CARD' | 'CASH' | 'CHEQUE'
+  method: 'CARD' | 'CASH' | 'CHEQUE' | 'FINANCE'
   checkImage: string | null
   trxId: string | null
   stripePaymentIntentId: string | null
@@ -81,6 +81,7 @@ function formatMethod(method?: string): string {
   if (value === 'CARD') return 'Card'
   if (value === 'CASH') return 'Cash'
   if (value === 'CHEQUE') return 'Cheque'
+  if (value === 'FINANCE') return 'Finance Company'
   return method || '—'
 }
 
