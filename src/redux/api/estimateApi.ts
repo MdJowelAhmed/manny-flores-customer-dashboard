@@ -136,7 +136,7 @@ function mapApprovalStatus(projectStatus: string, isApproved: boolean): Estimate
     return 'Pending'
 }
 
-function computeEstimateTotal(doc: EstimateApiDoc): number {
+export function computeEstimateTotal(doc: EstimateApiDoc): number {
     const materialsTotal = (doc.materials ?? []).reduce(
         (sum, item) => sum + Number(item.totalPrice ?? item.quantity * item.unitPrice),
         0

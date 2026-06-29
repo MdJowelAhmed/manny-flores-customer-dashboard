@@ -5,7 +5,11 @@ import {
     type InvoiceStatus,
     normalizeProjectInvoiceStatus,
 } from '@/pages/Invoice/invoicesData'
-import type { EstimateApiDoc, EstimateMutationResponse } from './estimateApi'
+import {
+    computeEstimateTotal,
+    type EstimateApiDoc,
+    type EstimateMutationResponse,
+} from './estimateApi'
 
 export interface InvoicePagination {
     total: number
@@ -131,29 +135,20 @@ function mapApprovalToInvoiceStatus(approval: InvoiceApprovalApiDoc): InvoiceSta
 export function mapInvoiceApprovalApiDocToUi(doc: InvoiceApprovalApiDoc): Invoice {
     const est = doc.estimate
     const taxPercent = Number(est?.taxNumber ?? 0)
-    const subtotal = Number(est?.totalCost ?? 0)
+    const subtotal = est ? computeEstimateTotal(est) : 0
     const amount = Math.round(subtotal * (1 + taxPercent / 100))
     const projectStatus = normalizeProjectInvoiceStatus(est?.projectStatus)
-
-    const materials = est?.materials ?? []
-    const vehicles = est?.vehicles ?? []
-    const equipment = est?.equipment ?? []
-    const qtyMaterials = materials.reduce((sum, r) => sum + (r.quantity ?? 0), 0)
-    const qtyVehicles = vehicles.reduce(
-        (sum, r: any) => sum + Number(r.vehicleQuantity ?? r.vehicleUnits ?? 0),
-        0
-    )
-    const qtyEquipment = equipment.reduce((sum, r: any) => sum + (r.equipmentUnits ?? 0), 0)
-    const lineCount = materials.length + vehicles.length + equipment.length
+    const projectName = est?.projectName?.trim() || '—'
 
     return {
         id: doc.estimateId,
         approvalId: doc.id,
         refCode: `EST-${doc.estimateId.slice(0, 8).toUpperCase()}`,
+        projectName,
         customerName: est?.customerName ?? doc.customerName,
-        materialSummary: est?.projectName ?? '—',
-        summaryQty: qtyMaterials + qtyVehicles + qtyEquipment,
-        summaryCostCount: lineCount,
+        materialSummary: projectName,
+        summaryQty: 0,
+        summaryCostCount: 0,
         amount,
         invoiceDate: toIsoDateOnly(est?.createdAt ?? doc.createdAt),
         dueDate: toIsoDateOnly(est?.updatedAt ?? doc.updatedAt),
@@ -166,7 +161,7 @@ export function mapInvoiceApprovalApiDocToUi(doc: InvoiceApprovalApiDoc): Invoic
         subtotal,
         signatureDataUrl: doc.signature ?? undefined,
         approvedAt: doc.signature ? doc.updatedAt : undefined,
-        totalDate: (est as any)?.totalDate,
+        totalDate: est?.totalDate,
         estimate: est,
     }
 }
