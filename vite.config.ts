@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
       host: true,
       open: true,
       allowedHosts: [
-        '193.46.198.251',
+        '46.202.176.52',
         "10.10.7.30",
       ],
       proxy: {
@@ -44,9 +44,9 @@ export default defineConfig(({ mode }) => {
         },
       },
       host: true,
-      port: 5176,
+      port: 4176,
       allowedHosts: [
-        '193.46.198.251',
+        '46.202.176.52',
         "10.10.7.30",
         'localhost',
       ],
