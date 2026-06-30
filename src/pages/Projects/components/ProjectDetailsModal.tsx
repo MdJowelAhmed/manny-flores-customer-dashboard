@@ -17,7 +17,7 @@ import {
   fmtProjectMoney,
   type Project,
 } from '../projectsData'
-import { imageUrl } from '@/components/common/getImageUrl'
+import { imageUrl, imageUrlAbsolute } from '@/components/common/getImageUrl'
 
 interface ProjectDetailsModalProps {
   open: boolean
@@ -265,18 +265,15 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
             </p>
             <div className="rounded-lg border border-gray-200 bg-white p-4">
               <img
-                src={
-                  preview.signatureUrl.startsWith('/uploads')
-                    ? preview.signatureUrl
-                    : imageUrl(preview.signatureUrl)
-                }
+                src={imageUrl(preview.signatureUrl)}
                 alt={t('projects.signature', { defaultValue: 'Customer signature' })}
                 crossOrigin="anonymous"
                 className="mx-auto max-h-32 w-full object-contain"
                 onError={(e) => {
-                  // Fallback: if the transformed path fails, try the raw value.
-                  const raw = preview.signatureUrl
-                  if (raw && e.currentTarget.src !== raw) e.currentTarget.src = raw
+                  const absolute = imageUrlAbsolute(preview.signatureUrl)
+                  if (absolute && e.currentTarget.src !== absolute) {
+                    e.currentTarget.src = absolute
+                  }
                 }}
               />
             </div>

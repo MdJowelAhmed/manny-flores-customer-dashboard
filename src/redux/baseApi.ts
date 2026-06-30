@@ -5,13 +5,12 @@ import {
     type FetchArgs,
     type FetchBaseQueryError,
 } from '@reduxjs/toolkit/query/react'
+import { API_V1_URL } from '@/config/api'
 import i18n from '@/i18n/i18n'
 import { toast } from '@/utils/toast'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import { logout } from './slices/authSlice'
 import type { RootState } from './store'
-
-export const socketUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 
 const PUBLIC_AUTH_ENDPOINTS = new Set([
     'login',
@@ -25,10 +24,15 @@ const PUBLIC_AUTH_ENDPOINTS = new Set([
 ])
 
 const rawBaseQuery = fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API_BASE_URL + '/api/v1',
+    baseUrl: API_V1_URL,
     prepareHeaders: (headers, { getState, endpoint }) => {
         if (endpoint !== 'resetPassword') {
-            const token = (getState() as RootState).auth.token
+            const stateToken = (getState() as RootState).auth.token
+            const token =
+                stateToken ??
+                (typeof localStorage !== 'undefined'
+                    ? localStorage.getItem('token')
+                    : null)
             if (token) {
                 headers.set('authorization', `Bearer ${token}`)
             }
