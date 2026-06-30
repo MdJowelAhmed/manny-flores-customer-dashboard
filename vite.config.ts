@@ -3,8 +3,9 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig(({ mode }) => {
-  // const env = loadEnv(mode, process.cwd(), '')
-  // const apiBase = env.VITE_API_BASE_URL || 'http://10.10.7.28:5000'
+  const env = loadEnv(mode, process.cwd(), '')
+  const apiTarget = env.VITE_API_BASE_URL
+  const uploadsProxyTarget = env.VITE_UPLOADS_PROXY_TARGET || apiTarget
 
   return {
     plugins: [react()],
@@ -20,39 +21,44 @@ export default defineConfig(({ mode }) => {
         '46.202.176.52',
         // "10.10.7.30",
       ],
-      // proxy: {
-      //   '/uploads': {
-      //     target: apiBase,
-      //     changeOrigin: true,
-      //   },
-      // },
+      proxy: uploadsProxyTarget
+        ? {
+            '/uploads': {
+              target: uploadsProxyTarget,
+              changeOrigin: true,
+              secure: false,
+            },
+            '/image': {
+              target: uploadsProxyTarget,
+              changeOrigin: true,
+              secure: false,
+            },
+          }
+        : undefined,
     },
-    // preview: {
-    //   host: true,
-    //   port: 5175,
-    //   allowedHosts: [
-    //     '193.46.198.251',
-    //     "10.10.7.30",
-    //     'localhost',
-    //   ],
-    // },
     preview: {
-      // proxy: {
-      //   '/uploads': {
-      //     target: apiBase,
-      //     changeOrigin: true,
-      //   },
-      // },
       host: true,
       open: false,
       port: 4176,
+      proxy: uploadsProxyTarget
+        ? {
+            '/uploads': {
+              target: uploadsProxyTarget,
+              changeOrigin: true,
+              secure: false,
+            },
+            '/image': {
+              target: uploadsProxyTarget,
+              changeOrigin: true,
+              secure: false,
+            },
+          }
+        : undefined,
       allowedHosts: [
         '46.202.176.52',
         // "10.10.7.30",
         // 'localhost',
       ],
-
     },
   }
-  
 })

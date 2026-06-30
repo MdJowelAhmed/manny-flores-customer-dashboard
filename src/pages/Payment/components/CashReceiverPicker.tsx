@@ -28,8 +28,7 @@ function roleLabel(role: string, t: (key: string, opts?: { defaultValue: string 
 
 function avatarSrc(profile: string | null): string | undefined {
   if (!profile || profile === '/image.png') return undefined
-  if (profile.startsWith('/uploads')) return profile
-  return imageUrl(profile)
+  return imageUrl(profile) || undefined
 }
 
 function ReceiverAvatar({ receiver, className }: { receiver: PaymentReceiver; className?: string }) {
