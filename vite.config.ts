@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
-  const apiBase = env.VITE_API_BASE_URL || 'http://10.10.7.28:5000'
+  // const env = loadEnv(mode, process.cwd(), '')
+  // const apiBase = env.VITE_API_BASE_URL || 'http://10.10.7.28:5000'
 
   return {
     plugins: [react()],
@@ -18,14 +18,14 @@ export default defineConfig(({ mode }) => {
       open: false,
       allowedHosts: [
         '46.202.176.52',
-        "10.10.7.30",
+        // "10.10.7.30",
       ],
-      proxy: {
-        '/uploads': {
-          target: apiBase,
-          changeOrigin: true,
-        },
-      },
+      // proxy: {
+      //   '/uploads': {
+      //     target: apiBase,
+      //     changeOrigin: true,
+      //   },
+      // },
     },
     // preview: {
     //   host: true,
@@ -37,19 +37,19 @@ export default defineConfig(({ mode }) => {
     //   ],
     // },
     preview: {
-      proxy: {
-        '/uploads': {
-          target: apiBase,
-          changeOrigin: true,
-        },
-      },
+      // proxy: {
+      //   '/uploads': {
+      //     target: apiBase,
+      //     changeOrigin: true,
+      //   },
+      // },
       host: true,
       open: false,
       port: 4176,
       allowedHosts: [
         '46.202.176.52',
-        "10.10.7.30",
-        'localhost',
+        // "10.10.7.30",
+        // 'localhost',
       ],
 
     },
