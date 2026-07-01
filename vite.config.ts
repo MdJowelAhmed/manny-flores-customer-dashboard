@@ -19,21 +19,23 @@ export default defineConfig(({ mode }) => {
       open: false,
       allowedHosts: [
         '46.202.176.52',
+        'api.stoneyportal.com',
+        'stoneyportal.com',
         // "10.10.7.30",
       ],
       proxy: uploadsProxyTarget
         ? {
-            '/uploads': {
-              target: uploadsProxyTarget,
-              changeOrigin: true,
-              secure: false,
-            },
-            '/image': {
-              target: uploadsProxyTarget,
-              changeOrigin: true,
-              secure: false,
-            },
-          }
+          '/uploads': {
+            target: uploadsProxyTarget,
+            changeOrigin: true,
+            secure: false,
+          },
+          '/image': {
+            target: uploadsProxyTarget,
+            changeOrigin: true,
+            secure: false,
+          },
+        }
         : undefined,
     },
     preview: {
@@ -42,22 +44,22 @@ export default defineConfig(({ mode }) => {
       port: 4176,
       proxy: uploadsProxyTarget
         ? {
-            '/uploads': {
-              target: uploadsProxyTarget,
-              changeOrigin: true,
-              secure: false,
-            },
-            '/image': {
-              target: uploadsProxyTarget,
-              changeOrigin: true,
-              secure: false,
-            },
-          }
+          '/uploads': {
+            target: uploadsProxyTarget,
+            changeOrigin: true,
+            secure: false,
+          },
+          '/image': {
+            target: uploadsProxyTarget,
+            changeOrigin: true,
+            secure: false,
+          },
+        }
         : undefined,
       allowedHosts: [
         '46.202.176.52',
-        // "10.10.7.30",
-        // 'localhost',
+        'api.stoneyportal.com',
+        'stoneyportal.com'
       ],
     },
   }
