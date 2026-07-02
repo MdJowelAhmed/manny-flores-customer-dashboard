@@ -28,29 +28,28 @@ export async function generateInvoicePdf(
   })
 
   const imgData = canvas.toDataURL('image/png')
-  const pdf = new jsPDF({ unit: 'pt', format: 'a4' })
+  // Keep classic A4 portrait width and add explicit margins.
+  const pdf = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' })
 
   const pageWidth = pdf.internal.pageSize.getWidth()
   const pageHeight = pdf.internal.pageSize.getHeight()
+  const marginX = 24
+  const marginY = 24
 
-  // Fit image to page width, keep aspect ratio
-  const imgWidth = pageWidth
-  const imgHeight = (canvas.height * imgWidth) / canvas.width
+  // Force-fit whole invoice into a single page while preserving aspect ratio.
+  const contentWidth = pageWidth - marginX * 2
+  const contentHeight = pageHeight - marginY * 2
+  const widthScale = contentWidth / canvas.width
+  const heightScale = contentHeight / canvas.height
+  const scale = Math.min(widthScale, heightScale)
+  const imgWidth = canvas.width * scale
+  const imgHeight = canvas.height * scale
 
-  let position = 0
-  let remaining = imgHeight
+  const x = marginX + (contentWidth - imgWidth) / 2
+  const y = marginY
 
-  // Add first page
-  pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-  remaining -= pageHeight
-
-  // Add extra pages by shifting y-position upward
-  while (remaining > 0) {
-    pdf.addPage()
-    position -= pageHeight
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-    remaining -= pageHeight
-  }
+  // Always render as a single-page PDF.
+  pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight)
 
   if (mode === 'download') {
     pdf.save(fileName)

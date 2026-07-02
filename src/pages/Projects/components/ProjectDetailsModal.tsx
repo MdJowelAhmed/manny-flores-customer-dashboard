@@ -121,14 +121,14 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
       headerClassName="border-b border-gray-100 pb-4"
       footer={
         <div className="flex justify-end gap-3">
-          <Button
+          {/* <Button
             type="button"
             variant="outline"
             className="h-10 rounded-lg border-gray-300 px-6 font-medium text-gray-800"
             onClick={onClose}
           >
             {t('common.close', { defaultValue: 'Close' })}
-          </Button>
+          </Button> */}
           {isPaymentDue ? (
             <Button
               type="button"
@@ -154,9 +154,9 @@ export function ProjectDetailsModal({ open, onClose, project }: ProjectDetailsMo
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#22c55e] text-sm font-bold text-white">
-                MF
-              </div>
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-lg font-bold text-white">
+            <img src={'/logo3.png'} alt="logo" className="w-16 h-16 object-contain" />
+            </div>
               <div>
                 <p className="text-lg font-bold text-gray-900">{COMPANY_INFO.name}</p>
                 <p className="text-sm text-gray-500">{COMPANY_INFO.tagline}</p>

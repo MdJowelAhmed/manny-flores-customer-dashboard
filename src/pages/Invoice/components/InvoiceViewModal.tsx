@@ -167,7 +167,7 @@ export function InvoiceViewModal({
         <div className="flex flex-wrap items-start justify-between gap-6 border-b border-gray-100 pb-6">
           <div className="flex items-center gap-4">
             <img
-              src="/image3.svg"
+              src="/logo3.png"
               alt={COMPANY_INFO.name}
               className="h-14 w-14 shrink-0 rounded-full object-cover"
               onError={(e) => {
