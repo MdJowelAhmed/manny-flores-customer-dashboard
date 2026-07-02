@@ -1,6 +1,6 @@
-import { useState } from 'react'
+// import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Menu, Bell, LogOut, User, Settings } from 'lucide-react'
+import { Menu,  LogOut, User, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -11,13 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ModalWrapper } from '@/components/common/ModalWrapper'
+// import { ModalWrapper } from '@/components/common/ModalWrapper'
 import { useAppDispatch,  } from '@/redux/hooks'
 import { toggleSidebar } from '@/redux/slices/uiSlice'
 import { logout } from '@/redux/slices/authSlice'
-import { SAMPLE_NOTIFICATIONS } from '@/pages/Notifications/notificationData'
-import type { Notification } from '@/types/notification'
-import { formatDistanceToNow } from 'date-fns'
+// import { SAMPLE_NOTIFICATIONS } from '@/pages/Notifications/notificationData'
+// import type { Notification } from '@/types/notification'
+// import { formatDistanceToNow } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import {  useGetMyProfileQuery } from '@/redux/api/authApi'
 import { imageUrl } from '../common/getImageUrl'
@@ -41,44 +41,44 @@ const routeTitleKeys: Record<string, string> = {
   '/settings/about-us': 'header.routeTitles.aboutUs',
 }
 
-const RECENT_NOTIFICATIONS_COUNT = 3
+  // const RECENT_NOTIFICATIONS_COUNT = 3
 
-function NotificationItem({ notification }: { notification: Notification }) {
+//   function NotificationItem({ notification }: { notification: Notification }) {
 
 
-  return (
-    <div className="py-3 px-3 rounded-lg hover:bg-muted/50 transition-colors border-b last:border-b-0">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm text-accent">{notification.title}</p>
-          <p className="text-sm text-muted-foreground truncate">{notification.message}</p>
-          <p className="text-xs text-muted-foreground mt-2">
-            {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
+//   return (
+//     <div className="py-3 px-3 rounded-lg hover:bg-muted/50 transition-colors border-b last:border-b-0">
+//       <div className="flex items-start justify-between gap-2">
+//         <div className="flex-1 min-w-0">
+//           <p className="font-medium text-sm text-accent">{notification.title}</p>
+//           <p className="text-sm text-muted-foreground truncate">{notification.message}</p>
+//           <p className="text-xs text-muted-foreground mt-2">
+//             {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
 
 export function Header() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const [notificationModalOpen, setNotificationModalOpen] = useState(false)
+  // const [notificationModalOpen, setNotificationModalOpen] = useState(false)
   const location = useLocation()
   const titleKey = routeTitleKeys[location.pathname] || 'header.routeTitles.dashboard'
   const pageTitle = t(titleKey)
-  const recentNotifications = SAMPLE_NOTIFICATIONS.slice(0, RECENT_NOTIFICATIONS_COUNT)
+  // const recentNotifications = SAMPLE_NOTIFICATIONS.slice(0, RECENT_NOTIFICATIONS_COUNT)
   const currentLang = i18n.language
 
   // api calls
   const { data: userRes } = useGetMyProfileQuery()
   const user = userRes?.data
-  const handleViewAllNotifications = () => {
-    setNotificationModalOpen(false)
-    navigate('/notifications')
-  }
+  // const handleViewAllNotifications = () => {
+  //   setNotificationModalOpen(false)
+  //   navigate('/notifications')
+  // }
 
   const handleLogout = () => {
     dispatch(logout())
@@ -135,7 +135,7 @@ export function Header() {
           </Button>
 
           {/* Notifications */}
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             className="relative"
@@ -165,12 +165,12 @@ export function Header() {
                 <NotificationItem key={n.id} notification={n} />
               ))}
             </div>
-          </ModalWrapper>
+          </ModalWrapper> */}
 
           {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+              <Button variant="ghost" className="relative h-9 w-9 rounded-full ml-3">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={user?.profile ? imageUrl(user.profile) : undefined} />
                   <AvatarFallback className="text-white bg-primary" >
@@ -200,7 +200,7 @@ export function Header() {
                 {t('header.settingsMenu')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive ">
                 <LogOut className="h-4 w-4 mr-2" />
                 {t('header.logOut')}
               </DropdownMenuItem>
