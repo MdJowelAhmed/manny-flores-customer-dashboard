@@ -265,7 +265,7 @@ export function Sidebar() {
           <div className="flex items-center gap-3">
             <div className="">
               <div className="text-primary text-white font-bold text-lg flex items-center justify-center w-72  mx-auto hidden md:block">
-                <img src="/assets/image3.svg" alt="manny Flores" className="" />
+                <img src="/logo3.png" alt="logo" className="w-28 h-32 object-contain" />
               </div>
             </div>
           </div>
